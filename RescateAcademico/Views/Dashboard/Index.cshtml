@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Menú Principal";
+    Layout = "_Layout";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="border-bottom pb-2" style="color: #6c1d45;">Panel de Control</h2>
+        <p class="text-muted">Bienvenido a la plataforma de Rescate Académico.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Opciones para Alumnos (Solo Lectura / Interacción básica) -->
+    @if (User.IsInRole("Alumno") || User.IsInRole("Administrador"))
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-badge fs-1 mb-3" style="color: #6c1d45;"></i>
+                    <h5 class="card-title">Mi Perfil Académico</h5>
+                    <p class="card-text text-muted small">Consulta tu situación académica, promedio y carga actual.</p>
+                    <a href="#" class="btn btn-outline-secondary w-100">Ver Perfil</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-text fs-1 mb-3" style="color: #6c1d45;"></i>
+                    <h5 class="card-title">Catálogo de Proyectos</h5>
+                    <p class="card-text text-muted small">Explora y postúlate a proyectos de servicio social o investigación.</p>
+                    <a href="#" class="btn btn-outline-secondary w-100">Explorar</a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Opciones para Tutores -->
+    @if (User.IsInRole("Tutor") || User.IsInRole("Administrador"))
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm text-white" style="background-color: #6c1d45;">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 mb-3"></i>
+                    <h5 class="card-title">Mis Tutorados</h5>
+                    <p class="card-text small text-light">Visualiza la radiografía y riesgo académico de tus alumnos asignados.</p>
+                    <a href="#" class="btn btn-light w-100" style="color: #6c1d45;">Ir a Tutoría</a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Opciones solo para Administradores -->
+    @if (User.IsInRole("Administrador"))
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-lock fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Gestión de Usuarios</h5>
+                    <p class="card-text text-muted small">Administración de roles, alumnos, tutores y directivos.</p>
+                    <a href="#" class="btn btn-dark w-100">Administrar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-bar-chart fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Tablero Estadístico</h5>
+                    <p class="card-text text-muted small">Reportes globales de desempeño y situación estudiantil.</p>
+                    <a href="#" class="btn btn-dark w-100">Ver Reportes</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

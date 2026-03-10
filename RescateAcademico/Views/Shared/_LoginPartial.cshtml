@@ -1,0 +1,25 @@
+@using Microsoft.AspNetCore.Identity
+@using RescateAcademico.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    <li class="nav-item d-flex align-items-center me-3">
+        <span class="text-dark fw-bold">Hola, @(user?.Email)</span>
+    </li>
+    <li class="nav-item">
+        <form class="form-inline" asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="nav-link btn btn-link text-dark" style="background-color: transparent; border: none; cursor: pointer;">Cerrar Sesión</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-white btn px-4" style="background-color: #6c1d45; border-radius: 20px;" asp-area="" asp-controller="Account" asp-action="Login">Iniciar Sesión</a>
+    </li>
+}
+</ul>
