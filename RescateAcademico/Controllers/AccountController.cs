@@ -43,14 +43,26 @@ namespace RescateAcademico.Controllers
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: true);
-                
+
                 if (result.Succeeded)
                 {
-                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Contains("Admin"))
                     {
-                        return Redirect(returnUrl);
+                        return RedirectToAction("AdminDashboard", "Dashboard");
                     }
-                    return RedirectToAction("Index", "Dashboard");
+                    else if (roles.Contains("Tutor"))
+                    {
+                        return RedirectToAction("TutorDashboard", "Dashboard");
+                    }
+                    else if (roles.Contains("Authority"))
+                    {
+                        return RedirectToAction("AuthorityDashboard", "Dashboard");
+                    }
+                    else
+                    {
+                        return RedirectToAction("StudentDashboard", "Dashboard");
+                    }
                 }
                 
                 if (result.IsLockedOut)
