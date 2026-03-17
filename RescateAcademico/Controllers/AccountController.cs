@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RescateAcademico.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace RescateAcademico.Controllers
 {
@@ -204,9 +205,56 @@ namespace RescateAcademico.Controllers
         {
             return View();
         }
+
+        // --- Registro de Nuevo Usuario Temporal ---
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, IsActive = true, EmailConfirmed = true };
+                var result = await _userManager.CreateAsync(user, model.Password);
+                
+                if (result.Succeeded)
+                {
+                    // Asignamos el rol de Alumno por defecto.
+                    await _userManager.AddToRoleAsync(user, "Alumno");
+                    
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "Dashboard");
+                }
+                
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            return View(model);
+        }
     }
 
     // View Models para Account
+    public class RegisterViewModel
+    {
+        [Required(ErrorMessage = "El correo es requerido")]
+        [EmailAddress(ErrorMessage = "Correo inválido")]
+        public string Email { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "La contraseña es requerida")]
+        [StringLength(100, ErrorMessage = "La {0} debe tener al menos {2} caracteres.", MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+        
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+
     public class ResetPasswordViewModel
     {
         public string Email { get; set; } = string.Empty;
