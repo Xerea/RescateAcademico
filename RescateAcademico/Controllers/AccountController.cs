@@ -99,6 +99,8 @@ namespace RescateAcademico.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
+            // Limpia la sesión para asegurar un logout completo
+            HttpContext.Session.Clear();
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
