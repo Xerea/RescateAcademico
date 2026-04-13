@@ -1,0 +1,47 @@
+@model RescateAcademico.Models.CicloEscolar
+@{
+    ViewData["Title"] = "Crear Ciclo Escolar";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Nuevo Ciclo Escolar</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="CrearCiclo">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre * (ej: 2026-A)</label>
+                        <input asp-for="Nombre" class="form-control" required placeholder="2026-A" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Período (ej: 2026-1)</label>
+                        <input asp-for="Periodo" class="form-control" placeholder="2026-1" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Inicio</label>
+                        <input asp-for="FechaInicio" class="form-control" type="date" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Fin</label>
+                        <input asp-for="FechaFin" class="form-control" type="date" required />
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="EsActual" class="form-check-input" />
+                            <label class="form-check-label">¿Es el ciclo actual?</label>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Crear Ciclo
+                        </button>
+                        <a asp-action="CiclosEscolares" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

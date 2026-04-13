@@ -1,0 +1,221 @@
+@model RescateAcademico.Controllers.PerfilAcademicoViewModel
+@{
+    ViewData["Title"] = "Mi Perfil Académico";
+    Layout = "_Layout";
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+    return;
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;">
+            <i class="bi bi-person-badge"></i> Mi Perfil Académico
+        </h2>
+    </div>
+</div>
+
+@if (Model?.Alumno != null)
+{
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-person-circle fs-1" style="color: #6c1d45;"></i>
+                    </div>
+                    <h5>@Model.Alumno.Nombre @Model.Alumno.Apellidos</h5>
+                    <p class="text-muted mb-1"><strong>Matrícula:</strong> @Model.Alumno.Matricula</p>
+                    <p class="text-muted mb-1"><strong>Carrera:</strong> @Model.Alumno.Carrera</p>
+                    <p class="text-muted mb-1"><strong>Semestre:</strong> @Model.Alumno.SemestreActual</p>
+                    <hr />
+                    <div class="d-flex justify-content-center gap-3">
+                        <div>
+                            <h4 class="mb-0 @(Model.Alumno.PromedioGlobal >= 8 ? "text-success" : Model.Alumno.PromedioGlobal >= 6 ? "text-warning" : "text-danger")">
+                                @Model.Alumno.PromedioGlobal.ToString("F2")
+                            </h4>
+                            <small class="text-muted">Promedio</small>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">@Model.Alumno.CargaAcademicaActual</h4>
+                            <small class="text-muted">Materias</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header" style="background-color: @(
+                    Model.NivelRiesgo == "Rojo" ? "#dc3545" : 
+                    Model.NivelRiesgo == "Amarillo" ? "#ffc107" : "#198754"
+                ); color: @(Model.NivelRiesgo == "Amarillo" ? "black" : "white");">
+                    <h5 class="mb-0">
+                        <i class="bi bi-traffic-light"></i> Nivel de Riesgo Académico: @Model.NivelRiesgo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-success bg-opacity-10">
+                                <h3 class="text-success">@Model.MateriasAprobadas</h3>
+                                <small class="text-muted">Aprobadas</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-danger bg-opacity-10">
+                                <h3 class="text-danger">@Model.MateriasReprobadas</h3>
+                                <small class="text-muted">Reprobadas</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-warning bg-opacity-10">
+                                <h3 class="text-warning">@Model.Recursamientos</h3>
+                                <small class="text-muted">Recursadas</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Sugerencias.Any())
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Sugerencias para Ti</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    @foreach (var sugerencia in Model.Sugerencias)
+                    {
+                        <li class="mb-2">@sugerencia</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header" style="background-color: #1f6f8b; color: white;">
+                    <h5 class="mb-0"><i class="bi bi-cpu"></i> IA Predictiva de Deserción</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Probabilidad estimada:</strong> @((Model.ProbabilidadDesercion * 100).ToString("F1"))%</p>
+                    <p class="mb-0">
+                        <strong>Nivel predictivo:</strong>
+                        <span class="badge @(Model.NivelRiesgoPredictivo == "Critico" ? "bg-danger" : Model.NivelRiesgoPredictivo == "Alto" ? "bg-warning text-dark" : Model.NivelRiesgoPredictivo == "Medio" ? "bg-info text-dark" : "bg-success")">
+                            @Model.NivelRiesgoPredictivo
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header" style="background-color: #6c1d45; color: white;">
+                    <h5 class="mb-0"><i class="bi bi-stars"></i> IA: Proyectos Compatibles</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CompatibilidadConvocatorias.Any())
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var recomendacion in Model.CompatibilidadConvocatorias)
+                            {
+                                <li class="mb-3 pb-2 border-bottom">
+                                    <strong>@recomendacion.Titulo</strong>
+                                    <span class="badge bg-primary ms-2">@recomendacion.Puntaje.ToString("F1")%</span>
+                                    <br />
+                                    <small class="text-muted">@recomendacion.Explicacion</small>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No hay convocatorias activas para recomendar.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header" style="background-color: #6c1d45; color: white;">
+                    <h5 class="mb-0"><i class="bi bi-journal-text"></i> Historial por Período</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.PromedioPorSemestre.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Período</th>
+                                        <th>Promedio</th>
+                                        <th>Materias</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var semestre in Model.PromedioPorSemestre)
+                                    {
+                                        <tr>
+                                            <td>@semestre.Periodo</td>
+                                            <td>
+                                                <span class="badge @(semestre.Promedio >= 8 ? "bg-success" : semestre.Promedio >= 6 ? "bg-warning" : "bg-danger")">
+                                                    @semestre.Promedio.ToString("F2")
+                                                </span>
+                                            </td>
+                                            <td>@semestre.Materias</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">Sin datos de períodos</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header" style="background-color: #6c1d45; color: white;">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Mis Tutores</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Alumno.TutoresAsignados?.Any() == true)
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var asignacion in Model.Alumno.TutoresAsignados.Where(a => a.EstaActiva))
+                            {
+                                <li class="mb-2">
+                                    <i class="bi bi-person-badge" style="color: #6c1d45;"></i>
+                                    @asignacion.Tutor?.Nombre @asignacion.Tutor?.Apellidos
+                                    <br />
+                                    <small class="text-muted">@asignacion.Tutor?.Especialidad</small>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">Sin tutores asignados</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

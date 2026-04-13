@@ -6,7 +6,7 @@ namespace RescateAcademico.Models
     public class Alumno
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)] // La boleta es la llave
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string Matricula { get; set; } = null!;
         
         [Required]
@@ -15,16 +15,32 @@ namespace RescateAcademico.Models
         [Required]
         public string Apellidos { get; set; } = null!;
         
-        public string Carrera { get; set; } = null!;
+        public string? Carrera { get; set; }
         
         public decimal PromedioGlobal { get; set; }
         
-        public int SemestreActual { get; set; }
+        public int SemestreActual { get; set; } = 1;
         
-        public string? RiesgoAcademico { get; set; } // Verde, Amarillo, Rojo
+        public string? RiesgoAcademico { get; set; }
+
+        public int? CargaAcademicaActual { get; set; }
+
+        public int? MateriasReprobadas { get; set; }
+
+        public int? EtsPresentados { get; set; }
+
+        public int? Recursamientos { get; set; }
+
+        public string? Estatus { get; set; } = "Activo";
+
+        public string? Correo { get; set; }
 
         [ForeignKey("Usuario")]
         public string? UserId { get; set; }
         public ApplicationUser? Usuario { get; set; }
+
+        public ICollection<Calificacion> Calificaciones { get; set; } = new List<Calificacion>();
+        public ICollection<AsignacionTutor> TutoresAsignados { get; set; } = new List<AsignacionTutor>();
+        public ICollection<Postulacion> Postulaciones { get; set; } = new List<Postulacion>();
     }
 }

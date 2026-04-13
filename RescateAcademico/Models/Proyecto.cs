@@ -13,13 +13,15 @@ namespace RescateAcademico.Models
         [Required]
         public string Descripcion { get; set; } = null!;
         
-        public string Tipo { get; set; } = null!; // Servicio Social, Laboratorio, etc.
+        public string Tipo { get; set; } = null!;
         
         public int CupoMaximo { get; set; }
         
         public DateTime FechaCierre { get; set; }
         
         public bool EstaActivo { get; set; } = true;
+
+        public ICollection<Postulacion> Postulaciones { get; set; } = new List<Postulacion>();
     }
     
     public class Postulacion
@@ -35,6 +37,6 @@ namespace RescateAcademico.Models
         
         public DateTime FechaSolicitud { get; set; } = DateTime.Now;
         
-        public string Estado { get; set; } = "En Revisión"; // Aceptado, Rechazado
+        public string Estado { get; set; } = "En Revisión";
     }
 }

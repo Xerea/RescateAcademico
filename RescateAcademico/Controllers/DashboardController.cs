@@ -1,38 +1,36 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RescateAcademico.Data;
 
 namespace RescateAcademico.Controllers
 {
-    [Authorize] // HU-RA-01 & HU-RA-03: Solo matriculados activos (logueados)
+    [Authorize]
     public class DashboardController : Controller
     {
-        public IActionResult Index()
+        private readonly ApplicationDbContext _context;
+
+        public DashboardController(ApplicationDbContext context)
         {
-            return View();
+            _context = context;
         }
 
-        [Authorize(Roles = "Admin")]
-        public IActionResult AdminDashboard()
+        public async Task<IActionResult> Index()
         {
-            return View("Index");
-        }
+            var stats = new DashboardStats();
 
-        [Authorize(Roles = "Tutor")]
-        public IActionResult TutorDashboard()
-        {
-            return View("Index");
-        }
+            if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
+            {
+                stats.TotalAlumnos = await _context.Alumnos.CountAsync();
+                stats.TotalProyectos = await _context.Proyectos.CountAsync(p => p.EstaActivo);
+                stats.TotalConvocatorias = await _context.Convocatorias.CountAsync(c => c.EstaActiva);
+                stats.TotalPostulaciones = await _context.Postulaciones.CountAsync();
+                stats.PostulacionesPendientes = await _context.Postulaciones.CountAsync(p => p.Estado == "En Revisión");
+                stats.AlumnosEnRiesgo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo");
+                stats.TotalTutores = await _context.Tutores.CountAsync(t => t.EstaActivo);
+            }
 
-        [Authorize(Roles = "Alumno")]
-        public IActionResult StudentDashboard()
-        {
-            return View("Index");
-        }
-
-        [Authorize(Roles = "Authority")]
-        public IActionResult AuthorityDashboard()
-        {
-            return View("Index");
+            return View(stats);
         }
     }
 }

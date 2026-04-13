@@ -1,0 +1,93 @@
+@model IEnumerable<RescateAcademico.Models.Postulacion>
+@{
+    ViewData["Title"] = "Gestión de Postulaciones";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: #6c1d45;"><i class="bi bi-clipboard-check"></i> Gestión de Postulaciones</h2>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="get" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <select name="estado" class="form-select">
+                        <option value="Todos">Todos los estados</option>
+                        <option value="En Revisión">En Revisión</option>
+                        <option value="Aceptado">Aceptado</option>
+                        <option value="Rechazado">Rechazado</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead style="background-color: #6c1d45; color: white;">
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Proyecto</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Alumno?.Nombre @item.Alumno?.Apellidos</strong>
+                                <br />
+                                <small class="text-muted">@item.AlumnoId</small>
+                            </td>
+                            <td>@item.Proyecto?.Titulo</td>
+                            <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (item.Estado == "Aceptado")
+                                {
+                                    <span class="badge bg-success">Aceptado</span>
+                                }
+                                else if (item.Estado == "Rechazado")
+                                {
+                                    <span class="badge bg-danger">Rechazado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">En Revisión</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.Estado == "En Revisión")
+                                {
+                                    <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Aceptado" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check"></i> Aceptar
+                                    </a>
+                                    <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Rechazado" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-x"></i> Rechazar
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

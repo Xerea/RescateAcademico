@@ -1,0 +1,89 @@
+@model IEnumerable<RescateAcademico.Models.BitacoraLog>
+@{
+    ViewData["Title"] = "Bitácora de Auditoría";
+    Layout = "_Layout";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-clock-history"></i> Bitácora de Auditoría</h2>
+        <p class="text-muted">Registro histórico de todas las acciones realizadas en el sistema.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="get" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="usuario" class="form-control" placeholder="Buscar por usuario..." />
+                </div>
+                <div class="col-md-2">
+                    <select name="accion" class="form-select">
+                        <option value="">Todas las acciones</option>
+                        <option value="Crear">Crear</option>
+                        <option value="Editar">Editar</option>
+                        <option value="Eliminar">Eliminar</option>
+                        <option value="Login">Login</option>
+                        <option value="Logout">Logout</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="date" name="desde" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <input type="date" name="hasta" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead style="background-color: #6c1d45; color: white;">
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Tabla</th>
+                        <th>IP</th>
+                        <th>Detalles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <small>@item.FechaHora.ToString("dd/MM/yyyy HH:mm:ss")</small>
+                            </td>
+                            <td>@item.UsuarioEmail</td>
+                            <td>
+                                <span class="badge @(item.Accion == "Crear" ? "bg-success" : item.Accion == "Editar" ? "bg-primary" : item.Accion == "Eliminar" ? "bg-danger" : item.Accion == "Login" ? "bg-info" : "bg-secondary")">
+                                    @item.Accion
+                                </span>
+                            </td>
+                            <td><small>@item.TablaAfectada</small></td>
+                            <td><small>@item.IpAddress</small></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.RegistroAnterior) || !string.IsNullOrEmpty(item.RegistroNuevo))
+                                {
+                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modal-@item.Id">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

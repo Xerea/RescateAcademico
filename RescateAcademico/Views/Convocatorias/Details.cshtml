@@ -1,0 +1,72 @@
+@model RescateAcademico.Models.Convocatoria
+@{
+    ViewData["Title"] = "Detalles de Convocatoria";
+    Layout = "_Layout";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-megaphone"></i> @Model.Titulo</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5>Descripción</h5>
+                <p>@Model.Descripcion</p>
+                <hr />
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Tipo:</strong> @Model.Tipo</p>
+                        <p><strong>Área:</strong> @Model.Area</p>
+                        @if (!string.IsNullOrEmpty(Model.Requisitos))
+                        {
+                            <p><strong>Requisitos:</strong> @Model.Requisitos</p>
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Cupo:</strong> @Model.PostulacionesActuales / @Model.CupoMaximo</p>
+                        <p><strong>Fecha de Cierre:</strong> @Model.FechaCierre.ToString("dd/MM/yyyy")</p>
+                        @if (Model.PromedioMinimo.HasValue)
+                        {
+                            <p><strong>Promedio Mínimo:</strong> @Model.PromedioMinimo.Value.ToString("F1")</p>
+                        }
+                        @if (Model.SemestreMinimo.HasValue)
+                        {
+                            <p><strong>Semestre Mínimo:</strong> @Model.SemestreMinimo</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0">Estado</h5>
+            </div>
+            <div class="card-body text-center">
+                @if (Model.ValidadaPorAcademia)
+                {
+                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                    <p class="mt-2">Validada por Academia</p>
+                }
+                else
+                {
+                    <i class="bi bi-hourglass-split text-warning fs-1"></i>
+                    <p class="mt-2">Pendiente de Validación</p>
+                }
+                <hr />
+                <p><strong>Publicación:</strong> @Model.FechaPublicacion.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>

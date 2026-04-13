@@ -1,0 +1,62 @@
+@model IEnumerable<RescateAcademico.Models.CicloEscolar>
+@{
+    ViewData["Title"] = "Ciclos Escolares";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: #6c1d45;"><i class="bi bi-calendar-event"></i> Ciclos Escolares</h2>
+    <a asp-action="CrearCiclo" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nuevo Ciclo
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead style="background-color: #6c1d45; color: white;">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Período</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Nombre</strong>
+                                @if (item.EsActual)
+                                {
+                                    <span class="badge bg-success ms-2">Actual</span>
+                                }
+                            </td>
+                            <td>@item.Periodo</td>
+                            <td>@item.FechaInicio.ToString("dd/MM/yyyy")</td>
+                            <td>@item.FechaFin.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (item.EstaActivo)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

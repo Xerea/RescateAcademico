@@ -1,0 +1,171 @@
+@model RescateAcademico.Controllers.EstadisticasViewModel
+@{
+    ViewData["Title"] = "Tablero Estadístico";
+    Layout = "_Layout";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-bar-chart-line"></i> Tablero Estadístico</h2>
+        <p class="text-muted">Vista @(Model.Nivel == "Global" ? "Institucional" : "por Carrera")</p>
+    </div>
+</div>
+
+<form method="get" class="mb-4">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <select name="nivel" class="form-select" onchange="this.form.submit()">
+                <option value="Global" selected="@(Model.Nivel == "Global" ? "selected" : null)">Global Institucional</option>
+                <option value="Carrera" selected="@(Model.Nivel == "Carrera" ? "selected" : null)">Por Carrera</option>
+            </select>
+        </div>
+        @if (Model.Nivel == "Carrera")
+        {
+            <div class="col-md-4">
+                <select name="carrera" class="form-select">
+                    <option value="">Seleccionar Carrera</option>
+                    @foreach (var carrera in Model.Carreras)
+                    {
+                        <option value="@carrera" selected="@(Model.CarreraSeleccionada == carrera ? "selected" : null)">@carrera</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        }
+    </div>
+</form>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-people-fill fs-1 mb-2" style="color: #6c1d45;"></i>
+                <h3>@Model.TotalAlumnos</h3>
+                <p class="text-muted mb-0">Total Alumnos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-person-check-fill fs-1 mb-2 text-success"></i>
+                <h3>@Model.AlumnosActivos</h3>
+                <p class="text-muted mb-0">Alumnos Activos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up-arrow fs-1 mb-2 text-primary"></i>
+                <h3>@Model.PromedioGeneral.ToString("F2")</h3>
+                <p class="text-muted mb-0">Promedio General</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-send-fill fs-1 mb-2 text-info"></i>
+                <h3>@Model.TotalPostulaciones</h3>
+                <p class="text-muted mb-0">Postulaciones</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-traffic-light"></i> Distribución por Nivel de Riesgo</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-check-circle-fill text-success"></i> Verde (Sin riesgo)</span>
+                        <strong>@Model.AlumnosEnRiesgoVerde</strong>
+                    </div>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-success" style="width: @((double)Model.AlumnosEnRiesgoVerde / Math.Max(Model.TotalAlumnos, 1) * 100)%">
+                            @Math.Round((double)Model.AlumnosEnRiesgoVerde / Math.Max(Model.TotalAlumnos, 1) * 100, 0)%
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-exclamation-fill text-warning"></i> Amarillo (Atención)</span>
+                        <strong>@Model.AlumnosEnRiesgoAmarillo</strong>
+                    </div>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-warning" style="width: @((double)Model.AlumnosEnRiesgoAmarillo / Math.Max(Model.TotalAlumnos, 1) * 100)%">
+                            @Math.Round((double)Model.AlumnosEnRiesgoAmarillo / Math.Max(Model.TotalAlumnos, 1) * 100, 0)%
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-exclamation-triangle-fill text-danger"></i> Rojo (Crítico)</span>
+                        <strong>@Model.AlumnosEnRiesgoRojo</strong>
+                    </div>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-danger" style="width: @((double)Model.AlumnosEnRiesgoRojo / Math.Max(Model.TotalAlumnos, 1) * 100)%">
+                            @Math.Round((double)Model.AlumnosEnRiesgoRojo / Math.Max(Model.TotalAlumnos, 1) * 100, 0)%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Estado de Postulaciones</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="p-3 rounded bg-success bg-opacity-10">
+                            <h3 class="text-success">@Model.PostulacionesAceptadas</h3>
+                            <small class="text-muted">Aceptadas</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 rounded bg-warning bg-opacity-10">
+                            <h3 class="text-warning">@Model.PostulacionesPendientes</h3>
+                            <small class="text-muted">Pendientes</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 rounded bg-danger bg-opacity-10">
+                            <h3 class="text-danger">@Model.PostulacionesRechazadas</h3>
+                            <small class="text-muted">Rechazadas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-download"></i> Generar Reporte</h5>
+            </div>
+            <div class="card-body">
+                <p>Descarga un reporte oficial con los datos filtrados actuales.</p>
+                <a asp-action="Reporte" class="btn btn-primary">
+                    <i class="bi bi-file-earmark-pdf"></i> Generar PDF
+                </a>
+                <a asp-action="PorCarrera" class="btn btn-outline-primary">
+                    <i class="bi bi-bar-chart"></i> Ver por Carrera
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

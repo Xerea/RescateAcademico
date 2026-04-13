@@ -1,0 +1,80 @@
+@model RescateAcademico.Models.Convocatoria
+@{
+    ViewData["Title"] = "Crear Convocatoria";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-megaphone"></i> Nueva Convocatoria</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input asp-for="Titulo" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select asp-for="Tipo" class="form-select">
+                            <option value="ServicioSocial">Servicio Social</option>
+                            <option value="Investigacion">Investigación</option>
+                            <option value="Laboratorio">Laboratorio</option>
+                            <option value="ApoyoAcademico">Apoyo Académico</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Proyecto Asociado</label>
+                        <select asp-for="ProyectoId" class="form-select" asp-items="ViewBag.Proyectos">
+                            <option value="">-- Seleccionar --</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cupo Máximo</label>
+                            <input asp-for="CupoMaximo" class="form-control" type="number" min="1" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha de Cierre</label>
+                            <input asp-for="FechaCierre" class="form-control" type="date" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Promedio Mínimo</label>
+                            <input asp-for="PromedioMinimo" class="form-control" type="number" step="0.1" min="0" max="10" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Semestre Mínimo</label>
+                            <input asp-for="SemestreMinimo" class="form-control" type="number" min="1" max="12" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Área</label>
+                        <input asp-for="Area" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Requisitos</label>
+                        <textarea asp-for="Requisitos" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input asp-for="ValidadaPorAcademia" class="form-check-input" />
+                        <label class="form-check-label">Validada por Academia</label>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Crear Convocatoria
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

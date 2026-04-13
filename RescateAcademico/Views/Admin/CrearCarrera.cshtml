@@ -1,0 +1,41 @@
+@model RescateAcademico.Models.Carrera
+@{
+    ViewData["Title"] = "Crear Carrera";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-mortarboard"></i> Nueva Carrera</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="CrearCarrera">
+                    <div class="mb-3">
+                        <label class="form-label">Clave * (ej: INFO)</label>
+                        <input asp-for="Clave" class="form-control" required maxlength="10" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre *</label>
+                        <input asp-for="Nombre" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Número de Semestres</label>
+                        <input asp-for="Semestres" class="form-control" type="number" min="1" max="12" value="6" />
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Crear Carrera
+                        </button>
+                        <a asp-action="Carreras" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

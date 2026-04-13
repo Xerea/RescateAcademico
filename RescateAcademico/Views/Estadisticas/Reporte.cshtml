@@ -1,0 +1,97 @@
+@model RescateAcademico.Controllers.ReporteViewModel
+@{
+    ViewData["Title"] = "Reporte General";
+    Layout = "_Layout";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-file-earmark-text"></i> Reporte General</h2>
+        <p class="text-muted">Fecha de generación: @Model.FechaReporte.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <h5 class="mb-0">Resumen Institucional</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 text-center">
+                <h3>@Model.TotalAlumnos</h3>
+                <p class="text-muted mb-0">Total Alumnos</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <h3>@Model.PromedioInstitucional.ToString("F2")</h3>
+                <p class="text-muted mb-0">Promedio Institucional</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <h3>@Model.TotalProyectos</h3>
+                <p class="text-muted mb-0">Proyectos Activos</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <h3>@Model.TotalConvocatorias</h3>
+                <p class="text-muted mb-0">Convocatorias Activas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <h5 class="mb-0">Distribución por Nivel de Riesgo</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-4">
+                <div class="p-3 rounded bg-success bg-opacity-10">
+                    <h3 class="text-success">@Model.AlumnosPorRiesgo.GetValueOrDefault("Verde", 0)</h3>
+                    <small class="text-muted">Sin Riesgo (Verde)</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="p-3 rounded bg-warning bg-opacity-10">
+                    <h3 class="text-warning">@Model.AlumnosPorRiesgo.GetValueOrDefault("Amarillo", 0)</h3>
+                    <small class="text-muted">En Atención (Amarillo)</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="p-3 rounded bg-danger bg-opacity-10">
+                    <h3 class="text-danger">@Model.AlumnosPorRiesgo.GetValueOrDefault("Rojo", 0)</h3>
+                    <small class="text-muted">Crítico (Rojo)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <h5 class="mb-0">Postulaciones</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-4">
+                <h3>@Model.TotalPostulaciones</h3>
+                <p class="text-muted mb-0">Total</p>
+            </div>
+            <div class="col-4">
+                <h3 class="text-success">@Model.PostulacionesAceptadas</h3>
+                <p class="text-muted mb-0">Aceptadas</p>
+            </div>
+            <div class="col-4">
+                <h3>@((Model.TotalPostulaciones - Model.PostulacionesAceptadas))</h3>
+                <p class="text-muted mb-0">Pendientes/No aceptadas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <button onclick="window.print()" class="btn btn-primary">
+        <i class="bi bi-printer"></i> Imprimir Reporte
+    </button>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>

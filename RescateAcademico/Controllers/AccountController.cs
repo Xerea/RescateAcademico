@@ -11,9 +11,6 @@ namespace RescateAcademico.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
 
-
-
-
         public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
         {
             _signInManager = signInManager;
@@ -23,8 +20,6 @@ namespace RescateAcademico.Controllers
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
-
-
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -35,63 +30,42 @@ namespace RescateAcademico.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
-            if (!string.IsNullOrWhiteSpace(email) && !email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) && !email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(email) || (!email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) && !email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase)))
             {
                 ModelState.AddModelError(string.Empty, "Debes iniciar sesión con tu correo institucional (@ipn.mx o @alumno.ipn.mx).");
+                return View();
             }
 
-
-            if (ModelState.IsValid)
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null && !user.IsActive)
             {
-                var user = await _userManager.FindByEmailAsync(email);
-                if (user != null && !user.IsActive)
-                {
-                    ModelState.AddModelError(string.Empty, "Esta cuenta no está activa.");
-                    return View();
-                }
-
-                var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: true);
-
-                if (result.Succeeded)
-                {
-                    var roles = await _userManager.GetRolesAsync(user);
-                    if (roles.Contains("Admin"))
-                    {
-                        return RedirectToAction("AdminDashboard", "Dashboard");
-                    }
-                    else if (roles.Contains("Tutor"))
-                    {
-                        return RedirectToAction("TutorDashboard", "Dashboard");
-                    }
-                    else if (roles.Contains("Authority"))
-                    {
-                        return RedirectToAction("AuthorityDashboard", "Dashboard");
-                    }
-                    else
-                    {
-                        return RedirectToAction("StudentDashboard", "Dashboard");
-                    }
-                }
-
-                if (result.IsLockedOut)
-                {
-                    ModelState.AddModelError(string.Empty, "La cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos. Intente de nuevo en 20 minutos.");
-                    return View();
-                }
-                else
-                {
-                    int failedAttempts = 0;
-                    if (user != null)
-                    {
-                        failedAttempts = await _userManager.GetAccessFailedCountAsync(user);
-                    }
-
-                    ModelState.AddModelError(string.Empty, $"Correo o contraseña incorrectos. Intentos fallidos: {failedAttempts}/3.");
-                    return View();
-                }
+                ModelState.AddModelError(string.Empty, "Esta cuenta no está activa.");
+                return View();
             }
 
-            return View();
+            var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: true);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(string.Empty, "La cuenta ha sido bloqueada temporalmente por demasiados intentos fallidos. Intente de nuevo en 20 minutos.");
+                return View();
+            }
+            else
+            {
+                int failedAttempts = 0;
+                if (user != null)
+                {
+                    failedAttempts = await _userManager.GetAccessFailedCountAsync(user);
+                }
+
+                ModelState.AddModelError(string.Empty, $"Correo o contraseña incorrectos. Intentos fallidos: {failedAttempts}/3.");
+                return View();
+            }
         }
 
         [HttpPost]
@@ -99,7 +73,6 @@ namespace RescateAcademico.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            // Limpia la sesión para asegurar un logout completo
             HttpContext.Session.Clear();
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
@@ -109,8 +82,6 @@ namespace RescateAcademico.Controllers
         {
             return View();
         }
-
-        // --- HU-RA-02: Recuperación de Contraseña ---
 
         [HttpGet]
         public IActionResult ForgotPassword()
@@ -122,32 +93,24 @@ namespace RescateAcademico.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(string email)
         {
-            if (!string.IsNullOrWhiteSpace(email) && !email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) && !email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(email) || (!email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) && !email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase)))
             {
                 ModelState.AddModelError(string.Empty, "Solo se aceptan correos institucionales registrados (@ipn.mx o @alumno.ipn.mx).");
+                return View();
             }
 
-            if (ModelState.IsValid)
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
             {
-                var user = await _userManager.FindByEmailAsync(email);
-                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
-                {
-                    // No revelar que el usuario no existe (seguridad)
-                    return RedirectToAction(nameof(ForgotPasswordConfirmation));
-                }
-
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-                // En un proyecto real esto enviaría un correo. Para práctica local,
-                // utilizamos un enlace temporal que el docente puede revisar.
-                var callbackUrl = Url.Action("ResetPassword", "Account", new { email = user.Email, code }, protocol: Request.Scheme);
-
-                TempData["ResetLink"] = callbackUrl;
-
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
             }
 
-            return View(email);
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var callbackUrl = Url.Action("ResetPassword", "Account", new { email = user.Email, code }, protocol: Request.Scheme);
+
+            TempData["ResetLink"] = callbackUrl;
+
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
         }
 
         [HttpGet]
@@ -182,13 +145,6 @@ namespace RescateAcademico.Controllers
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
             }
 
-            // Evitar rehusar la contraseña anterior (Lógica manual aproximada)
-            if (await _userManager.CheckPasswordAsync(user, model.Password))
-            {
-                ModelState.AddModelError(string.Empty, "No puedes usar la misma contraseña que la anterior.");
-                return View(model);
-            }
-
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
@@ -208,7 +164,6 @@ namespace RescateAcademico.Controllers
             return View();
         }
 
-        // --- Registro de Nuevo Usuario Temporal ---
         [HttpGet]
         public IActionResult Register()
         {
@@ -226,9 +181,7 @@ namespace RescateAcademico.Controllers
                 
                 if (result.Succeeded)
                 {
-                    // Asignamos el rol de Alumno por defecto.
                     await _userManager.AddToRoleAsync(user, "Alumno");
-                    
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Dashboard");
                 }
@@ -242,7 +195,6 @@ namespace RescateAcademico.Controllers
         }
     }
 
-    // View Models para Account
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "El correo es requerido")]

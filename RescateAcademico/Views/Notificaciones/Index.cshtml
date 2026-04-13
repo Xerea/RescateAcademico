@@ -1,0 +1,78 @@
+@model IEnumerable<RescateAcademico.Models.Notificacion>
+@{
+    ViewData["Title"] = "Notificaciones";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: #6c1d45;"><i class="bi bi-bell"></i> Notificaciones</h2>
+    @if (Model.Any(n => !n.Leida))
+    {
+        <a asp-action="MarcarTodasLeidas" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-check-all"></i> Marcar todas como leídas
+        </a>
+    }
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <div class="d-flex align-items-start p-3 mb-2 rounded @(item.Leida ? "bg-light" : "bg-white border-start border-4 border-primary")">
+                    <div class="me-3">
+                        @if (item.Tipo == "Exito")
+                        {
+                            <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                        }
+                        else if (item.Tipo == "Error")
+                        {
+                            <i class="bi bi-x-circle-fill text-danger fs-4"></i>
+                        }
+                        else if (item.Tipo == "Informacion")
+                        {
+                            <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-bell-fill text-secondary fs-4"></i>
+                        }
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 @(item.Leida ? "text-muted" : "")">
+                            @item.Titulo
+                            @if (!item.Leida)
+                            {
+                                <span class="badge bg-primary ms-2">Nuevo</span>
+                            }
+                        </h6>
+                        <p class="mb-1 @(!item.Leida ? "fw-normal" : "text-muted")">@item.Mensaje</p>
+                        <small class="text-muted">@item.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+                    <div>
+                        @if (!string.IsNullOrEmpty(item.Enlace))
+                        {
+                            <a asp-action="MarcarLeida" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-action="MarcarLeida" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary @(item.Leida ? "disabled" : "")">
+                                <i class="bi bi-check"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-bell-slash fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No tienes notificaciones</p>
+            </div>
+        }
+    </div>
+</div>

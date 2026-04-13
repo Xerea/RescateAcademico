@@ -1,0 +1,95 @@
+@model IEnumerable<RescateAcademico.Models.Postulacion>
+@{
+    ViewData["Title"] = "Mis Postulaciones";
+    Layout = "_Layout";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-send-check"></i> Mis Postulaciones</h2>
+        <p class="text-muted">Consulta el estado de tus solicitudes a proyectos.</p>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead style="background-color: #6c1d45; color: white;">
+                        <tr>
+                            <th>Proyecto</th>
+                            <th>Fecha de Solicitud</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@item.Proyecto?.Titulo</strong>
+                                    <br />
+                                    <small class="text-muted">@item.Proyecto?.Tipo</small>
+                                </td>
+                                <td>@item.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (item.Estado == "Aceptado")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Aceptado
+                                        </span>
+                                    }
+                                    else if (item.Estado == "Rechazado")
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle"></i> Rechazado
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock"></i> En Revisión
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-controller="Proyectos" asp-action="Details" asp-route-id="@item.ProyectoId" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-3">Aún no te has postulado a ningún proyecto.</p>
+                <a asp-controller="Convocatorias" asp-action="Index" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Ver Convocatorias
+                </a>
+            </div>
+        }
+    </div>
+</div>

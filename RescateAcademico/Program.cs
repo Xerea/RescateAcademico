@@ -5,14 +5,12 @@ using RescateAcademico.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
     options.SignIn.RequireConfirmedAccount = false;
-    // HU-RA-05: Prevención de intrusiones
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(20);
     options.Lockout.MaxFailedAccessAttempts = 3;
     options.Lockout.AllowedForNewUsers = true;
@@ -20,7 +18,6 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// HU-RA-02: Recuperación de contraseña - la liga expira automáticamente a los 10 minutos
 builder.Services.Configure<DataProtectionTokenProviderOptions>(opts =>
 {
     opts.TokenLifespan = TimeSpan.FromMinutes(10);
@@ -28,16 +25,14 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(opts =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    // HU-RA-05: Desconexión automática si no hay uso
     options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
-    options.SlidingExpiration = true; // Renueva el tiempo si hay actividad
+    options.SlidingExpiration = true;
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Solo HTTPS en producción
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
-// Agregar sesión distribuida para manejar datos de sesión
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(15);
@@ -50,11 +45,9 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -65,18 +58,29 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// HU-RA-04: Inicializar base de datos con roles y usuarios básicos (Admin, Tutor, Alumno)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    var config = services.GetRequiredService<IConfiguration>();
+    var resetOnStartup = config.GetValue<bool>("Database:ResetOnStartup");
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    if (resetOnStartup)
+    {
+        logger.LogWarning("Database:ResetOnStartup=true. Recreating local SQLite database.");
+        await context.Database.EnsureDeletedAsync();
+    }
+
+    context.Database.EnsureCreated();
+    
     try
     {
-        await RescateAcademico.Data.RoleSeeder.InitializeAsync(services);
+        await RoleSeeder.InitializeAsync(services, context);
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Un error ocurrió durante el siembra (seeding) de roles y usuarios.");
+        logger.LogError(ex, "Un error ocurrió durante el seeding de datos.");
     }
 }
 
@@ -86,6 +90,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();

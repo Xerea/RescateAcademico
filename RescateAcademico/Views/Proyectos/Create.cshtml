@@ -1,0 +1,50 @@
+@model RescateAcademico.Models.Proyecto
+@{
+    ViewData["Title"] = "Crear Proyecto";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-folder-plus"></i> Nuevo Proyecto</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input asp-for="Titulo" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select asp-for="Tipo" class="form-select">
+                            <option value="Servicio Social">Servicio Social</option>
+                            <option value="Investigacion">Investigación</option>
+                            <option value="Laboratorio">Laboratorio</option>
+                            <option value="Apoyo Academico">Apoyo Académico</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cupo Máximo</label>
+                        <input asp-for="CupoMaximo" class="form-control" type="number" min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Cierre</label>
+                        <input asp-for="FechaCierre" class="form-control" type="date" />
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Crear Proyecto
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

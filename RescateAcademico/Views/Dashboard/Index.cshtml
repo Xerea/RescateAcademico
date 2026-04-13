@@ -1,26 +1,102 @@
+@using RescateAcademico.Controllers
+@model DashboardStats
 @{
-    ViewData["Title"] = "Menú Principal";
+    ViewData["Title"] = "Panel Principal";
     Layout = "_Layout";
 }
 
 <div class="row mb-4">
     <div class="col">
-        <h2 class="border-bottom pb-2" style="color: #6c1d45;">Panel de Control</h2>
-        <p class="text-muted">Bienvenido a la plataforma de Rescate Académico.</p>
+        <h2 class="border-bottom pb-2" style="color: #6c1d45;">
+            <i class="bi bi-grid-1x2"></i> Panel de Control - @User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+        </h2>
+        <p class="text-muted">@(DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-MX")))</p>
     </div>
 </div>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (User.IsInRole("Administrador"))
+{
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6c1d45 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Alumnos</h6>
+                            <h3 class="mb-0">@Model.TotalAlumnos</h3>
+                        </div>
+                        <i class="bi bi-people-fill fs-1 text-muted opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #198754 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Proyectos Activos</h6>
+                            <h3 class="mb-0">@Model.TotalProyectos</h3>
+                        </div>
+                        <i class="bi bi-folder-fill fs-1 text-muted opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0dcaf0 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Convocatorias</h6>
+                            <h3 class="mb-0">@Model.TotalConvocatorias</h3>
+                        </div>
+                        <i class="bi bi-megaphone-fill fs-1 text-muted opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 @(Model.AlumnosEnRiesgo > 0 ? "border-warning" : "")" style="border-left: 4px solid @(Model.AlumnosEnRiesgo > 0 ? "#ffc107" : "#6c757d") !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">En Riesgo</h6>
+                            <h3 class="mb-0">@Model.AlumnosEnRiesgo</h3>
+                        </div>
+                        <i class="bi bi-exclamation-triangle-fill fs-1 text-muted opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="row">
-    <!-- Opciones para Alumnos (Solo Lectura / Interacción básica) -->
-    @if (User.IsInRole("Alumno") || User.IsInRole("Administrador"))
+    @if (User.IsInRole("Alumno"))
     {
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body text-center">
                     <i class="bi bi-person-badge fs-1 mb-3" style="color: #6c1d45;"></i>
                     <h5 class="card-title">Mi Perfil Académico</h5>
-                    <p class="card-text text-muted small">Consulta tu situación académica, promedio y carga actual.</p>
-                    <a href="#" class="btn btn-outline-secondary w-100">Ver Perfil</a>
+                    <p class="card-text text-muted small">Consulta tu situación académica, promedio, materias y carga actual.</p>
+                    <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="btn btn-primary w-100">Ver Perfil</a>
                 </div>
             </div>
         </div>
@@ -28,49 +104,161 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body text-center">
                     <i class="bi bi-journal-text fs-1 mb-3" style="color: #6c1d45;"></i>
-                    <h5 class="card-title">Catálogo de Proyectos</h5>
+                    <h5 class="card-title">Convocatorias</h5>
                     <p class="card-text text-muted small">Explora y postúlate a proyectos de servicio social o investigación.</p>
-                    <a href="#" class="btn btn-outline-secondary w-100">Explorar</a>
+                    <a asp-controller="Convocatorias" asp-action="Index" class="btn btn-primary w-100">Explorar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-send-check fs-1 mb-3" style="color: #6c1d45;"></i>
+                    <h5 class="card-title">Mis Postulaciones</h5>
+                    <p class="card-text text-muted small">Consulta el estado de tus solicitudes a proyectos.</p>
+                    <a asp-controller="Postulaciones" asp-action="MisPostulaciones" class="btn btn-primary w-100">Ver Postulaciones</a>
                 </div>
             </div>
         </div>
     }
 
-    <!-- Opciones para Tutores -->
-    @if (User.IsInRole("Tutor") || User.IsInRole("Administrador"))
+    @if (User.IsInRole("Tutor"))
     {
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm text-white" style="background-color: #6c1d45;">
-                <div class="card-body text-center">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background-color: #6c1d45;">
+                <div class="card-body text-center text-white">
                     <i class="bi bi-people fs-1 mb-3"></i>
                     <h5 class="card-title">Mis Tutorados</h5>
-                    <p class="card-text small text-light">Visualiza la radiografía y riesgo académico de tus alumnos asignados.</p>
-                    <a href="#" class="btn btn-light w-100" style="color: #6c1d45;">Ir a Tutoría</a>
+                    <p class="card-text small">Visualiza la radiografía académica y riesgo de tus alumnos asignados.</p>
+                    <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Ir a Tutoría</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background-color: #198754;">
+                <div class="card-body text-center text-white">
+                    <i class="bi bi-graph-up fs-1 mb-3"></i>
+                    <h5 class="card-title">Radiografía Académica</h5>
+                    <p class="card-text small">Consulta el desempeño integral de un tutorado específico.</p>
+                    <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Seleccionar Tutorado</a>
                 </div>
             </div>
         </div>
     }
 
-    <!-- Opciones solo para Administradores -->
-    @if (User.IsInRole("Administrador"))
+    @if (User.IsInRole("Autoridad"))
     {
         <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-bar-chart-line fs-1 mb-3" style="color: #6c1d45;"></i>
+                    <h5 class="card-title">Tablero Estadístico</h5>
+                    <p class="card-text text-muted small">Reportes globales de desempeño y situación estudiantil.</p>
+                    <a asp-controller="Estadisticas" asp-action="Index" class="btn btn-primary w-100">Ver Estadísticas</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-clipboard-data fs-1 mb-3" style="color: #6c1d45;"></i>
+                    <h5 class="card-title">Reportes</h5>
+                    <p class="card-text text-muted small">Genera reportes oficiales en PDF o Excel.</p>
+                    <a asp-controller="Estadisticas" asp-action="Reporte" class="btn btn-primary w-100">Generar Reporte</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-folder-check fs-1 mb-3" style="color: #6c1d45;"></i>
+                    <h5 class="card-title">Postulaciones</h5>
+                    <p class="card-text text-muted small">Revisa y gestiona las postulaciones pendientes.</p>
+                    <a asp-controller="Postulaciones" asp-action="Todas" class="btn btn-primary w-100">Ver Postulaciones</a>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (User.IsInRole("Administrador"))
+    {
+        <div class="col-md-3 mb-4">
             <div class="card h-100 border-0 shadow-sm bg-light">
                 <div class="card-body text-center">
                     <i class="bi bi-shield-lock fs-1 mb-3 text-dark"></i>
                     <h5 class="card-title">Gestión de Usuarios</h5>
-                    <p class="card-text text-muted small">Administración de roles, alumnos, tutores y directivos.</p>
-                    <a href="#" class="btn btn-dark w-100">Administrar</a>
+                    <p class="card-text text-muted small">Administración de roles, alumnos y tutores.</p>
+                    <a asp-controller="Admin" asp-action="Usuarios" class="btn btn-dark w-100">Administrar</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card h-100 border-0 shadow-sm bg-light">
                 <div class="card-body text-center">
                     <i class="bi bi-bar-chart fs-1 mb-3 text-dark"></i>
-                    <h5 class="card-title">Tablero Estadístico</h5>
-                    <p class="card-text text-muted small">Reportes globales de desempeño y situación estudiantil.</p>
-                    <a href="#" class="btn btn-dark w-100">Ver Reportes</a>
+                    <h5 class="card-title">Alumnos</h5>
+                    <p class="card-text text-muted small">Gestión integral del alumnado.</p>
+                    <a asp-controller="Admin" asp-action="Alumnos" class="btn btn-dark w-100">Ver Alumnos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-event fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Ciclos Escolares</h5>
+                    <p class="card-text text-muted small">Configuración de períodos académicos.</p>
+                    <a asp-controller="Admin" asp-action="CiclosEscolares" class="btn btn-dark w-100">Gestionar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Bitácora</h5>
+                    <p class="card-text text-muted small">Registro histórico de acciones.</p>
+                    <a asp-controller="Bitacora" asp-action="Index" class="btn btn-dark w-100">Ver Logs</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-folder-plus fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Proyectos</h5>
+                    <p class="card-text text-muted small">Crear y gestionar proyectos.</p>
+                    <a asp-controller="Proyectos" asp-action="Index" class="btn btn-dark w-100">Proyectos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-megaphone fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Convocatorias</h5>
+                    <p class="card-text text-muted small">Publicar y gestionar convocatorias.</p>
+                    <a asp-controller="Convocatorias" asp-action="Todas" class="btn btn-dark w-100">Convocatorias</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-upload fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Carga Masiva</h5>
+                    <p class="card-text text-muted small">Importar alumnos desde Excel/CSV.</p>
+                    <a asp-controller="Admin" asp-action="CargaMasiva" class="btn btn-dark w-100">Importar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <i class="bi bi-mortarboard fs-1 mb-3 text-dark"></i>
+                    <h5 class="card-title">Carreras</h5>
+                    <p class="card-text text-muted small">Gestión de carreras y planes.</p>
+                    <a asp-controller="Admin" asp-action="Carreras" class="btn btn-dark w-100">Carreras</a>
                 </div>
             </div>
         </div>
