@@ -1,0 +1,53 @@
+@model RescateAcademico.Models.PlanMejora
+@{
+    ViewData["Title"] = "Seguimiento del Plan de Mejora";
+}
+
+<h2>Seguimiento del Plan de Mejora #@Model.Id</h2>
+
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        Información General
+    </div>
+    <div class="card-body">
+        <p><strong>Alumno:</strong> @Model.Alumno?.Nombre @Model.Alumno?.Apellidos (@Model.AlumnoMatricula)</p>
+        <p><strong>Profesor:</strong> @Model.Tutor?.Nombre @Model.Tutor?.Apellidos</p>
+        <p><strong>Estado:</strong> <span class="badge bg-@(Model.Estado == "Activo" ? "primary" : Model.Estado == "Cumplido" ? "success" : Model.Estado == "Vencido" ? "danger" : "secondary")">@Model.Estado</span></p>
+        <p><strong>Fecha de creación:</strong> @Model.FechaCreacion.ToString("yyyy-MM-dd")</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-warning">Recomendaciones</div>
+            <div class="card-body">@(Model.Recomendaciones ?? "Sin recomendaciones registradas.")</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">Metas</div>
+            <div class="card-body">@(Model.Metas ?? "Sin metas registradas.")</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">Acciones Tomadas / Bitácora</div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.AccionesTomadas))
+        {
+            <pre style="white-space: pre-wrap;">@Model.AccionesTomadas</pre>
+        }
+        else
+        {
+            <p class="text-muted">No hay acciones registradas aún.</p>
+        }
+    </div>
+</div>
+
+<div class="mb-3">
+    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">Actualizar Acciones</a>
+    <a asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-info">Ver Detalles</a>
+    <a asp-action="Index" class="btn btn-outline-primary">Volver</a>
+</div>

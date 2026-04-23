@@ -1,0 +1,42 @@
+@model RescateAcademico.Models.IntervencionTutoria
+@{
+    ViewData["Title"] = "Seguimiento de Intervención";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-check-circle"></i> Registrar Seguimiento</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Intervención original:</label>
+                    <p>@Model.Descripcion</p>
+                </div>
+
+                <form asp-action="Seguimiento" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Seguimiento *</label>
+                        <input type="date" name="fechaSeguimiento" class="form-control" required value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notas de Seguimiento *</label>
+                        <textarea name="notas" class="form-control" rows="4" placeholder="Describe el resultado del seguimiento..." required></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar Seguimiento
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

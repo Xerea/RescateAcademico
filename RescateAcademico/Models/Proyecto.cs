@@ -38,5 +38,11 @@ namespace RescateAcademico.Models
         public DateTime FechaSolicitud { get; set; } = DateTime.Now;
         
         public string Estado { get; set; } = "En Revisión";
+
+        public string? DocumentoNombre { get; set; }
+
+        public string? DocumentoRuta { get; set; }
+
+        public long? DocumentoTamano { get; set; }
     }
 }

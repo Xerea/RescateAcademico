@@ -30,6 +30,31 @@
                             <label asp-for="ConfirmPassword">Confirmar Contraseña</label>
                             <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                         </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Matricula" class="form-control" placeholder="Matrícula" required />
+                            <label asp-for="Matricula">Matrícula</label>
+                            <span asp-validation-for="Matricula" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Nombre" class="form-control" placeholder="Nombre" required />
+                            <label asp-for="Nombre">Nombre</label>
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Apellidos" class="form-control" placeholder="Apellidos" required />
+                            <label asp-for="Apellidos">Apellidos</label>
+                            <span asp-validation-for="Apellidos" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Carrera" class="form-control" placeholder="Carrera" />
+                            <label asp-for="Carrera">Carrera</label>
+                            <span asp-validation-for="Carrera" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="SemestreActual" class="form-control" type="number" min="1" max="20" placeholder="Semestre Actual" />
+                            <label asp-for="SemestreActual">Semestre Actual</label>
+                            <span asp-validation-for="SemestreActual" class="text-danger"></span>
+                        </div>
 
                         <div class="d-grid mt-4 mb-0">
                             <button type="submit" class="btn btn-primary btn-block" style="background-color: #6c1d45; border-color: #6c1d45;">Crear Cuenta</button>

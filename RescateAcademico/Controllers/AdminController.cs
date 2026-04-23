@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace RescateAcademico.Controllers
 {
@@ -12,11 +14,13 @@ namespace RescateAcademico.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly AlertasService _alertasService;
 
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, AlertasService alertasService)
         {
             _context = context;
             _userManager = userManager;
+            _alertasService = alertasService;
         }
 
         public async Task<IActionResult> Index()
@@ -78,7 +82,18 @@ namespace RescateAcademico.Controllers
             {
                 _context.Update(alumno);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Alumno actualizado exitosamente";
+
+                // Re-evaluar riesgo automáticamente
+                var resultado = await _alertasService.EvaluarYAlertarAsync(alumno.Matricula);
+                if (resultado.Contains("actualizado"))
+                {
+                    TempData["Success"] = $"Alumno actualizado. {resultado}";
+                }
+                else
+                {
+                    TempData["Success"] = "Alumno actualizado exitosamente";
+                }
+
                 return RedirectToAction("Alumnos");
             }
             return View(alumno);
@@ -223,6 +238,272 @@ namespace RescateAcademico.Controllers
             }
             return RedirectToAction("Usuarios");
         }
+
+        // HU-RA-19: Crear Cuenta Institucional (Admin only)
+        public IActionResult CrearCuenta()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearCuenta(CrearCuentaViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                IsActive = true,
+                EmailConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, model.Rol);
+
+                if (model.Rol == "Alumno")
+                {
+                    var alumno = new Alumno
+                    {
+                        Matricula = model.Matricula ?? "",
+                        Nombre = model.Nombre ?? "",
+                        Apellidos = model.Apellidos ?? "",
+                        Correo = model.Email,
+                        UserId = user.Id,
+                        Carrera = model.Carrera ?? "",
+                        SemestreActual = model.SemestreActual > 0 ? model.SemestreActual : 1,
+                        PromedioGlobal = 0,
+                        Estatus = "Activo"
+                    };
+                    _context.Alumnos.Add(alumno);
+                    await _context.SaveChangesAsync();
+                }
+                else if (model.Rol == "Tutor")
+                {
+                    var tutor = new Tutor
+                    {
+                        Nombre = model.Nombre ?? "",
+                        Apellidos = model.Apellidos ?? "",
+                        Email = model.Email,
+                        UserId = user.Id,
+                        Especialidad = model.Especialidad ?? "",
+                        EstaActivo = true
+                    };
+                    _context.Tutores.Add(tutor);
+                    await _context.SaveChangesAsync();
+                }
+
+                TempData["Success"] = $"Cuenta creada exitosamente para {model.Email} con rol {model.Rol}.";
+                return RedirectToAction("Usuarios");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+
+        // HU-RA-12: Carga Masiva de Alumnos
+        public IActionResult CargaMasiva()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CargaMasiva(IFormFile archivo)
+        {
+            if (archivo == null || archivo.Length == 0)
+            {
+                TempData["Error"] = "Debes seleccionar un archivo.";
+                return RedirectToAction("CargaMasiva");
+            }
+
+            var extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
+            if (extension != ".csv")
+            {
+                TempData["Error"] = "Solo se aceptan archivos CSV.";
+                return RedirectToAction("CargaMasiva");
+            }
+
+            int creados = 0;
+            int errores = 0;
+            var erroresDetalle = new List<string>();
+
+            using (var reader = new StreamReader(archivo.OpenReadStream()))
+            {
+                string? header = await reader.ReadLineAsync();
+                if (header == null)
+                {
+                    TempData["Error"] = "El archivo está vacío.";
+                    return RedirectToAction("CargaMasiva");
+                }
+
+                string? linea;
+                int numeroLinea = 1;
+                while ((linea = await reader.ReadLineAsync()) != null)
+                {
+                    numeroLinea++;
+                    var campos = linea.Split(',');
+                    if (campos.Length < 5)
+                    {
+                        errores++;
+                        erroresDetalle.Add($"Línea {numeroLinea}: Formato incorrecto");
+                        continue;
+                    }
+
+                    var matricula = campos[0].Trim();
+                    var nombre = campos[1].Trim();
+                    var apellidos = campos[2].Trim();
+                    var correo = campos[3].Trim();
+                    var carrera = campos[4].Trim();
+
+                    if (string.IsNullOrEmpty(matricula))
+                    {
+                        errores++;
+                        erroresDetalle.Add($"Línea {numeroLinea}: Matrícula vacía");
+                        continue;
+                    }
+
+                    var existe = await _context.Alumnos.AnyAsync(a => a.Matricula == matricula);
+                    if (existe)
+                    {
+                        var existente = await _context.Alumnos.FirstAsync(a => a.Matricula == matricula);
+                        existente.Nombre = nombre;
+                        existente.Apellidos = apellidos;
+                        existente.Correo = correo;
+                        existente.Carrera = carrera;
+                        _context.Alumnos.Update(existente);
+                    }
+                    else
+                    {
+                        var alumno = new Alumno
+                        {
+                            Matricula = matricula,
+                            Nombre = nombre,
+                            Apellidos = apellidos,
+                            Correo = correo,
+                            Carrera = carrera,
+                            SemestreActual = 1,
+                            PromedioGlobal = 0,
+                            Estatus = "Activo"
+                        };
+                        _context.Alumnos.Add(alumno);
+                    }
+                    creados++;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"Carga masiva completada. Procesados: {creados}, Errores: {errores}.";
+            if (erroresDetalle.Any())
+            {
+                TempData["ErroresDetalle"] = string.Join("; ", erroresDetalle.Take(10));
+            }
+            return RedirectToAction("Alumnos");
+        }
+
+        // HU-RA-26/27: Dashboard de Integridad de Datos
+        public async Task<IActionResult> IntegridadDatos()
+        {
+            var problemas = new List<(string Mensaje, string Severidad)>();
+
+            // Usuarios
+            var alumnosSinUsuario = await _context.Alumnos.CountAsync(a => string.IsNullOrEmpty(a.UserId));
+            if (alumnosSinUsuario > 0)
+                problemas.Add(($"{alumnosSinUsuario} alumnos no tienen cuenta de usuario vinculada", "warning"));
+
+            var tutoresSinUsuario = await _context.Tutores.CountAsync(t => string.IsNullOrEmpty(t.UserId));
+            if (tutoresSinUsuario > 0)
+                problemas.Add(($"{tutoresSinUsuario} tutores no tienen cuenta de usuario vinculada", "warning"));
+
+            // Tutorías
+            var asignacionesInactivas = await _context.AsignacionesTutor.CountAsync(a => !a.EstaActiva);
+            if (asignacionesInactivas > 0)
+                problemas.Add(($"{asignacionesInactivas} asignaciones tutor-alumno están inactivas", "info"));
+
+            var alumnosSinTutor = await _context.Alumnos
+                .CountAsync(a => !_context.AsignacionesTutor.Any(at => at.AlumnoMatricula == a.Matricula && at.EstaActiva));
+            if (alumnosSinTutor > 0)
+                problemas.Add(($"{alumnosSinTutor} alumnos activos no tienen tutor asignado", "warning"));
+
+            // Convocatorias
+            var convocatoriasVencidas = await _context.Convocatorias
+                .CountAsync(c => c.EstaActiva && c.FechaCierre < DateTime.Now);
+            if (convocatoriasVencidas > 0)
+                problemas.Add(($"{convocatoriasVencidas} convocatorias activas ya vencieron", "danger"));
+
+            var convocatoriasSinCupo = await _context.Convocatorias
+                .CountAsync(c => c.EstaActiva && c.PostulacionesActuales >= c.CupoMaximo);
+            if (convocatoriasSinCupo > 0)
+                problemas.Add(($"{convocatoriasSinCupo} convocatorias activas sin cupo disponible", "info"));
+
+            // Postulaciones
+            var postulacionesSinAlumno = await _context.Postulaciones
+                .CountAsync(p => !_context.Alumnos.Any(a => a.Matricula == p.AlumnoId));
+            if (postulacionesSinAlumno > 0)
+                problemas.Add(($"{postulacionesSinAlumno} postulaciones huérfanas (sin alumno)", "danger"));
+
+            var postulacionesSinProyecto = await _context.Postulaciones
+                .CountAsync(p => !_context.Proyectos.Any(pr => pr.Id == p.ProyectoId));
+            if (postulacionesSinProyecto > 0)
+                problemas.Add(($"{postulacionesSinProyecto} postulaciones huérfanas (sin proyecto)", "danger"));
+
+            // Riesgo académico
+            var alumnosSinRiesgo = await _context.Alumnos.CountAsync(a => string.IsNullOrEmpty(a.RiesgoAcademico));
+            if (alumnosSinRiesgo > 0)
+                problemas.Add(($"{alumnosSinRiesgo} alumnos no tienen evaluación de riesgo", "warning"));
+
+            var alumnosRojoSinPlan = await _context.Alumnos
+                .CountAsync(a => a.RiesgoAcademico == "Rojo" && !_context.PlanesMejora.Any(p => p.AlumnoMatricula == a.Matricula && p.Estado == "Activo"));
+            if (alumnosRojoSinPlan > 0)
+                problemas.Add(($"{alumnosRojoSinPlan} alumnos en riesgo crítico sin plan de mejora activo", "danger"));
+
+            // Calificaciones
+            var califSinMateria = await _context.Calificaciones
+                .CountAsync(c => !_context.Materias.Any(m => m.Id == c.MateriaId));
+            if (califSinMateria > 0)
+                problemas.Add(($"{califSinMateria} calificaciones sin materia asociada", "danger"));
+
+            // Duplicados
+            var matriculasDuplicadas = await _context.Alumnos
+                .GroupBy(a => a.Matricula)
+                .CountAsync(g => g.Count() > 1);
+            if (matriculasDuplicadas > 0)
+                problemas.Add(($"{matriculasDuplicadas} matrículas duplicadas detectadas", "danger"));
+
+            ViewBag.Problemas = problemas;
+            ViewBag.TotalAlumnos = await _context.Alumnos.CountAsync();
+            ViewBag.TotalTutores = await _context.Tutores.CountAsync();
+            ViewBag.TotalProyectos = await _context.Proyectos.CountAsync();
+            ViewBag.TotalConvocatorias = await _context.Convocatorias.CountAsync();
+            ViewBag.TotalPostulaciones = await _context.Postulaciones.CountAsync();
+            ViewBag.TotalCalificaciones = await _context.Calificaciones.CountAsync();
+            ViewBag.TotalIntervenciones = await _context.IntervencionesTutoria.CountAsync();
+            ViewBag.TotalPlanes = await _context.PlanesMejora.CountAsync();
+            ViewBag.AlumnosSinTutor = alumnosSinTutor;
+            ViewBag.AlumnosRojoSinPlan = alumnosRojoSinPlan;
+            ViewBag.AlumnosSinRiesgo = alumnosSinRiesgo;
+
+            return View();
+        }
+
+        // HU-RA-23: Evaluación automática de riesgo académico
+        public async Task<IActionResult> EvaluarRiesgos()
+        {
+            var (evaluados, cambios, detalles) = await _alertasService.EvaluarTodosAsync();
+            TempData["Success"] = $"Evaluación completada: {evaluados} alumnos evaluados, {cambios} cambios de riesgo detectados.";
+            if (detalles.Any())
+            {
+                TempData["Detalles"] = string.Join("; ", detalles.Take(5));
+            }
+            return RedirectToAction("Index");
+        }
     }
 
     public class DashboardStats
@@ -234,5 +515,26 @@ namespace RescateAcademico.Controllers
         public int PostulacionesPendientes { get; set; }
         public int AlumnosEnRiesgo { get; set; }
         public int TotalTutores { get; set; }
+    }
+
+    public class CrearCuentaViewModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+
+        [Required]
+        public string Rol { get; set; } = "Alumno";
+
+        public string? Matricula { get; set; }
+        public string? Nombre { get; set; }
+        public string? Apellidos { get; set; }
+        public string? Carrera { get; set; }
+        public int SemestreActual { get; set; } = 1;
+        public string? Especialidad { get; set; }
     }
 }

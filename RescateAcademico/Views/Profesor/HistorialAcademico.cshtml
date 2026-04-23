@@ -1,0 +1,128 @@
+@model List<RescateAcademico.Controllers.HistorialPeriodo>
+@{
+    ViewData["Title"] = "Historial Académico";
+    var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
+    var reprobadas = ViewBag.Reprobadas as List<string> ?? new List<string>();
+    var dictamenes = ViewBag.Dictamenes as List<RescateAcademico.Models.DictamenAcademico> ?? new List<RescateAcademico.Models.DictamenAcademico>();
+    var cosecovi = ViewBag.Cosecovi as List<RescateAcademico.Models.ReporteCosecovi> ?? new List<RescateAcademico.Models.ReporteCosecovi>();
+}
+
+@if (alumno != null)
+{
+    <div class="card mb-4">
+        <div class="card-header" style="background-color: #6c1d45; color: white;">
+            <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Historial Académico</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Estudiante:</strong> @alumno.Nombre @alumno.Apellidos</p>
+                    <p><strong>Boleta:</strong> @alumno.Matricula</p>
+                    <p><strong>Carrera:</strong> @alumno.Carrera</p>
+                    <p><strong>Semestre Actual:</strong> @alumno.SemestreActual</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Promedio General:</strong> <span class="fs-4 fw-bold @(alumno.PromedioGlobal < 6.0m ? "text-danger" : alumno.PromedioGlobal < 7.5m ? "text-warning" : "text-success")">@alumno.PromedioGlobal.ToString("F2")</span></p>
+                    <p><strong>Estatus:</strong> <span class="badge bg-success">@alumno.Estatus</span></p>
+                    <p><strong>Riesgo Académico:</strong> <span class="badge bg-@(alumno.RiesgoAcademico == "Rojo" ? "danger" : alumno.RiesgoAcademico == "Amarillo" ? "warning text-dark" : "success")">@(alumno.RiesgoAcademico ?? "Verde")</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (reprobadas.Any())
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-x-circle"></i> <strong>Materias reprobadas:</strong> @string.Join(", ", reprobadas)
+        </div>
+    }
+
+    @foreach (var periodo in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">@periodo.Periodo</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Clave</th>
+                            <th>Materia</th>
+                            <th>Evaluación</th>
+                            <th>Calificación</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in periodo.Materias)
+                        {
+                            <tr class="@(m.Calificacion < 6 ? "table-danger" : m.Tipo != "Ordinario" ? "table-warning" : "")">
+                                <td><code>@m.Clave</code></td>
+                                <td>@m.Nombre</td>
+                                <td>@m.Tipo @(m.VecesCursada > 1 ? $"({m.VecesCursada}° vez)" : "")</td>
+                                <td><strong>@m.Calificacion.ToString("F1")</strong></td>
+                                <td>
+                                    @if (m.Aprobada)
+                                    {
+                                        <span class="badge bg-success">Aprobada</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Reprobada</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (dictamenes.Any())
+    {
+        <div class="card mb-3 border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-lock"></i> Dictámenes Académicos</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var d in dictamenes)
+                {
+                    <div class="mb-2 p-2 border rounded">
+                        <strong>@d.Tipo</strong> <span class="badge bg-@(d.Estado == "Activo" ? "warning" : "secondary")">@d.Estado</span>
+                        <p class="mb-1">@d.Descripcion</p>
+                        <small class="text-muted">Emitido: @d.FechaEmision.ToString("yyyy-MM-dd") | @d.EmitidoPor</small>
+                        @if (!string.IsNullOrEmpty(d.Observaciones))
+                        {
+                            <p class="mb-0 mt-1"><small><strong>Obs:</strong> @d.Observaciones</small></p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (cosecovi.Any())
+    {
+        <div class="card mb-3 border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clipboard-pulse"></i> Reportes COSECOVI</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var r in cosecovi)
+                {
+                    <div class="mb-2 p-2 border rounded">
+                        <strong>@r.Periodo</strong> <span class="badge bg-@(r.Estado == "Atendido" ? "success" : "warning")">@r.Estado</span>
+                        <p class="mb-1">@r.SituacionObservada</p>
+                        <small class="text-muted">Canalización: @r.Canalizacion | @r.FechaReporte.ToString("yyyy-MM-dd")</small>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+<div class="mb-4">
+    <a href="javascript:history.back()" class="btn btn-secondary">Volver</a>
+</div>

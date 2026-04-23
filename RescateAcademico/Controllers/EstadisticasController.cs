@@ -66,7 +66,7 @@ namespace RescateAcademico.Controllers
                 {
                     Carrera = g.Key,
                     TotalAlumnos = g.Count(),
-                    PromedioGeneral = g.Average(a => a.PromedioGlobal),
+                    PromedioGeneral = (decimal)g.Average(a => (double)a.PromedioGlobal),
                     AlumnosEnRiesgo = g.Count(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                 })
                 .OrderByDescending(s => s.TotalAlumnos)

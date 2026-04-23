@@ -28,6 +28,11 @@ namespace RescateAcademico.Data
         public DbSet<SugerenciaIA> SugerenciasIA { get; set; }
         public DbSet<PrediccionDesercion> PrediccionesDesercion { get; set; }
         public DbSet<Autenticacion> Autenticaciones { get; set; }
+        public DbSet<IntervencionTutoria> IntervencionesTutoria { get; set; }
+        public DbSet<PlanMejora> PlanesMejora { get; set; }
+        public DbSet<Grupo> Grupos { get; set; }
+        public DbSet<DictamenAcademico> DictamenesAcademicos { get; set; }
+        public DbSet<ReporteCosecovi> ReportesCosecovi { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -66,21 +71,21 @@ namespace RescateAcademico.Data
 
             builder.Entity<AsignacionTutor>()
                 .HasOne(at => at.Alumno)
-                .WithMany()
+                .WithMany(a => a.TutoresAsignados)
                 .HasForeignKey(at => at.AlumnoMatricula)
                 .HasPrincipalKey(a => a.Matricula)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Postulacion>()
                 .HasOne(p => p.Alumno)
-                .WithMany()
+                .WithMany(a => a.Postulaciones)
                 .HasForeignKey(p => p.AlumnoId)
                 .HasPrincipalKey(a => a.Matricula)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Postulacion>()
                 .HasOne(p => p.Proyecto)
-                .WithMany()
+                .WithMany(p => p.Postulaciones)
                 .HasForeignKey(p => p.ProyectoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -94,6 +99,52 @@ namespace RescateAcademico.Data
                 .HasOne(d => d.Postulacion)
                 .WithMany()
                 .HasForeignKey(d => d.PostulacionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<IntervencionTutoria>()
+                .HasOne(i => i.Tutor)
+                .WithMany()
+                .HasForeignKey(i => i.TutorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<IntervencionTutoria>()
+                .HasOne(i => i.Alumno)
+                .WithMany()
+                .HasForeignKey(i => i.AlumnoMatricula)
+                .HasPrincipalKey(a => a.Matricula)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PlanMejora>()
+                .HasOne(p => p.Alumno)
+                .WithMany()
+                .HasForeignKey(p => p.AlumnoMatricula)
+                .HasPrincipalKey(a => a.Matricula)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PlanMejora>()
+                .HasOne(p => p.Tutor)
+                .WithMany()
+                .HasForeignKey(p => p.TutorId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Alumno>()
+                .HasOne(a => a.Grupo)
+                .WithMany(g => g.Alumnos)
+                .HasForeignKey(a => a.GrupoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<DictamenAcademico>()
+                .HasOne(d => d.Alumno)
+                .WithMany(a => a.Dictamenes)
+                .HasForeignKey(d => d.AlumnoMatricula)
+                .HasPrincipalKey(a => a.Matricula)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ReporteCosecovi>()
+                .HasOne(r => r.Alumno)
+                .WithMany(a => a.ReportesCosecovi)
+                .HasForeignKey(r => r.AlumnoMatricula)
+                .HasPrincipalKey(a => a.Matricula)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

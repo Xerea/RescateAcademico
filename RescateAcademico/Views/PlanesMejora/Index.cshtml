@@ -1,0 +1,51 @@
+@model IEnumerable<RescateAcademico.Models.PlanMejora>
+@{
+    ViewData["Title"] = "Planes de Mejora";
+}
+
+<h2>Planes de Mejora Académica</h2>
+
+<div class="mb-3">
+    <a asp-action="Crear" class="btn btn-success">Crear Nuevo Plan</a>
+    <a asp-controller="Export" asp-action="AlumnosEnRiesgoCSV" class="btn btn-outline-secondary">Exportar Alumnos en Riesgo (CSV)</a>
+</div>
+
+@if (!string.IsNullOrEmpty(ViewBag.MatriculaFiltro))
+{
+    <div class="alert alert-info">
+        Filtrando por matrícula: <strong>@ViewBag.MatriculaFiltro</strong>
+        <a asp-action="Index" class="ms-2">Ver todos</a>
+    </div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Alumno</th>
+            <th>Profesor</th>
+            <th>Fecha Creación</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var plan in Model)
+        {
+            <tr>
+                <td>@plan.Alumno?.Nombre @plan.Alumno?.Apellidos (@plan.AlumnoMatricula)</td>
+                <td>@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
+                <td>@plan.FechaCreacion.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <span class="badge bg-@(plan.Estado == "Activo" ? "primary" : plan.Estado == "Cumplido" ? "success" : plan.Estado == "Vencido" ? "danger" : "secondary")">
+                        @plan.Estado
+                    </span>
+                </td>
+                <td>
+                    <a asp-action="Detalles" asp-route-id="@plan.Id" class="btn btn-sm btn-info">Ver</a>
+                    <a asp-action="Editar" asp-route-id="@plan.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="btn btn-sm btn-secondary">Seguimiento</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

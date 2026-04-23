@@ -1,0 +1,64 @@
+@model RescateAcademico.Controllers.PlanMejoraViewModel
+@{
+    ViewData["Title"] = "Crear Plan de Mejora";
+    var alumnos = ViewBag.Alumnos as List<RescateAcademico.Models.Alumno> ?? new List<RescateAcademico.Models.Alumno>();
+    var tutores = ViewBag.Tutores as List<RescateAcademico.Models.Tutor> ?? new List<RescateAcademico.Models.Tutor>();
+}
+
+<h2>Crear Plan de Mejora</h2>
+
+<form asp-action="Crear" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="AlumnoMatricula" class="form-label">Alumno</label>
+        <select asp-for="AlumnoMatricula" class="form-select" required>
+            <option value="">-- Selecciona un alumno --</option>
+            @foreach (var alumno in alumnos)
+            {
+                <option value="@alumno.Matricula" selected="@(Model.AlumnoMatricula == alumno.Matricula ? "selected" : null)">
+                    @alumno.Apellidos, @alumno.Nombre (@alumno.Matricula) - Riesgo: @alumno.RiesgoAcademico
+                </option>
+            }
+        </select>
+        <span asp-validation-for="AlumnoMatricula" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TutorId" class="form-label">Profesor Asignado</label>
+        <select asp-for="TutorId" class="form-select">
+            <option value="">-- Selecciona un Profesor --</option>
+            @foreach (var Profesor in tutores)
+            {
+                <option value="@Profesor.Id">@Profesor.Nombre @Profesor.Apellidos - @Profesor.Especialidad</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Recomendaciones" class="form-label">Recomendaciones</label>
+        <textarea asp-for="Recomendaciones" class="form-control" rows="4" placeholder="Ej: Asistir a asesorías de cálculo, organizar horario de estudio..."></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Metas" class="form-label">Metas</label>
+        <textarea asp-for="Metas" class="form-control" rows="3" placeholder="Ej: Subir promedio a 8.0 en el siguiente parcial, no faltar más de 2 clases..."></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AccionesTomadas" class="form-label">Acciones Tomadas (iniciales)</label>
+        <textarea asp-for="AccionesTomadas" class="form-control" rows="2" placeholder="Ej: Primera reunión de seguimiento realizada..."></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FechaCierre" class="form-label">Fecha de Cierre Estimada</label>
+        <input asp-for="FechaCierre" type="date" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar Plan</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

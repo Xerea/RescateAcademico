@@ -1,0 +1,172 @@
+@model RescateAcademico.Controllers.ProfesorDashboardViewModel
+@{
+    ViewData["Title"] = "Panel del Profesor";
+}
+
+<h2><i class="bi bi-person-workspace"></i> Panel del Profesor</h2>
+<p class="text-muted">Bienvenido, <strong>@Model.ProfesorNombre</strong>. Aquí tienes el resumen de tus grupos asignados.</p>
+
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card text-white bg-primary">
+            <div class="card-body text-center py-3">
+                <h3>@Model.TotalEstudiantes</h3>
+                <small>Total Estudiantes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center py-3">
+                <h3>@Model.EnRiesgoVerde</h3>
+                <small>Riesgo Verde</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-dark bg-warning">
+            <div class="card-body text-center py-3">
+                <h3>@Model.EnRiesgoAmarillo</h3>
+                <small>Riesgo Amarillo</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-danger">
+            <div class="card-body text-center py-3">
+                <h3>@Model.EnRiesgoRojo</h3>
+                <small>Riesgo Rojo</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-info">
+            <div class="card-body text-center py-3">
+                <h3>@Model.IntervencionesPendientes</h3>
+                <small>Seguimientos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-secondary">
+            <div class="card-body text-center py-3">
+                <h3>@Model.PlanesActivos</h3>
+                <small>Planes Activos</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-grid-3x3-gap"></i> Mis Grupos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var g in Model.Grupos)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">@g.Clave</h5>
+                                        <span class="badge bg-dark">@g.Turno</span>
+                                    </div>
+                                    <p class="text-muted mb-1">@g.Carrera - @g.Semestre° Semestre</p>
+                                    <div class="d-flex justify-content-between">
+                                        <small><i class="bi bi-people"></i> @g.TotalAlumnos estudiantes</small>
+                                        @if (g.EnRiesgo > 0)
+                                        {
+                                            <small class="text-danger"><i class="bi bi-exclamation-triangle"></i> @g.EnRiesgo en riesgo</small>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-traffic-light"></i> Semáforo de Riesgo</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="semaforoChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people"></i> Estudiantes Recientes</h5>
+            <a asp-action="MisEstudiantes" class="btn btn-light btn-sm">Ver todos</a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Boleta</th>
+                    <th>Nombre</th>
+                    <th>Carrera</th>
+                    <th>Semestre</th>
+                    <th>Promedio</th>
+                    <th>Riesgo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Estudiantes)
+                {
+                    <tr>
+                        <td>@a.Matricula</td>
+                        <td>@a.Nombre @a.Apellidos</td>
+                        <td>@a.Carrera</td>
+                        <td>@a.SemestreActual</td>
+                        <td>@a.PromedioGlobal.ToString("F2")</td>
+                        <td>
+                            <span class="badge bg-@(a.RiesgoAcademico == "Rojo" ? "danger" : a.RiesgoAcademico == "Amarillo" ? "warning text-dark" : "success")">
+                                @(a.RiesgoAcademico ?? "Verde")
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="HistorialAcademico" asp-route-boleta="@a.Matricula" class="btn btn-sm btn-info">Historial</a>
+                            <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@a.Matricula" class="btn btn-sm btn-warning">Intervención</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('semaforoChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Verde', 'Amarillo', 'Rojo'],
+                datasets: [{
+                    data: [@Model.EnRiesgoVerde, @Model.EnRiesgoAmarillo, @Model.EnRiesgoRojo],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
+}

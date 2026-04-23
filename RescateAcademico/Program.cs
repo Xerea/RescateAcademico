@@ -2,12 +2,33 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
+using RescateAcademico.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Railway provides DATABASE_URL for PostgreSQL
+var railwayDbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(railwayDbUrl))
+{
+    // Convert PostgreSQL URL to connection string format
+    var uri = new Uri(railwayDbUrl);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else if (!string.IsNullOrEmpty(connectionString))
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
+else
+{
+    throw new InvalidOperationException("No database connection string found. Set 'DefaultConnection' in appsettings or provide 'DATABASE_URL' environment variable.");
+}
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
     options.SignIn.RequireConfirmedAccount = false;
@@ -41,6 +62,8 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
+builder.Services.AddScoped<AlertasService>();
+builder.Services.AddScoped<DesercionPredictionService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -52,6 +75,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
@@ -76,7 +100,11 @@ using (var scope = app.Services.CreateScope())
     
     try
     {
+        // First seed roles and basic admin data
         await RoleSeeder.InitializeAsync(services, context);
+        // Then populate with comprehensive mock SAES demo data
+        await DemoDataSeeder.SeedAsync(services, context);
+        logger.LogInformation("Demo data seeded successfully. Database ready.");
     }
     catch (Exception ex)
     {
@@ -84,11 +112,8 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

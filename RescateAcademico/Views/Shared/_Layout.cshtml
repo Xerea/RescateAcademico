@@ -53,11 +53,26 @@
                                 </li>
                             }
                             
-                            @if (User.IsInRole("Tutor"))
+                            @if (User.IsInRole("Profesor"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Alumnos" asp-action="MisTutorados">
-                                        <i class="bi bi-people"></i> Mis Tutorados
+                                    <a class="nav-link text-dark fw-bold" asp-controller="Profesor" asp-action="Index">
+                                        <i class="bi bi-person-workspace"></i> Panel Profesor
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Profesor" asp-action="MisEstudiantes">
+                                        <i class="bi bi-people"></i> Mis Estudiantes
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Intervenciones" asp-action="Index">
+                                        <i class="bi bi-clipboard-pulse"></i> Intervenciones
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="PlanesMejora" asp-action="Index">
+                                        <i class="bi bi-journal-check"></i> Planes de Mejora
                                     </a>
                                 </li>
                             }
@@ -85,16 +100,25 @@
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Usuarios"><i class="bi bi-people"></i> Usuarios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="CrearCuenta"><i class="bi bi-person-plus"></i> Crear Cuenta</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Alumnos"><i class="bi bi-student"></i> Alumnos</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Tutores"><i class="bi bi-person-badge"></i> Tutores</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Tutores"><i class="bi bi-person-badge"></i> Profesores</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="CargaMasiva"><i class="bi bi-upload"></i> Carga Masiva</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="EvaluarRiesgos"><i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Proyectos" asp-action="Index"><i class="bi bi-folder"></i> Proyectos</a></li>
                                         <li><a class="dropdown-item" asp-controller="Convocatorias" asp-action="Todas"><i class="bi bi-megaphone"></i> Convocatorias</a></li>
+                                        <li><a class="dropdown-item" asp-controller="PlanesMejora" asp-action="Index"><i class="bi bi-journal-check"></i> Planes de Mejora</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-controller="Export" asp-action="ReporteImprimible" target="_blank"><i class="bi bi-printer"></i> Reporte en Riesgo (PDF)</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Export" asp-action="AlumnosCSV"><i class="bi bi-file-earmark-excel"></i> Exportar Alumnos (CSV)</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Predicciones" asp-action="Index"><i class="bi bi-brain"></i> Predicción ML.NET</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="CiclosEscolares"><i class="bi bi-calendar"></i> Ciclos</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Carreras"><i class="bi bi-mortarboard"></i> Carreras</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Bitacora" asp-action="Index"><i class="bi bi-clock-history"></i> Bitácora</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="IntegridadDatos"><i class="bi bi-shield-check"></i> Integridad de Datos</a></li>
                                     </ul>
                                 </li>
                                 <li class="nav-item">

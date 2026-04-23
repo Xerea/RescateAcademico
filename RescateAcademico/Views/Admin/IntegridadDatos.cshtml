@@ -1,0 +1,128 @@
+@{
+    ViewData["Title"] = "Integridad de Datos";
+    Layout = "_Layout";
+    var problemas = ViewBag.Problemas as List<(string Mensaje, string Severidad)> ?? new List<(string, string)>();
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-shield-check"></i> Dashboard de Integridad de Datos</h2>
+        <p class="text-muted">Verificación avanzada de consistencia en la base de datos institucional.</p>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="text-primary">@ViewBag.TotalAlumnos</h3>
+                <small class="text-muted">Alumnos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="text-success">@ViewBag.TotalTutores</h3>
+                <small class="text-muted">Tutores</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="text-info">@ViewBag.TotalProyectos</h3>
+                <small class="text-muted">Proyectos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="text-warning">@ViewBag.TotalConvocatorias</h3>
+                <small class="text-muted">Convocatorias</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="text-secondary">@ViewBag.TotalCalificaciones</h3>
+                <small class="text-muted">Calificaciones</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <h3 class="text-dark">@ViewBag.TotalIntervenciones</h3>
+                <small class="text-muted">Intervenciones</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-start border-4 border-warning">
+            <div class="card-body">
+                <h5>@ViewBag.AlumnosSinTutor</h5>
+                <small class="text-muted">Alumnos sin Profesor asignado</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-start border-4 border-danger">
+            <div class="card-body">
+                <h5>@ViewBag.AlumnosRojoSinPlan</h5>
+                <small class="text-muted">Alumnos en riesgo crítico sin plan de mejora</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-start border-4 border-info">
+            <div class="card-body">
+                <h5>@ViewBag.AlumnosSinRiesgo</h5>
+                <small class="text-muted">Alumnos sin evaluación de riesgo</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Problemas Detectados (@problemas.Count)</h5>
+    </div>
+    <div class="card-body">
+        @if (problemas.Count > 0)
+        {
+            <ul class="list-group">
+                @foreach (var (mensaje, severidad) in problemas)
+                {
+                    <li class="list-group-item list-group-item-@severidad d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-@(severidad == "danger" ? "x-circle" : severidad == "warning" ? "exclamation-circle" : "info-circle")"></i> @mensaje</span>
+                        <span class="badge bg-@severidad rounded-pill">@severidad.ToUpper()</span>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                <p class="mt-2 text-muted">No se detectaron problemas. La base de datos está consistente.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="EvaluarRiesgos" class="btn btn-primary"><i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos Ahora</a>
+    <a asp-controller="Predicciones" asp-action="Index" class="btn btn-dark"><i class="bi bi-brain"></i> Predicciones ML.NET</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver al Panel</a>
+</div>

@@ -164,49 +164,6 @@ namespace RescateAcademico.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, IsActive = true, EmailConfirmed = true };
-                var result = await _userManager.CreateAsync(user, model.Password);
-                
-                if (result.Succeeded)
-                {
-                    await _userManager.AddToRoleAsync(user, "Alumno");
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Dashboard");
-                }
-                
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-            }
-            return View(model);
-        }
-    }
-
-    public class RegisterViewModel
-    {
-        [Required(ErrorMessage = "El correo es requerido")]
-        [EmailAddress(ErrorMessage = "Correo inválido")]
-        public string Email { get; set; } = string.Empty;
-        
-        [Required(ErrorMessage = "La contraseña es requerida")]
-        [StringLength(100, ErrorMessage = "La {0} debe tener al menos {2} caracteres.", MinimumLength = 6)]
-        public string Password { get; set; } = string.Empty;
-        
-        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
-        public string ConfirmPassword { get; set; } = string.Empty;
     }
 
     public class ResetPasswordViewModel
@@ -215,5 +172,25 @@ namespace RescateAcademico.Controllers
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;
+    }
+
+    public class RegisterViewModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+
+        [Compare("Password")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        public string Matricula { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+        public string Apellidos { get; set; } = string.Empty;
+        public string Carrera { get; set; } = string.Empty;
+        public int SemestreActual { get; set; } = 1;
     }
 }

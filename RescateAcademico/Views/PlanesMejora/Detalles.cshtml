@@ -1,0 +1,42 @@
+@model RescateAcademico.Models.PlanMejora
+@{
+    ViewData["Title"] = "Detalles del Plan de Mejora";
+}
+
+<h2>Detalles del Plan de Mejora</h2>
+
+<div class="card mb-3">
+    <div class="card-header">
+        Plan #@Model.Id - <span class="badge bg-@(Model.Estado == "Activo" ? "primary" : Model.Estado == "Cumplido" ? "success" : Model.Estado == "Vencido" ? "danger" : "secondary")">@Model.Estado</span>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Alumno</dt>
+            <dd class="col-sm-9">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos (@Model.AlumnoMatricula)</dd>
+
+            <dt class="col-sm-3">Profesor</dt>
+            <dd class="col-sm-9">@Model.Tutor?.Nombre @Model.Tutor?.Apellidos</dd>
+
+            <dt class="col-sm-3">Fecha de Creación</dt>
+            <dd class="col-sm-9">@Model.FechaCreacion.ToString("yyyy-MM-dd HH:mm")</dd>
+
+            <dt class="col-sm-3">Fecha de Cierre</dt>
+            <dd class="col-sm-9">@(Model.FechaCierre?.ToString("yyyy-MM-dd") ?? "No definida")</dd>
+
+            <dt class="col-sm-3">Recomendaciones</dt>
+            <dd class="col-sm-9">@(Model.Recomendaciones ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Metas</dt>
+            <dd class="col-sm-9">@(Model.Metas ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Acciones Tomadas</dt>
+            <dd class="col-sm-9">@(Model.AccionesTomadas ?? "N/A")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mb-3">
+    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="btn btn-secondary">Seguimiento</a>
+    <a asp-action="Index" class="btn btn-outline-primary">Volver a la lista</a>
+</div>

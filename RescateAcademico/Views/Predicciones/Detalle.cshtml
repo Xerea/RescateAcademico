@@ -1,0 +1,74 @@
+@model RescateAcademico.Services.DesercionOutput
+@{
+    ViewData["Title"] = "Detalle de Predicción";
+    var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
+    var historial = ViewBag.Historial as List<RescateAcademico.Models.PrediccionDesercion> ?? new List<RescateAcademico.Models.PrediccionDesercion>();
+}
+
+<h2>Detalle de Predicción de Deserción</h2>
+
+@if (alumno != null)
+{
+    <div class="card mb-4">
+        <div class="card-header bg-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning text-dark" : Model.Probabilidad > 0.3m ? "info" : "success")">
+            <h5 class="mb-0">@alumno.Nombre @alumno.Apellidos (@alumno.Matricula)</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Carrera:</strong> @alumno.Carrera</p>
+                    <p><strong>Semestre:</strong> @alumno.SemestreActual</p>
+                    <p><strong>Promedio Global:</strong> @alumno.PromedioGlobal.ToString("F2")</p>
+                    <p><strong>Carga Académica:</strong> @alumno.CargaAcademicaActual materias</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Materias Reprobadas:</strong> @(alumno.MateriasReprobadas ?? 0)</p>
+                    <p><strong>Ausencias:</strong> @(alumno.Ausencias ?? 0)</p>
+                    <p><strong>Parciales Bajos:</strong> @(alumno.ParcialesBajos ?? 0)</p>
+                    <p><strong>ETS Presentados:</strong> @(alumno.EtsPresentados ?? 0)</p>
+                </div>
+            </div>
+            <hr />
+            <div class="text-center">
+                <h4>Probabilidad de Deserción: @((Model.Probabilidad * 100).ToString("F1"))%</h4>
+                <p class="text-muted">Método: @(Model.EsHeuristica ? "Heurística (fallback)" : "ML.NET FastTree")</p>
+            </div>
+        </div>
+    </div>
+
+    <h4>Historial de Predicciones</h4>
+    @if (historial.Any())
+    {
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Probabilidad</th>
+                    <th>Nivel</th>
+                    <th>Factores</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var h in historial)
+                {
+                    <tr>
+                        <td>@h.FechaPrediccion.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@((h.ProbabilidadDesercion * 100)?.ToString("F1"))%</td>
+                        <td>@h.NivelRiesgo</td>
+                        <td>@h.FactoresDetectados</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">No hay predicciones previas registradas.</p>
+    }
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-secondary">Volver al listado</a>
+    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno?.Matricula" class="btn btn-warning">Registrar Intervención</a>
+    <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@alumno?.Matricula" class="btn btn-success">Crear Plan de Mejora</a>
+</div>

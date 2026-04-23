@@ -36,6 +36,7 @@ namespace RescateAcademico.Controllers
             return View(postulaciones);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Postularse(int convocatoriaId)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -100,6 +101,49 @@ namespace RescateAcademico.Controllers
                 return RedirectToAction("Index", "Convocatorias");
             }
 
+            return View(convocatoria);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Postularse(int convocatoriaId, IFormFile? documento)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (alumno == null)
+            {
+                TempData["Error"] = "No tienes un perfil de alumno asociado";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var convocatoria = await _context.Convocatorias.FindAsync(convocatoriaId);
+            if (convocatoria == null)
+            {
+                TempData["Error"] = "Convocatoria no encontrada";
+                return RedirectToAction("Index", "Convocatorias");
+            }
+
+            if (convocatoria.FechaCierre < DateTime.Now)
+            {
+                TempData["Error"] = "Esta convocatoria ya está cerrada";
+                return RedirectToAction("Index", "Convocatorias");
+            }
+
+            if (convocatoria.CupoMaximo > 0 && convocatoria.PostulacionesActuales >= convocatoria.CupoMaximo)
+            {
+                TempData["Error"] = "Esta convocatoria ya no tiene cupo disponible";
+                return RedirectToAction("Index", "Convocatorias");
+            }
+
+            var yaPostulado = await _context.Postulaciones
+                .AnyAsync(p => p.AlumnoId == alumno.Matricula && p.ProyectoId == convocatoria.ProyectoId);
+
+            if (yaPostulado)
+            {
+                TempData["Error"] = "Ya te has postulado a este proyecto";
+                return RedirectToAction("Index", "Convocatorias");
+            }
+
             var postulacion = new Postulacion
             {
                 AlumnoId = alumno.Matricula,
@@ -107,6 +151,25 @@ namespace RescateAcademico.Controllers
                 FechaSolicitud = DateTime.Now,
                 Estado = "En Revisión"
             };
+
+            if (documento != null && documento.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "postulaciones");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(documento.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await documento.CopyToAsync(stream);
+                }
+
+                postulacion.DocumentoNombre = documento.FileName;
+                postulacion.DocumentoRuta = $"/uploads/postulaciones/{fileName}";
+                postulacion.DocumentoTamano = documento.Length;
+            }
 
             convocatoria.PostulacionesActuales++;
             _context.Postulaciones.Add(postulacion);

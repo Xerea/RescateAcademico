@@ -122,15 +122,15 @@
         </div>
     }
 
-    @if (User.IsInRole("Tutor"))
+    @if (User.IsInRole("Profesor"))
     {
         <div class="col-md-6 mb-4">
             <div class="card h-100 border-0 shadow-sm" style="background-color: #6c1d45;">
                 <div class="card-body text-center text-white">
                     <i class="bi bi-people fs-1 mb-3"></i>
-                    <h5 class="card-title">Mis Tutorados</h5>
+                    <h5 class="card-title">Mis Estudiantes</h5>
                     <p class="card-text small">Visualiza la radiografía académica y riesgo de tus alumnos asignados.</p>
-                    <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Ir a Tutoría</a>
+                    <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Ir a Profesoría</a>
                 </div>
             </div>
         </div>

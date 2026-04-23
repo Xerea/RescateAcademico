@@ -1,0 +1,54 @@
+@model RescateAcademico.Models.Convocatoria
+@{
+    ViewData["Title"] = "Postularme";
+    var diasRestantes = (Model.FechaCierre - DateTime.Now).Days;
+}
+
+<h2>Postularme a Convocatoria</h2>
+
+<div class="card mb-4">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <h5 class="mb-0">@Model.Titulo</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Tipo:</strong> @Model.Tipo</p>
+        <p><strong>Descripción:</strong> @Model.Descripcion</p>
+        <p><strong>Cierre:</strong> @Model.FechaCierre.ToString("dd/MM/yyyy") (@diasRestantes días restantes)</p>
+        @if (Model.PromedioMinimo.HasValue)
+        {
+            <p><strong>Promedio mínimo:</strong> @Model.PromedioMinimo.Value.ToString("F1")</p>
+        }
+        @if (!string.IsNullOrEmpty(Model.Requisitos))
+        {
+            <p><strong>Requisitos:</strong> @Model.Requisitos</p>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5>Formulario de Postulación</h5>
+    </div>
+    <div class="card-body">
+        <form asp-controller="Postulaciones" asp-action="Postularse" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="convocatoriaId" value="@Model.Id" />
+
+            <div class="mb-3">
+                <label for="documento" class="form-label">Adjuntar Documento (opcional)</label>
+                <input type="file" name="documento" class="form-control" accept=".pdf,.doc,.docx" />
+                <div class="form-text">
+                    Puedes adjuntar tu CV, carta de motivos u otro documento de soporte (PDF, DOC, DOCX). Máximo 5MB.
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Al postularte, tu solicitud será revisada por el Profesor responsable. Recibirás una notificación cuando se actualice tu estado.
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-send"></i> Enviar Postulación
+            </button>
+            <a asp-controller="Convocatorias" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>

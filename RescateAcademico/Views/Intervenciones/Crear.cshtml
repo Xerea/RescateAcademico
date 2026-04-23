@@ -1,0 +1,53 @@
+@model RescateAcademico.Models.IntervencionTutoria
+@{
+    ViewData["Title"] = "Nueva Intervención";
+    Layout = "_Layout";
+    var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nueva Intervención: @alumno?.Nombre @alumno?.Apellidos</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Crear" method="post">
+                    <input type="hidden" asp-for="AlumnoMatricula" value="@ViewBag.Matricula" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Intervención *</label>
+                        <select asp-for="Tipo" class="form-select" required>
+                            <option value="Acercamiento">Acercamiento</option>
+                            <option value="Tutoria">Profesoría</option>
+                            <option value="Canalizacion">Canalización</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción *</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="4" placeholder="Describe la intervención realizada..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Resultado / Observaciones</label>
+                        <textarea asp-for="Resultado" class="form-control" rows="3" placeholder="Resultados obtenidos..."></textarea>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="RequiereSeguimiento" class="form-check-input" />
+                        <label class="form-check-label">Requiere seguimiento</label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar Intervención
+                        </button>
+                        <a asp-action="PorAlumno" asp-route-matricula="@ViewBag.Matricula" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

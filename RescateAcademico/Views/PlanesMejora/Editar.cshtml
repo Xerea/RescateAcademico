@@ -1,0 +1,65 @@
+@model RescateAcademico.Controllers.PlanMejoraViewModel
+@{
+    ViewData["Title"] = "Editar Plan de Mejora";
+    var tutores = ViewBag.Tutores as List<RescateAcademico.Models.Tutor> ?? new List<RescateAcademico.Models.Tutor>();
+}
+
+<h2>Editar Plan de Mejora</h2>
+
+<form asp-action="Editar" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="AlumnoMatricula" />
+
+    <div class="mb-3">
+        <label class="form-label">Alumno</label>
+        <input class="form-control" value="@Model.AlumnoMatricula" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TutorId" class="form-label">Profesor Asignado</label>
+        <select asp-for="TutorId" class="form-select">
+            <option value="">-- Selecciona un Profesor --</option>
+            @foreach (var Profesor in tutores)
+            {
+                <option value="@Profesor.Id">@Profesor.Nombre @Profesor.Apellidos - @Profesor.Especialidad</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Estado" class="form-label">Estado</label>
+        <select asp-for="Estado" class="form-select">
+            <option value="Activo">Activo</option>
+            <option value="Cumplido">Cumplido</option>
+            <option value="Vencido">Vencido</option>
+            <option value="Cancelado">Cancelado</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Recomendaciones" class="form-label">Recomendaciones</label>
+        <textarea asp-for="Recomendaciones" class="form-control" rows="4"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Metas" class="form-label">Metas</label>
+        <textarea asp-for="Metas" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AccionesTomadas" class="form-label">Acciones Tomadas</label>
+        <textarea asp-for="AccionesTomadas" class="form-control" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FechaCierre" class="form-label">Fecha de Cierre Estimada</label>
+        <input asp-for="FechaCierre" type="date" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    <a asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

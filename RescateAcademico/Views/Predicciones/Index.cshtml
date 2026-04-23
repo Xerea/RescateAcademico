@@ -1,0 +1,98 @@
+@model List<RescateAcademico.Services.PrediccionAlumnoViewModel>
+@{
+    ViewData["Title"] = "Predicción de Deserción (ML.NET)";
+}
+
+<h2><i class="bi bi-brain"></i> Predicción de Deserción Estudiantil</h2>
+<p class="text-muted">Modelo ML.NET FastTree entrenado con datos académicos institucionales (simulación SAES).</p>
+
+@if (!ViewBag.ModeloEntrenado)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> El modelo ML.NET no pudo entrenarse (insuficientes datos). Se están usando heurísticas.
+    </div>
+}
+else
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle"></i> Modelo ML.NET entrenado y activo. Basado en indicadores académicos simulados de SAES.
+    </div>
+}
+
+<div class="mb-3">
+    <a asp-action="Reentrenar" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Reentrenar Modelo</a>
+    <a asp-controller="Admin" asp-action="Index" class="btn btn-secondary">Volver al Panel</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body text-center">
+                <h3>@Model.Count(m => m.Riesgo == "Crítico")</h3>
+                <p class="mb-0">Riesgo Crítico (>70%)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-dark bg-warning">
+            <div class="card-body text-center">
+                <h3>@Model.Count(m => m.Riesgo == "Alto")</h3>
+                <p class="mb-0">Riesgo Alto (50-70%)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body text-center">
+                <h3>@Model.Count(m => m.Riesgo == "Medio")</h3>
+                <p class="mb-0">Riesgo Medio (30-50%)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body text-center">
+                <h3>@Model.Count(m => m.Riesgo == "Bajo")</h3>
+                <p class="mb-0">Riesgo Bajo (<30%)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Matrícula</th>
+            <th>Nombre</th>
+            <th>Carrera</th>
+            <th>Promedio</th>
+            <th>Prob. Deserción</th>
+            <th>Riesgo</th>
+            <th>Método</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Matricula</td>
+                <td>@item.Nombre</td>
+                <td>@item.Carrera</td>
+                <td>@item.Promedio.ToString("F2")</td>
+                <td>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-@item.Color" role="progressbar" style="width: @(item.ProbabilidadDesercion * 100)%" aria-valuenow="@item.ProbabilidadDesercion" aria-valuemin="0" aria-valuemax="1">
+                            @((item.ProbabilidadDesercion * 100).ToString("F0"))%
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge bg-@item.Color">@item.Riesgo</span></td>
+                <td><span class="badge bg-secondary">@item.Metodo</span></td>
+                <td>
+                    <a asp-action="Detalle" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-info">Ver</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

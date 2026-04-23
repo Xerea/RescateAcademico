@@ -31,6 +31,12 @@ namespace RescateAcademico.Models
 
         public int? Recursamientos { get; set; }
 
+        public int? Ausencias { get; set; } = 0;
+
+        public int? ParcialesBajos { get; set; } = 0;
+
+        public DateTime? FechaUltimaActualizacion { get; set; }
+
         public string? Estatus { get; set; } = "Activo";
 
         public string? Correo { get; set; }
@@ -39,8 +45,13 @@ namespace RescateAcademico.Models
         public string? UserId { get; set; }
         public ApplicationUser? Usuario { get; set; }
 
+        public int? GrupoId { get; set; }
+        public Grupo? Grupo { get; set; }
+
         public ICollection<Calificacion> Calificaciones { get; set; } = new List<Calificacion>();
         public ICollection<AsignacionTutor> TutoresAsignados { get; set; } = new List<AsignacionTutor>();
         public ICollection<Postulacion> Postulaciones { get; set; } = new List<Postulacion>();
+        public ICollection<DictamenAcademico> Dictamenes { get; set; } = new List<DictamenAcademico>();
+        public ICollection<ReporteCosecovi> ReportesCosecovi { get; set; } = new List<ReporteCosecovi>();
     }
 }

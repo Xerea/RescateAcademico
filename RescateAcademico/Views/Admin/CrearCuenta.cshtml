@@ -1,0 +1,105 @@
+@model RescateAcademico.Controllers.CrearCuentaViewModel
+@{
+    ViewData["Title"] = "Crear Cuenta Institucional";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-person-plus"></i> Crear Cuenta Institucional</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="CrearCuenta" method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Correo Institucional *</label>
+                            <input asp-for="Email" class="form-control" placeholder="usuario@ipn.mx" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contraseña Temporal *</label>
+                            <input asp-for="Password" type="password" class="form-control" required />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Rol *</label>
+                            <select asp-for="Rol" class="form-select" id="rolSelect" required>
+                                <option value="Alumno">Alumno</option>
+                                <option value="Profesor">Profesor</option>
+                                <option value="Autoridad">Autoridad</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Matrícula</label>
+                            <input asp-for="Matricula" class="form-control" placeholder="2023600000" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input asp-for="Nombre" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Apellidos</label>
+                            <input asp-for="Apellidos" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3" id="carreraField">
+                            <label class="form-label">Carrera</label>
+                            <input asp-for="Carrera" class="form-control" placeholder="Informática" />
+                        </div>
+                        <div class="col-md-6 mb-3" id="semestreField">
+                            <label class="form-label">Semestre</label>
+                            <input asp-for="SemestreActual" type="number" class="form-control" min="1" max="12" value="1" />
+                        </div>
+                        <div class="col-md-6 mb-3 d-none" id="especialidadField">
+                            <label class="form-label">Especialidad</label>
+                            <input asp-for="Especialidad" class="form-control" placeholder="Asesoría Académica" />
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Crear Cuenta
+                        </button>
+                        <a asp-action="Usuarios" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('rolSelect').addEventListener('change', function() {
+            var rol = this.value;
+            var carreraField = document.getElementById('carreraField');
+            var semestreField = document.getElementById('semestreField');
+            var especialidadField = document.getElementById('especialidadField');
+
+            if (rol === 'Profesor') {
+                especialidadField.classList.remove('d-none');
+                carreraField.classList.add('d-none');
+                semestreField.classList.add('d-none');
+            } else if (rol === 'Alumno') {
+                especialidadField.classList.add('d-none');
+                carreraField.classList.remove('d-none');
+                semestreField.classList.remove('d-none');
+            } else {
+                especialidadField.classList.add('d-none');
+                carreraField.classList.add('d-none');
+                semestreField.classList.add('d-none');
+            }
+        });
+    </script>
+}
