@@ -40,32 +40,36 @@ La aplicación estará disponible en `https://localhost:5001` (o el puerto que i
 |-----|-------|------------|
 | Administrador | admin@ipn.mx | Admin123! |
 | Autoridad | autoridad@ipn.mx | Autoridad123! |
-| Tutor #1 | tutor1@ipn.mx | Demo123! |
-| Tutor #2 | tutor2@ipn.mx | Demo123! |
+| Profesor #1 | profesor1@ipn.mx | Demo123! |
+| Profesor #2 | profesor2@ipn.mx | Demo123! |
 
-#### Alumnos de demostración (50 cuentas)
-Cada alumno tiene su propia cuenta de usuario vinculada. El patrón de email es: `{matricula}@alumno.ipn.mx`
+> **Tip**: Puedes usar cualquier profesor del rango `profesor1@ipn.mx` a `profesor12@ipn.mx`. Todas las contraseñas son `Demo123!`.
 
-| Matrícula | Email | Contraseña | Perfil académico |
-|-----------|-------|------------|------------------|
-| 2023600001 | 2023600001@alumno.ipn.mx | Demo123! | Verde (buen desempeño) |
-| 2023600002 | 2023600002@alumno.ipn.mx | Demo123! | Verde |
-| 2023600015 | 2023600015@alumno.ipn.mx | Demo123! | Amarillo (riesgo moderado) |
-| 2023600025 | 2023600025@alumno.ipn.mx | Demo123! | Amarillo |
-| 2023600035 | 2023600035@alumno.ipn.mx | Demo123! | Rojo (alto riesgo) |
-| 2023600045 | 2023600045@alumno.ipn.mx | Demo123! | Rojo |
+#### Alumnos de demostración (~308 cuentas)
+Cada alumno tiene su propia cuenta de usuario vinculada. El patrón de email sigue el formato IPN: `{inicial_nombre}{apellido_paterno}{inicial_materna}{año}00@alumno.ipn.mx` (ej. `salanisp2300@alumno.ipn.mx`). La boleta sigue el formato: `2023{secuencia:000000}`.
 
-> **Tip**: Puedes usar cualquier matrícula del rango `2023600001` a `2023600050`. Todas las contraseñas son `Demo123!`.
+| Boleta | Email | Contraseña | Perfil académico |
+|--------|-------|------------|------------------|
+| 2023000001 | sgarcia2300@alumno.ipn.mx | Demo123! | Verde (buen desempeño) |
+| 2023000002 | llopez2300@alumno.ipn.mx | Demo123! | Verde |
+| 2023000100 | pmartinez2300@alumno.ipn.mx | Demo123! | Amarillo (riesgo moderado) |
+| 2023000200 | jhernandez2300@alumno.ipn.mx | Demo123! | Amarillo |
+| 2023000250 | rgonzalez2300@alumno.ipn.mx | Demo123! | Rojo (alto riesgo) |
+| 2023000300 | mperez2300@alumno.ipn.mx | Demo123! | Rojo |
+
+> **Tip**: Puedes usar cualquier boleta del rango `2023000001` a `2023000308`. Todas las contraseñas son `Demo123!`.
 
 #### Distribución de datos demo
-- **50 alumnos** con perfiles académicos variados (40% Verde, 35% Amarillo, 25% Rojo)
-- **10 tutores** con especialidades reales del IPN
-- **8 carreras** del CECyT 13: Programación, Computación, Contabilidad, Administración, Diseño y Comunicación Visual, Logística y Transporte, Máquinas y Herramientas, Sistemas Automotrices
+- **~308 alumnos** en **10 grupos** del CECyT 13 (3ro a 6to semestre)
+- **12 profesores** con especialidades reales del IPN
+- **6 carreras** del CECyT 13: Administración, Contabilidad, Gastronomía, Informática, Seguridad Informática, Turismo
 - **8 proyectos** con convocatorias activas
-- **~45 postulaciones** en varios estados (Aceptado, Rechazado, En Revisión)
-- **~350 calificaciones** distribuidas por materia y ciclo
-- **20 intervenciones tutoriales** registradas
-- **12 planes de mejora** académica
+- **~100 postulaciones** en varios estados (Aceptado, Rechazado, En Revisión)
+- **~4,200 calificaciones** distribuidas por materia y ciclo
+- **80 intervenciones** registradas
+- **40 planes de mejora** académica
+- **25 dictámenes académicos**
+- **35 reportes COSECOVI**
 - **Predicciones ML.NET** generadas para todos los alumnos
 
 ## Configuración de Base de Datos
@@ -74,27 +78,26 @@ Cada alumno tiene su propia cuenta de usuario vinculada. El patrón de email es:
 Por defecto usa SQLite (`app.db` en la carpeta del proyecto). Los datos persisten entre ejecuciones.
 
 ### Producción (Railway - PostgreSQL)
-Para desplegar en Railway, actualizar `appsettings.json`:
-```json
-"ConnectionStrings": {
-    "DefaultConnection": "Host=your-railway-host;Database=railway;Username=postgres;Password=your-password"
-}
-```
+El proyecto está configurado para desplegarse automáticamente en Railway usando PostgreSQL. Solo necesitas:
+1. Crear un proyecto en Railway y vincular este repositorio de GitHub.
+2. Agregar un servicio **PostgreSQL** desde el dashboard de Railway.
+3. Railway inyectará automáticamente la variable de entorno `DATABASE_URL`.
+4. `Program.cs` detecta `DATABASE_URL` y usa `Npgsql` automáticamente. **No necesitas modificar `appsettings.json` ni `Program.cs`.**
 
-Y en `Program.cs`, cambiar `UseSqlite` por `UseNpgsql`.
+> **Nota**: El primer despliegue creará las tablas y sembrará los 300+ registros demo automáticamente. Este proceso puede tardar 2-3 minutos.
 
 ## Estructura del Proyecto
 ```
 Controllers/    -> Controladores MVC
 Models/         -> Modelos de datos y ViewModels
 Views/          -> Vistas Razor (.cshtml)
-Data/           -> ApplicationDbContext y RoleSeeder
+Data/           -> ApplicationDbContext, Seeders y RoleSeeder
 wwwroot/        -> Archivos estáticos (CSS, JS, imágenes, uploads)
 ```
 
 ## Roles del Sistema
-1. **Administrador** - Gestión completa: usuarios, alumnos, tutores, proyectos, convocatorias, reportes
-2. **Tutor** - Monitoreo de tutorados, registro de intervenciones, radiografía académica
+1. **Administrador** - Gestión completa: usuarios, alumnos, profesores, proyectos, convocatorias, reportes
+2. **Profesor** - Monitoreo de estudiantes, registro de intervenciones, radiografía académica
 3. **Alumno** - Perfil académico, postulación a convocatorias, notificaciones
 4. **Autoridad** - Estadísticas globales, reportes institucionales, revisión de postulaciones
 
@@ -108,19 +111,23 @@ wwwroot/        -> Archivos estáticos (CSS, JS, imágenes, uploads)
 - Tablero estadístico
 - Bitácora de auditoría
 - Carga masiva de alumnos (CSV)
-- Registro de intervenciones tutorales
+- Registro de intervenciones
 - Dashboard de integridad de datos
+- Exportación a CSV e impresión de reportes
+- Predicción de deserción con ML.NET
+- Planes de mejora académica personalizados
+- Dictámenes académicos y reportes COSECOVI
+- Panel de profesor con semáforo, grupos y historial académico tipo SAES
 
 ## Funcionalidades Pendientes
 - Exportación a PDF/Excel con logo institucional
-- ML.NET con datos reales de SAES
-- Planes de mejora académica personalizados
+- Integración directa con SAES para datos reales
 
 ## Equipo
 - Sergio: Autenticación, Roles, Ciclos Escolares, Bitácora
 - Sara: Recuperación de contraseña, Convocatorias, Postulaciones, Estadísticas
 - Alejandra: Dashboard, Perfil Académico, Notificaciones, Reportes
-- Elias: Tutorados, Carga Masiva, Intervenciones, Integridad
+- Elias: Estudiantes, Carga Masiva, Intervenciones, Integridad
 - Alexis: Seguridad, IA/ML, Alertas
 
 ## Notas para Desarrolladores

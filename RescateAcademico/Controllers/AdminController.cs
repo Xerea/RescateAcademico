@@ -366,7 +366,7 @@ namespace RescateAcademico.Controllers
                     if (string.IsNullOrEmpty(matricula))
                     {
                         errores++;
-                        erroresDetalle.Add($"Línea {numeroLinea}: Matrícula vacía");
+                        erroresDetalle.Add($"Línea {numeroLinea}: Boleta vacía");
                         continue;
                     }
 
