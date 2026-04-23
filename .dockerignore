@@ -1,0 +1,31 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# Local databases
+*.db
+*.db-shm
+*.db-wal
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if any)
+node_modules/

@@ -64,7 +64,7 @@ namespace RescateAcademico.Controllers
         {
             var alumnos = await _context.Alumnos
                 .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
-                .OrderByDescending(a => a.PromedioGlobal)
+                .OrderByDescending(a => (double)a.PromedioGlobal)
                 .ToListAsync();
 
             var csv = new StringBuilder();
@@ -85,7 +85,7 @@ namespace RescateAcademico.Controllers
             var alumnos = await _context.Alumnos
                 .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                 .OrderBy(a => a.RiesgoAcademico)
-                .ThenByDescending(a => a.PromedioGlobal)
+                .ThenByDescending(a => (double)a.PromedioGlobal)
                 .ToListAsync();
 
             var totalAlumnos = await _context.Alumnos.CountAsync();

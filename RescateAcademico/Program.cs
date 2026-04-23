@@ -9,10 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// Setup early logging for database diagnostics
+var startupLoggerFactory = LoggerFactory.Create(b => b.AddConsole());
+var startupLogger = startupLoggerFactory.CreateLogger<Program>();
+
 // Railway provides DATABASE_URL for PostgreSQL
 var railwayDbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+var isRailway = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT"));
+
 if (!string.IsNullOrEmpty(railwayDbUrl))
 {
+    startupLogger.LogInformation("DATABASE_URL detected. Configuring PostgreSQL for Railway.");
     // Convert PostgreSQL URL to connection string format
     var uri = new Uri(railwayDbUrl);
     var userInfo = uri.UserInfo.Split(':');
@@ -20,8 +27,17 @@ if (!string.IsNullOrEmpty(railwayDbUrl))
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(connectionString));
 }
+else if (isRailway)
+{
+    startupLogger.LogError("Railway environment detected (RAILWAY_ENVIRONMENT is set) but DATABASE_URL is missing.");
+    startupLogger.LogError("Ensure a PostgreSQL service is created and linked to this application service in the Railway dashboard.");
+    throw new InvalidOperationException(
+        "Railway deployment misconfiguration: DATABASE_URL is missing. " +
+        "Please add a PostgreSQL service to your Railway project and verify it is linked to this app service.");
+}
 else if (!string.IsNullOrEmpty(connectionString))
 {
+    startupLogger.LogInformation("DATABASE_URL not found. Using SQLite with DefaultConnection.");
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlite(connectionString));
 }
