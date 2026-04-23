@@ -6,6 +6,8 @@ using RescateAcademico.Models;
 using RescateAcademico.Services;
 using RescateAcademico.Seeders;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
