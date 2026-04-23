@@ -125,6 +125,17 @@ namespace RescateAcademico.Seeders
         {
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // Guard: if admin user already exists, assume seeding is complete.
+            // This prevents partial re-seeding if the container was killed mid-process.
+            var adminExists = await userManager.FindByEmailAsync("admin@ipn.mx");
+            if (adminExists != null)
+            {
+                var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("Admin user already exists. Skipping DemoDataSeeder (data already present).");
+                return;
+            }
+
             var alertas = new AlertasService(context);
 
             await SeedRolesAsync(roleManager);

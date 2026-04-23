@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
@@ -21,9 +22,13 @@ if (!string.IsNullOrEmpty(railwayDbUrl))
 {
     startupLogger.LogInformation("DATABASE_URL detected. Configuring PostgreSQL for Railway.");
     // Convert PostgreSQL URL to connection string format
+    // Railway passwords may contain special characters (:, @, /, %). Use Split(':', 2) and UrlDecode.
     var uri = new Uri(railwayDbUrl);
-    var userInfo = uri.UserInfo.Split(':');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = WebUtility.UrlDecode(userInfo[0]);
+    var password = userInfo.Length > 1 ? WebUtility.UrlDecode(userInfo[1]) : "";
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    startupLogger.LogInformation("PostgreSQL target: Host={Host}, Database={Db}", uri.Host, uri.AbsolutePath.TrimStart('/'));
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(connectionString));
 }
@@ -112,8 +117,18 @@ using (var scope = app.Services.CreateScope())
         await context.Database.EnsureDeletedAsync();
     }
 
-    context.Database.EnsureCreated();
-    
+    logger.LogInformation("Ensuring database schema exists...");
+    try
+    {
+        context.Database.EnsureCreated();
+        logger.LogInformation("Database schema ensured.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "CRITICAL: Database.EnsureCreated() failed. Check connection string and database accessibility.");
+        throw;
+    }
+
     try
     {
         // First seed roles and basic admin data
@@ -125,6 +140,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         logger.LogError(ex, "Un error ocurrió durante el seeding de datos.");
+        throw;
     }
 }
 
