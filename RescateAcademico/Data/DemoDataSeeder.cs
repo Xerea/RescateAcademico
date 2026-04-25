@@ -304,9 +304,9 @@ namespace RescateAcademico.Seeders
         private static string GenerarEmailIPN(string nombre, string paterno, string materno, int anio)
         {
             var sb = new StringBuilder();
-            sb.Append(char.ToLowerInvariant(nombre[0]));
+            sb.Append(RemoveDiacritics(char.ToLowerInvariant(nombre[0]).ToString()));
             sb.Append(RemoveDiacritics(paterno.ToLowerInvariant()));
-            sb.Append(char.ToLowerInvariant(materno[0]));
+            sb.Append(RemoveDiacritics(char.ToLowerInvariant(materno[0]).ToString()));
             sb.Append((anio % 100).ToString("D2"));
             sb.Append("00");
             var baseEmail = sb.ToString();
