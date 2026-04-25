@@ -192,7 +192,12 @@ namespace RescateAcademico.Seeders
                     EmailConfirmed = true
                 };
                 var result = await um.CreateAsync(user, password);
-                if (result.Succeeded) await um.AddToRoleAsync(user, role);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
+                    throw new InvalidOperationException($"Failed to create user '{email}': {errors}");
+                }
+                await um.AddToRoleAsync(user, role);
             }
             return user;
         }
@@ -247,8 +252,12 @@ namespace RescateAcademico.Seeders
                     Telefono = $"55{_rng.Next(1000, 9999):D4}{_rng.Next(1000, 9999):D4}"
                 });
             }
-            context.Tutores.AddRange(profesores);
-            await context.SaveChangesAsync();
+            // Save each professor individually to isolate FK/user-creation failures
+            foreach (var prof in profesores)
+            {
+                context.Tutores.Add(prof);
+                await context.SaveChangesAsync();
+            }
             return profesores;
         }
 
@@ -367,8 +376,12 @@ namespace RescateAcademico.Seeders
                     });
                 }
             }
-            context.Alumnos.AddRange(alumnos);
-            await context.SaveChangesAsync();
+            // Save each alumno individually to isolate FK/user-creation failures
+            foreach (var alumno in alumnos)
+            {
+                context.Alumnos.Add(alumno);
+                await context.SaveChangesAsync();
+            }
             return alumnos;
         }
 
