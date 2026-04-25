@@ -36,11 +36,30 @@ if (!string.IsNullOrEmpty(railwayDbUrl))
 }
 else if (isRailway)
 {
-    startupLogger.LogError("Railway environment detected (RAILWAY_ENVIRONMENT is set) but DATABASE_URL is missing.");
-    startupLogger.LogError("Ensure a PostgreSQL service is created and linked to this application service in the Railway dashboard.");
-    throw new InvalidOperationException(
-        "Railway deployment misconfiguration: DATABASE_URL is missing. " +
-        "Please add a PostgreSQL service to your Railway project and verify it is linked to this app service.");
+    // Fallback: try individual Railway PostgreSQL env vars
+    var pgHost = Environment.GetEnvironmentVariable("PGHOST");
+    var pgDb = Environment.GetEnvironmentVariable("PGDATABASE");
+    var pgUser = Environment.GetEnvironmentVariable("PGUSER");
+    var pgPass = Environment.GetEnvironmentVariable("PGPASSWORD");
+    var pgPort = Environment.GetEnvironmentVariable("PGPORT");
+
+    if (!string.IsNullOrEmpty(pgHost) && !string.IsNullOrEmpty(pgDb)
+        && !string.IsNullOrEmpty(pgUser) && !string.IsNullOrEmpty(pgPass))
+    {
+        startupLogger.LogInformation("Individual PG env vars detected. Configuring PostgreSQL for Railway.");
+        connectionString = $"Host={pgHost};Port={pgPort ?? "5432"};Database={pgDb};Username={pgUser};Password={pgPass};SSL Mode=Require;Trust Server Certificate=true";
+        startupLogger.LogInformation("PostgreSQL target: Host={Host}, Database={Db}", pgHost, pgDb);
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(connectionString));
+    }
+    else
+    {
+        startupLogger.LogError("Railway environment detected (RAILWAY_ENVIRONMENT is set) but DATABASE_URL is missing.");
+        startupLogger.LogError("Ensure a PostgreSQL service is created and linked to this application service in the Railway dashboard.");
+        throw new InvalidOperationException(
+            "Railway deployment misconfiguration: DATABASE_URL is missing. " +
+            "Please add a PostgreSQL service to your Railway project and verify it is linked to this app service.");
+    }
 }
 else if (!string.IsNullOrEmpty(connectionString))
 {
