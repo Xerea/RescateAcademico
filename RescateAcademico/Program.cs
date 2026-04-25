@@ -133,9 +133,7 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        // First seed roles and basic admin data
-        await RoleSeeder.InitializeAsync(services, context);
-        // Then populate with comprehensive mock SAES demo data
+        // Seed all demo data (roles, users, 300 students, professors, grades, predictions, etc.)
         await DemoDataSeeder.SeedAsync(services, context);
         logger.LogInformation("Demo data seeded successfully. Database ready.");
     }
