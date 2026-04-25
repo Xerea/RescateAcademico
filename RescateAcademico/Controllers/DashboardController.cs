@@ -29,6 +29,25 @@ namespace RescateAcademico.Controllers
                 stats.AlumnosEnRiesgo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo");
                 stats.TotalTutores = await _context.Tutores.CountAsync(t => t.EstaActivo);
             }
+            else if (User.IsInRole("Tutor"))
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (tutor != null)
+                {
+                    var assignedMatriculas = await _context.AsignacionesTutor
+                        .Where(a => a.TutorId == tutor.Id && a.EstaActiva)
+                        .Select(a => a.AlumnoMatricula)
+                        .ToListAsync();
+
+                    stats.TutorAssignedStudents = assignedMatriculas.Count;
+                    stats.TutorStudentsAtRisk = await _context.Alumnos
+                        .CountAsync(a => assignedMatriculas.Contains(a.Matricula) &&
+                            (a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo"));
+                    stats.TutorRecentInterventions = await _context.IntervencionesTutoria
+                        .CountAsync(i => i.TutorId == tutor.Id && i.Fecha >= DateTime.Now.AddDays(-30));
+                }
+            }
 
             return View(stats);
         }

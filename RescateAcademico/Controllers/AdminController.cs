@@ -515,6 +515,11 @@ namespace RescateAcademico.Controllers
         public int PostulacionesPendientes { get; set; }
         public int AlumnosEnRiesgo { get; set; }
         public int TotalTutores { get; set; }
+
+        // Tutor-specific stats
+        public int TutorAssignedStudents { get; set; }
+        public int TutorStudentsAtRisk { get; set; }
+        public int TutorRecentInterventions { get; set; }
     }
 
     public class CrearCuentaViewModel

@@ -122,25 +122,68 @@
         </div>
     }
 
-    @if (User.IsInRole("Profesor"))
+    @if (User.IsInRole("Tutor"))
     {
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 border-0 shadow-sm" style="background-color: #6c1d45;">
-                <div class="card-body text-center text-white">
-                    <i class="bi bi-people fs-1 mb-3"></i>
-                    <h5 class="card-title">Mis Estudiantes</h5>
-                    <p class="card-text small">Visualiza la radiografía académica y riesgo de tus alumnos asignados.</p>
-                    <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Ir a Profesoría</a>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6c1d45 !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Mis Estudiantes</h6>
+                                <h3 class="mb-0">@Model.TutorAssignedStudents</h3>
+                            </div>
+                            <i class="bi bi-people-fill fs-1 text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">En Riesgo</h6>
+                                <h3 class="mb-0">@Model.TutorStudentsAtRisk</h3>
+                            </div>
+                            <i class="bi bi-exclamation-triangle-fill fs-1 text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0dcaf0 !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Intervenciones (30 días)</h6>
+                                <h3 class="mb-0">@Model.TutorRecentInterventions</h3>
+                            </div>
+                            <i class="bi bi-clipboard-pulse fs-1 text-muted opacity-25"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 border-0 shadow-sm" style="background-color: #198754;">
-                <div class="card-body text-center text-white">
-                    <i class="bi bi-graph-up fs-1 mb-3"></i>
-                    <h5 class="card-title">Radiografía Académica</h5>
-                    <p class="card-text small">Consulta el desempeño integral de un tutorado específico.</p>
-                    <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Seleccionar Estudiante</a>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm" style="background-color: #6c1d45;">
+                    <div class="card-body text-center text-white">
+                        <i class="bi bi-people fs-1 mb-3"></i>
+                        <h5 class="card-title">Mis Estudiantes</h5>
+                        <p class="card-text small">Visualiza la radiografía académica y riesgo de tus alumnos asignados.</p>
+                        <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Ir a Profesoría</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm" style="background-color: #198754;">
+                    <div class="card-body text-center text-white">
+                        <i class="bi bi-graph-up fs-1 mb-3"></i>
+                        <h5 class="card-title">Radiografía Académica</h5>
+                        <p class="card-text small">Consulta el desempeño integral de un tutorado específico.</p>
+                        <a asp-controller="Alumnos" asp-action="MisTutorados" class="btn btn-light w-100">Seleccionar Estudiante</a>
+                    </div>
                 </div>
             </div>
         </div>
