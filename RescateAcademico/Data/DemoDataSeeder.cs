@@ -268,16 +268,16 @@ namespace RescateAcademico.Seeders
             var grupos = new List<Grupo>();
             var config = new[]
             {
-                (3, "Informática", "Matutino", 1),
-                (3, "Contabilidad", "Matutino", 2),
-                (3, "Administración", "Vespertino", 1),
-                (3, "Informática", "Vespertino", 2),
-                (4, "Seguridad Informática", "Matutino", 1),
-                (4, "Turismo", "Vespertino", 1),
-                (4, "Gastronomía", "Vespertino", 2),
-                (5, "Informática", "Vespertino", 1),
-                (5, "Administración", "Vespertino", 2),
-                (6, "Informática", "Vespertino", 1),
+                (3, "Técnico en Informática", "Matutino", 1),
+                (3, "Técnico en Contabilidad", "Matutino", 2),
+                (3, "Técnico en Administración", "Vespertino", 1),
+                (3, "Técnico en Informática", "Vespertino", 2),
+                (4, "Técnico en Seguridad Informática", "Matutino", 1),
+                (4, "Técnico en Turismo", "Vespertino", 1),
+                (4, "Técnico en Gastronomía", "Vespertino", 2),
+                (5, "Técnico en Informática", "Vespertino", 1),
+                (5, "Técnico en Administración", "Vespertino", 2),
+                (6, "Técnico en Informática", "Vespertino", 1),
             };
 
             int profIdx = 0;
