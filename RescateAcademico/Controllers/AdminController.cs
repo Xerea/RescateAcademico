@@ -378,6 +378,29 @@ namespace RescateAcademico.Controllers
             if (matriculasDuplicadas > 0)
                 problemas.Add(($"{matriculasDuplicadas} matrículas duplicadas detectadas", "danger"));
 
+            // Nuevos checks IA de integridad
+            var alumnosSinCalif = await _context.Alumnos
+                .CountAsync(a => !_context.Calificaciones.Any(c => c.AlumnoMatricula == a.Matricula));
+            if (alumnosSinCalif > 0)
+                problemas.Add(($"{alumnosSinCalif} alumnos sin calificaciones registradas", "warning"));
+
+            var profesoresSinGrupo = await _context.Tutores
+                .CountAsync(t => t.EstaActivo && !_context.Grupos.Any(g => g.ProfesorId == t.Id));
+            if (profesoresSinGrupo > 0)
+                problemas.Add(($"{profesoresSinGrupo} profesores activos sin grupo asignado", "warning"));
+
+            var gruposVacios = await _context.Grupos
+                .CountAsync(g => !_context.Alumnos.Any(a => a.GrupoId == g.Id));
+            if (gruposVacios > 0)
+                problemas.Add(($"{gruposVacios} grupos sin estudiantes", "info"));
+
+            var inconsistenciaRiesgo = await _context.Alumnos
+                .CountAsync(a =>
+                    (a.PromedioGlobal >= 8 && a.RiesgoAcademico == "Rojo") ||
+                    (a.PromedioGlobal < 6 && a.RiesgoAcademico == "Verde"));
+            if (inconsistenciaRiesgo > 0)
+                problemas.Add(($"{inconsistenciaRiesgo} alumnos con inconsistencia entre promedio y nivel de riesgo", "danger"));
+
             ViewBag.Problemas = problemas;
             ViewBag.TotalAlumnos = await _context.Alumnos.CountAsync();
             ViewBag.TotalTutores = await _context.Tutores.CountAsync();
