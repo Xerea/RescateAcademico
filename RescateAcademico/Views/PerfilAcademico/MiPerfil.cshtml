@@ -48,40 +48,6 @@
             </div>
         </div>
 
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header" style="background-color: @(
-                    Model.NivelRiesgo == "Rojo" ? "#dc3545" : 
-                    Model.NivelRiesgo == "Amarillo" ? "#ffc107" : "#198754"
-                ); color: @(Model.NivelRiesgo == "Amarillo" ? "black" : "white");">
-                    <h5 class="mb-0">
-                        <i class="bi bi-traffic-light"></i> Nivel de Riesgo Académico: @Model.NivelRiesgo
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="p-3 rounded bg-success bg-opacity-10">
-                                <h3 class="text-success">@Model.MateriasAprobadas</h3>
-                                <small class="text-muted">Aprobadas</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-3 rounded bg-danger bg-opacity-10">
-                                <h3 class="text-danger">@Model.MateriasReprobadas</h3>
-                                <small class="text-muted">Reprobadas</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="p-3 rounded bg-warning bg-opacity-10">
-                                <h3 class="text-warning">@Model.Recursamientos</h3>
-                                <small class="text-muted">Recursadas</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     @if (Model.Sugerencias.Any())
@@ -214,6 +180,43 @@
                     {
                         <p class="text-muted text-center">Sin tutores asignados</p>
                     }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header" style="background-color: @(
+                    Model.NivelRiesgo == "Rojo" ? "#dc3545" : 
+                    Model.NivelRiesgo == "Amarillo" ? "#ffc107" : "#198754"
+                ); color: @(Model.NivelRiesgo == "Amarillo" ? "black" : "white");">
+                    <h5 class="mb-0">
+                        <i class="bi bi-traffic-light"></i> Nivel de Riesgo Académico: @Model.NivelRiesgo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-success bg-opacity-10">
+                                <h3 class="text-success">@Model.MateriasAprobadas</h3>
+                                <small class="text-muted">Aprobadas</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-danger bg-opacity-10">
+                                <h3 class="text-danger">@Model.MateriasReprobadas</h3>
+                                <small class="text-muted">Reprobadas</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded bg-warning bg-opacity-10">
+                                <h3 class="text-warning">@Model.Recursamientos</h3>
+                                <small class="text-muted">Recursadas</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

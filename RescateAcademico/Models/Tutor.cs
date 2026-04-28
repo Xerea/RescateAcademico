@@ -21,6 +21,9 @@ namespace RescateAcademico.Models
         [MaxLength(20)]
         public string? Telefono { get; set; }
 
+        [MaxLength(20)]
+        public string? NumeroEmpleado { get; set; }
+
         public string? Especialidad { get; set; }
 
         public bool EstaActivo { get; set; } = true;

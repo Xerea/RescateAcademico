@@ -20,6 +20,7 @@
                     <thead style="background-color: #6c1d45; color: white;">
                         <tr>
                             <th>Nombre</th>
+                            <th>No. Empleado</th>
                             <th>Email</th>
                             <th>Especialidad</th>
                             <th>Usuario Vinculado</th>
@@ -32,6 +33,7 @@
                         {
                             <tr>
                                 <td>@item.Nombre @item.Apellidos</td>
+                                <td><span class="badge bg-light text-dark border">@item.NumeroEmpleado</span></td>
                                 <td>@item.Email</td>
                                 <td>@item.Especialidad</td>
                                 <td>
@@ -73,3 +75,16 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('table').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}

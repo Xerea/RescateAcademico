@@ -40,6 +40,16 @@ namespace RescateAcademico.Models
 
         public string? Area { get; set; }
 
+        // Modalidad: Presencial, En linea, Hibrida
+        [MaxLength(20)]
+        public string? Modalidad { get; set; }
+
+        public string? Ubicacion { get; set; }
+
+        public string? Horario { get; set; }
+
+        public string? RequisitosTecnicos { get; set; }
+
         public ICollection<Postulacion> Postulaciones { get; set; } = new List<Postulacion>();
     }
 }

@@ -77,20 +77,28 @@ namespace RescateAcademico.Controllers
         }
 
         [Authorize(Roles = "Tutor")]
-        public async Task<IActionResult> MisTutorados()
+        public async Task<IActionResult> MisTutorados(string? grupo)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
 
             if (tutor == null) return NotFound();
 
-            var asignaciones = await _context.AsignacionesTutor
-                .Include(at => at.Alumno)
-                    .ThenInclude(a => a!.Calificaciones)
-                .Where(at => at.TutorId == tutor.Id && at.EstaActiva)
+            var grupos = await _context.Grupos
+                .Where(g => g.ProfesorId == tutor.Id)
+                .Include(g => g.Alumnos)
                 .ToListAsync();
 
-            return View(asignaciones);
+            var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
+            var query = _context.Alumnos.Where(a => alumnosIds.Contains(a.Matricula)).AsQueryable();
+
+            if (!string.IsNullOrEmpty(grupo) && grupo != "Todos")
+                query = query.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
+
+            var alumnos = await query.OrderBy(a => a.Apellidos).ToListAsync();
+            ViewBag.Grupos = grupos.Select(g => g.Clave).ToList();
+            ViewBag.GrupoSeleccionado = grupo;
+            return View(alumnos);
         }
 
         [Authorize(Roles = "Tutor")]

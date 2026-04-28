@@ -6,8 +6,10 @@
     <title>@ViewData["Title"] - Rescate Académico IPN</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" /
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RescateAcademico.styles.css" asp-append-version="true" />
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
 </head>
 <body>
     <header>
@@ -103,7 +105,6 @@
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="CrearCuenta"><i class="bi bi-person-plus"></i> Crear Cuenta</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Alumnos"><i class="bi bi-student"></i> Alumnos</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Tutores"><i class="bi bi-person-badge"></i> Profesores</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="CargaMasiva"><i class="bi bi-upload"></i> Carga Masiva</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="EvaluarRiesgos"><i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Proyectos" asp-action="Index"><i class="bi bi-folder"></i> Proyectos</a></li>
@@ -155,6 +156,8 @@
     
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

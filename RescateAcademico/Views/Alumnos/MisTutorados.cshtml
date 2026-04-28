@@ -1,4 +1,4 @@
-@model IEnumerable<RescateAcademico.Models.AsignacionTutor>
+@model IEnumerable<RescateAcademico.Models.Alumno>
 @{
     ViewData["Title"] = "Mis Estudiantes";
     Layout = "_Layout";
@@ -7,7 +7,21 @@
 <div class="row mb-4">
     <div class="col">
         <h2 style="color: #6c1d45;"><i class="bi bi-people"></i> Mis Estudiantes</h2>
-        <p class="text-muted">Lista de alumnos asignados a tu Profesoría.</p>
+        <p class="text-muted">Lista de alumnos asignados a tus grupos.</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <form method="get" class="d-flex gap-2">
+            <select name="grupo" class="form-select" onchange="this.form.submit()">
+                <option value="Todos">Todos los grupos</option>
+                @foreach (var g in ViewBag.Grupos as List<string> ?? new List<string>())
+                {
+                    <option value="@g" selected="@(ViewBag.GrupoSeleccionado == g ? "selected" : null)">@g</option>
+                }
+            </select>
+        </form>
     </div>
 </div>
 
@@ -16,11 +30,12 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover" id="tablaEstudiantes">
                     <thead style="background-color: #6c1d45; color: white;">
                         <tr>
                             <th>Boleta</th>
                             <th>Nombre</th>
+                            <th>Grupo</th>
                             <th>Carrera</th>
                             <th>Semestre</th>
                             <th>Promedio</th>
@@ -29,42 +44,39 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var alumno in Model)
                         {
-                            var alumno = item.Alumno;
                             <tr>
-                                <td><strong>@alumno?.Matricula</strong></td>
-                                <td>@alumno?.Nombre @alumno?.Apellidos</td>
-                                <td>@alumno?.Carrera</td>
-                                <td>@alumno?.SemestreActual</td>
+                                <td><strong>@alumno.Matricula</strong></td>
+                                <td>@alumno.Nombre @alumno.Apellidos</td>
+                                <td>@(alumno.Grupo?.Clave ?? "—")</td>
+                                <td>@alumno.Carrera</td>
+                                <td>@alumno.SemestreActual</td>
                                 <td>
-                                    <span class="badge @(alumno?.PromedioGlobal >= 8 ? "bg-success" : alumno?.PromedioGlobal >= 6 ? "bg-warning text-dark" : "bg-danger")">
-                                        @(alumno?.PromedioGlobal.ToString("F2") ?? "N/A")
+                                    <span class="badge @(alumno.PromedioGlobal >= 8 ? "bg-success" : alumno.PromedioGlobal >= 6 ? "bg-warning text-dark" : "bg-danger")">
+                                        @alumno.PromedioGlobal.ToString("F2")
                                     </span>
                                 </td>
                                 <td>
-                                    @if (alumno?.RiesgoAcademico == "Rojo")
+                                    @if (alumno.RiesgoAcademico == "Rojo")
                                     {
-                                        <span class="badge bg-danger">
-                                            <i class="bi bi-exclamation-triangle"></i> Rojo
-                                        </span>
+                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Rojo</span>
                                     }
-                                    else if (alumno?.RiesgoAcademico == "Amarillo")
+                                    else if (alumno.RiesgoAcademico == "Amarillo")
                                     {
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-exclamation"></i> Amarillo
-                                        </span>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation"></i> Amarillo</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Verde
-                                        </span>
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Verde</span>
                                     }
                                 </td>
                                 <td>
-                                    <a asp-controller="PerfilAcademico" asp-action="VerTutorado" asp-route-matricula="@alumno?.Matricula" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-eye"></i> Ver Perfil
+                                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalAlumno_@alumno.Matricula">
+                                        <i class="bi bi-eye"></i> Rápido
+                                    </button>
+                                    <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@alumno.Matricula" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-graph-up"></i> Perfil
                                     </a>
                                 </td>
                             </tr>
@@ -77,8 +89,73 @@
         {
             <div class="text-center py-5">
                 <i class="bi bi-people fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No tienes tutorados asignados actualmente.</p>
+                <p class="text-muted mt-3">No tienes estudiantes asignados actualmente.</p>
             </div>
         }
     </div>
 </div>
+
+@foreach (var alumno in Model)
+{
+    <div class="modal fade" id="modalAlumno_@alumno.Matricula" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #6c1d45; color: white;">
+                    <h5 class="modal-title"><i class="bi bi-person-badge"></i> @alumno.Nombre @alumno.Apellidos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Boleta:</strong> @alumno.Matricula</p>
+                            <p><strong>Grupo:</strong> @(alumno.Grupo?.Clave ?? "—")</p>
+                            <p><strong>Carrera:</strong> @alumno.Carrera</p>
+                            <p><strong>Semestre:</strong> @alumno.SemestreActual</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Promedio:</strong> <span class="badge @(alumno.PromedioGlobal >= 8 ? "bg-success" : alumno.PromedioGlobal >= 6 ? "bg-warning text-dark" : "bg-danger")">@alumno.PromedioGlobal.ToString("F2")</span></p>
+                            <p><strong>Riesgo:</strong>
+                                @if (alumno.RiesgoAcademico == "Rojo")
+                                {
+                                    <span class="badge bg-danger">Rojo</span>
+                                }
+                                else if (alumno.RiesgoAcademico == "Amarillo")
+                                {
+                                    <span class="badge bg-warning text-dark">Amarillo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Verde</span>
+                                }
+                            </p>
+                            <p><strong>Materias Reprobadas:</strong> @(alumno.MateriasReprobadas ?? 0)</p>
+                            <p><strong>Ausencias:</strong> @(alumno.Ausencias ?? 0)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Agregar Intervención
+                    </a>
+                    <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@alumno.Matricula" class="btn btn-outline-primary">
+                        <i class="bi bi-graph-up"></i> Ver Historial
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaEstudiantes').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}
