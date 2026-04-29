@@ -87,9 +87,23 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Predicciones" asp-action="Index">
+                                        <i class="bi bi-brain"></i> Predicciones IA
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Postulaciones" asp-action="Todas">
                                         <i class="bi bi-clipboard-check"></i> Postulaciones
                                     </a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-file-earmark-arrow-down"></i> Reportes
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Export" asp-action="ReporteImprimible" target="_blank"><i class="bi bi-printer"></i> Reporte en Riesgo (PDF)</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Export" asp-action="AlumnosCSV"><i class="bi bi-file-earmark-excel"></i> Exportar Alumnos (CSV)</a></li>
+                                    </ul>
                                 </li>
                             }
                             

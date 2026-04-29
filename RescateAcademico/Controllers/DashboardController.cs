@@ -48,6 +48,18 @@ namespace RescateAcademico.Controllers
                         .CountAsync(i => i.TutorId == tutor.Id && i.Fecha >= DateTime.Now.AddDays(-30));
                 }
             }
+            else if (User.IsInRole("Alumno"))
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.UserId == userId);
+                if (alumno != null)
+                {
+                    stats.AlumnoPromedio = alumno.PromedioGlobal;
+                    stats.AlumnoRiesgo = alumno.RiesgoAcademico ?? "Verde";
+                    stats.AlumnoSemestre = alumno.SemestreActual;
+                    stats.AlumnoPostulaciones = await _context.Postulaciones.CountAsync(p => p.AlumnoId == alumno.Matricula);
+                }
+            }
 
             return View(stats);
         }

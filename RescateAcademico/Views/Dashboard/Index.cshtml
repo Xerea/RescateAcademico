@@ -29,7 +29,7 @@
     </div>
 }
 
-@if (User.IsInRole("Administrador"))
+@if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
 {
     <div class="row mb-4">
         <div class="col-md-3">
@@ -90,6 +90,64 @@
 <div class="row">
     @if (User.IsInRole("Alumno"))
     {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6c1d45 !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Promedio</h6>
+                                <h3 class="mb-0 @(Model.AlumnoPromedio >= 8 ? "text-success" : Model.AlumnoPromedio >= 6 ? "text-warning" : "text-danger")">
+                                    @Model.AlumnoPromedio.ToString("F2")
+                                </h3>
+                            </div>
+                            <i class="bi bi-award fs-1 text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid @(Model.AlumnoRiesgo == "Rojo" ? "#dc3545" : Model.AlumnoRiesgo == "Amarillo" ? "#ffc107" : "#198754") !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Riesgo Académico</h6>
+                                <h3 class="mb-0 @(Model.AlumnoRiesgo == "Rojo" ? "text-danger" : Model.AlumnoRiesgo == "Amarillo" ? "text-warning" : "text-success")">
+                                    @Model.AlumnoRiesgo
+                                </h3>
+                            </div>
+                            <i class="bi bi-exclamation-triangle-fill fs-1 text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0dcaf0 !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Semestre</h6>
+                                <h3 class="mb-0">@Model.AlumnoSemestre</h3>
+                            </div>
+                            <i class="bi bi-layers fs-1 text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6c757d !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Postulaciones</h6>
+                                <h3 class="mb-0">@Model.AlumnoPostulaciones</h3>
+                            </div>
+                            <i class="bi bi-send-check fs-1 text-muted opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body text-center">

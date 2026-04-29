@@ -338,6 +338,33 @@ namespace RescateAcademico.Seeders
             var alumnos = new List<Alumno>();
             int seq = 1;
 
+            // Hardcoded demo student for predictable login
+            var demoEmail = "demo.alumno@alumno.ipn.mx";
+            _emailsUsados.Add(demoEmail);
+            var demoUser = await EnsureUserAsync(um, demoEmail, "Demo123!", "Alumno");
+            var demoGrupo = grupos.First();
+            var demoAlumno = new Alumno
+            {
+                Matricula = "2023000001",
+                Nombre = "Estudiante",
+                Apellidos = "Demo",
+                Carrera = demoGrupo.Carrera,
+                SemestreActual = demoGrupo.Semestre,
+                PromedioGlobal = 8.50m,
+                MateriasReprobadas = 0,
+                Ausencias = 1,
+                ParcialesBajos = 0,
+                EtsPresentados = 0,
+                Recursamientos = 0,
+                CargaAcademicaActual = 7,
+                Estatus = "Activo",
+                Correo = demoEmail,
+                UserId = demoUser.Id,
+                GrupoId = demoGrupo.Id,
+                FechaUltimaActualizacion = DateTime.Now.AddDays(-5)
+            };
+            alumnos.Add(demoAlumno);
+
             foreach (var grupo in grupos)
             {
                 int cantidad = grupo.Semestre <= 3 ? 36 : grupo.Semestre == 4 ? 30 : grupo.Semestre == 5 ? 25 : 24;
