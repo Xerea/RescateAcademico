@@ -85,6 +85,39 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header" style="background-color: #6c1d45; color: white;">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Distribución por Riesgo</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartRiesgo"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header" style="background-color: #6c1d45; color: white;">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Alumnos por Carrera</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartCarrera"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header" style="background-color: #6c1d45; color: white;">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> Alumnos por Semestre</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartSemestre"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 <div class="row">
@@ -355,3 +388,63 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        @if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
+        {
+            <text>
+            new Chart(document.getElementById('chartRiesgo'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Verde', 'Amarillo', 'Rojo'],
+                    datasets: [{
+                        data: [@Model.RiesgoVerde, @Model.RiesgoAmarillo, @Model.RiesgoRojo],
+                        backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            new Chart(document.getElementById('chartCarrera'), {
+                type: 'bar',
+                data: {
+                    labels: [@Html.Raw(string.Join(", ", Model.AlumnosPorCarrera.Select(c => $"'{c.Carrera}'")))],
+                    datasets: [{
+                        label: 'Alumnos',
+                        data: [@string.Join(", ", Model.AlumnosPorCarrera.Select(c => c.Count))],
+                        backgroundColor: '#6c1d45'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            new Chart(document.getElementById('chartSemestre'), {
+                type: 'bar',
+                data: {
+                    labels: [@Html.Raw(string.Join(", ", Model.AlumnosPorSemestre.Select(s => $"'Sem {s.Semestre}'")))],
+                    datasets: [{
+                        label: 'Alumnos',
+                        data: [@string.Join(", ", Model.AlumnosPorSemestre.Select(s => s.Count))],
+                        backgroundColor: '#0dcaf0'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+            </text>
+        }
+    </script>
+}

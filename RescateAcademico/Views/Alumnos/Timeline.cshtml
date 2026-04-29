@@ -1,0 +1,137 @@
+@model RescateAcademico.Models.Alumno
+@{
+    ViewData["Title"] = "Línea de Tiempo - " + Model.Nombre + " " + Model.Apellidos;
+    Layout = "_Layout";
+    var intervenciones = ViewBag.Intervenciones as List<RescateAcademico.Models.IntervencionTutoria> ?? new();
+    var planes = ViewBag.Planes as List<RescateAcademico.Models.PlanMejora> ?? new();
+    var dictamenes = Model.Dictamenes?.OrderByDescending(d => d.FechaEmision).ToList() ?? new();
+    var reportes = Model.ReportesCosecovi?.OrderByDescending(r => r.FechaReporte).ToList() ?? new();
+    var calificaciones = Model.Calificaciones?.Where(c => !c.Aprobada).OrderByDescending(c => c.Periodo).ToList() ?? new();
+
+    var eventos = new List<(DateTime Fecha, string Titulo, string Descripcion, string Tipo, string? Icono)>();
+
+    foreach (var i in intervenciones)
+        eventos.Add((i.Fecha, $"Intervención: {i.Tipo}", i.Descripcion, "intervencion", "bi-clipboard-pulse"));
+
+    foreach (var p in planes)
+        eventos.Add((p.FechaCreacion, "Plan de Mejora", $"Estado: {p.Estado}", "plan", "bi-journal-check"));
+
+    foreach (var d in dictamenes)
+        eventos.Add((d.FechaEmision, $"Dictamen: {d.Tipo}", d.Observaciones ?? "Sin observaciones", "dictamen", "bi-file-text"));
+
+    foreach (var r in reportes)
+        eventos.Add((r.FechaReporte, "Reporte COSECOVI", r.SituacionObservada ?? "Sin observaciones", "cosecovi", "bi-exclamation-circle"));
+
+    foreach (var c in calificaciones)
+        eventos.Add((DateTime.Now.AddMonths(-1), $"Materia Reprobada: {c.Materia?.Nombre}", $"Calificación: {c.Valor} | Periodo: {c.Periodo}", "reprobada", "bi-x-circle"));
+
+    eventos = eventos.OrderByDescending(e => e.Fecha).ToList();
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;">
+            <i class="bi bi-clock-history"></i> Línea de Tiempo Académica
+        </h2>
+        <p class="text-muted">@Model.Nombre @Model.Apellidos — Boleta @Model.Matricula</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <i class="bi bi-clipboard-pulse fs-2 text-primary"></i>
+                <h5>@intervenciones.Count</h5>
+                <small class="text-muted">Intervenciones</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <i class="bi bi-journal-check fs-2 text-success"></i>
+                <h5>@planes.Count</h5>
+                <small class="text-muted">Planes de Mejora</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <i class="bi bi-file-text fs-2 text-warning"></i>
+                <h5>@dictamenes.Count</h5>
+                <small class="text-muted">Dictámenes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center">
+            <div class="card-body">
+                <i class="bi bi-exclamation-circle fs-2 text-danger"></i>
+                <h5>@reportes.Count</h5>
+                <small class="text-muted">Reportes COSECOVI</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if (eventos.Any())
+        {
+            <div class="timeline">
+                @foreach (var evt in eventos)
+                {
+                    var borderColor = evt.Tipo switch
+                    {
+                        "intervencion" => "border-primary",
+                        "plan" => "border-success",
+                        "dictamen" => "border-warning",
+                        "cosecovi" => "border-danger",
+                        _ => "border-secondary"
+                    };
+                    var bgColor = evt.Tipo switch
+                    {
+                        "intervencion" => "bg-primary",
+                        "plan" => "bg-success",
+                        "dictamen" => "bg-warning",
+                        "cosecovi" => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle @bgColor text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi @evt.Icono"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="card border-start @borderColor border-3">
+                                <div class="card-body py-2">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="card-title mb-1">@evt.Titulo</h6>
+                                        <small class="text-muted">@evt.Fecha.ToString("dd/MM/yyyy")</small>
+                                    </div>
+                                    <p class="card-text small mb-0">@evt.Descripcion</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No hay eventos registrados en la línea de tiempo.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Catálogo
+    </a>
+</div>

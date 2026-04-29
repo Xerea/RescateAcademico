@@ -17,7 +17,7 @@ namespace RescateAcademico.Controllers
         }
 
         [Authorize(Roles = "Administrador,Tutor,Autoridad")]
-        public async Task<IActionResult> Index(string? busqueda, string? filtroRiesgo)
+        public async Task<IActionResult> Index(string? busqueda, string? filtroRiesgo, string? carrera, int? semestre)
         {
             var query = _context.Alumnos.AsQueryable();
 
@@ -33,6 +33,23 @@ namespace RescateAcademico.Controllers
             {
                 query = query.Where(a => a.RiesgoAcademico == filtroRiesgo);
             }
+
+            if (!string.IsNullOrEmpty(carrera))
+            {
+                query = query.Where(a => a.Carrera == carrera);
+            }
+
+            if (semestre.HasValue)
+            {
+                query = query.Where(a => a.SemestreActual == semestre.Value);
+            }
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.FiltroRiesgo = filtroRiesgo;
+            ViewBag.FiltroCarrera = carrera;
+            ViewBag.FiltroSemestre = semestre;
+            ViewBag.Carreras = await _context.Alumnos.Select(a => a.Carrera).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c).ToListAsync();
+            ViewBag.Semestres = await _context.Alumnos.Select(a => a.SemestreActual).Distinct().OrderBy(s => s).ToListAsync();
 
             var alumnos = await query.OrderBy(a => a.Apellidos).ToListAsync();
             return View(alumnos);
@@ -120,6 +137,37 @@ namespace RescateAcademico.Controllers
             if (asignacion?.Alumno == null) return NotFound();
 
             return View(asignacion.Alumno);
+        }
+
+        [Authorize(Roles = "Administrador,Tutor,Autoridad")]
+        public async Task<IActionResult> Timeline(string matricula)
+        {
+            var alumno = await _context.Alumnos
+                .Include(a => a.Calificaciones)
+                    .ThenInclude(c => c.Materia)
+                .Include(a => a.Dictamenes)
+                .Include(a => a.ReportesCosecovi)
+                .FirstOrDefaultAsync(a => a.Matricula == matricula);
+
+            if (alumno == null) return NotFound();
+
+            var intervenciones = await _context.IntervencionesTutoria
+                .Include(i => i.Tutor)
+                .Where(i => i.AlumnoMatricula == matricula)
+                .OrderByDescending(i => i.Fecha)
+                .ToListAsync();
+
+            var planes = await _context.PlanesMejora
+                .Include(p => p.Tutor)
+                .Where(p => p.AlumnoMatricula == matricula)
+                .OrderByDescending(p => p.FechaCreacion)
+                .ToListAsync();
+
+            ViewBag.Alumno = alumno;
+            ViewBag.Intervenciones = intervenciones;
+            ViewBag.Planes = planes;
+
+            return View(alumno);
         }
     }
 }

@@ -450,6 +450,13 @@ namespace RescateAcademico.Controllers
         public string AlumnoRiesgo { get; set; } = "Verde";
         public int AlumnoSemestre { get; set; }
         public int AlumnoPostulaciones { get; set; }
+
+        // Chart data for dashboard
+        public int RiesgoVerde { get; set; }
+        public int RiesgoAmarillo { get; set; }
+        public int RiesgoRojo { get; set; }
+        public List<(string Carrera, int Count)> AlumnosPorCarrera { get; set; } = new();
+        public List<(int Semestre, int Count)> AlumnosPorSemestre { get; set; } = new();
     }
 
     public class CrearCuentaViewModel

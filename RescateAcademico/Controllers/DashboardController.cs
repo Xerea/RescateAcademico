@@ -28,6 +28,24 @@ namespace RescateAcademico.Controllers
                 stats.PostulacionesPendientes = await _context.Postulaciones.CountAsync(p => p.Estado == "En Revisión");
                 stats.AlumnosEnRiesgo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo");
                 stats.TotalTutores = await _context.Tutores.CountAsync(t => t.EstaActivo);
+
+                // Chart data
+                stats.RiesgoVerde = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Verde" || string.IsNullOrEmpty(a.RiesgoAcademico));
+                stats.RiesgoAmarillo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Amarillo");
+                stats.RiesgoRojo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Rojo");
+                stats.AlumnosPorCarrera = await _context.Alumnos
+                    .Where(a => !string.IsNullOrEmpty(a.Carrera))
+                    .GroupBy(a => a.Carrera!)
+                    .Select(g => new { Carrera = g.Key, Count = g.Count() })
+                    .OrderBy(x => x.Carrera)
+                    .ToListAsync()
+                    .ContinueWith(t => t.Result.Select(x => (x.Carrera, x.Count)).ToList());
+                stats.AlumnosPorSemestre = await _context.Alumnos
+                    .GroupBy(a => a.SemestreActual)
+                    .Select(g => new { Semestre = g.Key, Count = g.Count() })
+                    .OrderBy(x => x.Semestre)
+                    .ToListAsync()
+                    .ContinueWith(t => t.Result.Select(x => (x.Semestre, x.Count)).ToList());
             }
             else if (User.IsInRole("Tutor"))
             {
