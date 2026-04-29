@@ -6,7 +6,7 @@
     <title>@ViewData["Title"] - Rescate Académico IPN</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" /
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RescateAcademico.styles.css" asp-append-version="true" />
     <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
@@ -135,11 +135,11 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <main role="main" class="pb-3">
+        <div class="container">
             @RenderBody()
-        </main>
-    </div>
+        </div>
+    </main>
 
     <footer class="border-top footer text-muted bg-light">
         <div class="container d-flex justify-content-between align-items-center">
