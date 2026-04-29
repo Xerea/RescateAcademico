@@ -82,6 +82,26 @@
                             @if (User.IsInRole("Autoridad"))
                             {
                                 <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Alumnos" asp-action="Index">
+                                        <i class="bi bi-people"></i> Alumnos
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Autoridad" asp-action="Profesores">
+                                        <i class="bi bi-person-badge"></i> Profesores
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Intervenciones" asp-action="Index">
+                                        <i class="bi bi-clipboard-pulse"></i> Intervenciones
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="PlanesMejora" asp-action="Index">
+                                        <i class="bi bi-journal-check"></i> Planes de Mejora
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Estadisticas" asp-action="Index">
                                         <i class="bi bi-bar-chart-line"></i> Estadísticas
                                     </a>

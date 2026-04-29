@@ -1,0 +1,107 @@
+@model IEnumerable<RescateAcademico.Models.Alumno>
+@{
+    ViewData["Title"] = "Catálogo de Alumnos";
+    Layout = "_Layout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: #6c1d45;"><i class="bi bi-people"></i> Catálogo de Alumnos</h2>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="get" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="busqueda" class="form-control" placeholder="Buscar por boleta, nombre o apellidos..." value="@ViewBag.Busqueda" />
+                </div>
+                <div class="col-md-4">
+                    <select name="filtroRiesgo" class="form-select">
+                        <option value="">Todos los riesgos</option>
+                        <option value="Verde" selected="@(ViewBag.FiltroRiesgo == "Verde" ? "selected" : null)">Verde</option>
+                        <option value="Amarillo" selected="@(ViewBag.FiltroRiesgo == "Amarillo" ? "selected" : null)">Amarillo</option>
+                        <option value="Rojo" selected="@(ViewBag.FiltroRiesgo == "Rojo" ? "selected" : null)">Rojo</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="tablaAlumnos">
+                <thead style="background-color: #6c1d45; color: white;">
+                    <tr>
+                        <th>Boleta</th>
+                        <th>Nombre</th>
+                        <th>Carrera</th>
+                        <th>Semestre</th>
+                        <th>Promedio</th>
+                        <th>Riesgo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><strong>@item.Matricula</strong></td>
+                            <td>@item.Nombre @item.Apellidos</td>
+                            <td>@item.Carrera</td>
+                            <td>@item.SemestreActual</td>
+                            <td>
+                                <span class="badge @(item.PromedioGlobal >= 8 ? "bg-success" : item.PromedioGlobal >= 6 ? "bg-warning" : "bg-danger")">
+                                    @item.PromedioGlobal.ToString("F2")
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.RiesgoAcademico == "Rojo")
+                                {
+                                    <span class="badge bg-danger">Rojo</span>
+                                }
+                                else if (item.RiesgoAcademico == "Amarillo")
+                                {
+                                    <span class="badge bg-warning text-dark">Amarillo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Verde</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-eye"></i> Detalle
+                                </a>
+                                <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@item.Matricula" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-journal-text"></i> Historial
+                                </a>
+                                <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-outline-dark">
+                                    <i class="bi bi-brain"></i> IA
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaAlumnos').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25,
+                columnDefs: [
+                    { orderable: false, targets: 6 }
+                ]
+            });
+        });
+    </script>
+}

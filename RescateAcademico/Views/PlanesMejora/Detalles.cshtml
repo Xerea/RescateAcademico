@@ -36,7 +36,10 @@
 </div>
 
 <div class="mb-3">
-    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    @if (!User.IsInRole("Autoridad"))
+    {
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    }
     <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="btn btn-secondary">Seguimiento</a>
     <a asp-action="Index" class="btn btn-outline-primary">Volver a la lista</a>
 </div>

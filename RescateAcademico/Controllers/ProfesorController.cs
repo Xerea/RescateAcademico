@@ -88,6 +88,7 @@ namespace RescateAcademico.Controllers
             return View(alumnos);
         }
 
+        [Authorize(Roles = "Tutor,Autoridad")]
         public async Task<IActionResult> HistorialAcademico(string boleta)
         {
             var alumno = await _context.Alumnos

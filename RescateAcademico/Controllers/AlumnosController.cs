@@ -16,7 +16,7 @@ namespace RescateAcademico.Controllers
             _context = context;
         }
 
-        [Authorize(Roles = "Administrador,Tutor")]
+        [Authorize(Roles = "Administrador,Tutor,Autoridad")]
         public async Task<IActionResult> Index(string? busqueda, string? filtroRiesgo)
         {
             var query = _context.Alumnos.AsQueryable();
@@ -38,7 +38,7 @@ namespace RescateAcademico.Controllers
             return View(alumnos);
         }
 
-        [Authorize(Roles = "Administrador,Tutor")]
+        [Authorize(Roles = "Administrador,Tutor,Autoridad")]
         public async Task<IActionResult> Detalles(string id)
         {
             var alumno = await _context.Alumnos

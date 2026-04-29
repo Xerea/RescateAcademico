@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RescateAcademico.Controllers
 {
-    [Authorize(Roles = "Administrador,Tutor")]
+    [Authorize(Roles = "Administrador,Tutor,Autoridad")]
     public class PlanesMejoraController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -43,6 +43,7 @@ namespace RescateAcademico.Controllers
             return View(plan);
         }
 
+        [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(string? matricula)
         {
             ViewBag.Alumnos = await _context.Alumnos
@@ -61,6 +62,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(PlanMejoraViewModel model)
         {
             if (!ModelState.IsValid)
@@ -106,6 +108,7 @@ namespace RescateAcademico.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Editar(int id)
         {
             var plan = await _context.PlanesMejora.FindAsync(id);
@@ -129,6 +132,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Editar(PlanMejoraViewModel model)
         {
             if (!ModelState.IsValid)

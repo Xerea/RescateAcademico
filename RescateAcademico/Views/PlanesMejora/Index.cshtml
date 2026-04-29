@@ -6,7 +6,10 @@
 <h2>Planes de Mejora Académica</h2>
 
 <div class="mb-3">
-    <a asp-action="Crear" class="btn btn-success">Crear Nuevo Plan</a>
+    @if (!User.IsInRole("Autoridad"))
+    {
+        <a asp-action="Crear" class="btn btn-success">Crear Nuevo Plan</a>
+    }
     <a asp-controller="Export" asp-action="AlumnosEnRiesgoCSV" class="btn btn-outline-secondary">Exportar Alumnos en Riesgo (CSV)</a>
 </div>
 
@@ -42,7 +45,10 @@
                 </td>
                 <td>
                     <a asp-action="Detalles" asp-route-id="@plan.Id" class="btn btn-sm btn-info">Ver</a>
-                    <a asp-action="Editar" asp-route-id="@plan.Id" class="btn btn-sm btn-warning">Editar</a>
+                    @if (!User.IsInRole("Autoridad"))
+                    {
+                        <a asp-action="Editar" asp-route-id="@plan.Id" class="btn btn-sm btn-warning">Editar</a>
+                    }
                     <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="btn btn-sm btn-secondary">Seguimiento</a>
                 </td>
             </tr>
