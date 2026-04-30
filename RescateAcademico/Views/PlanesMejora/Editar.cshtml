@@ -1,64 +1,80 @@
 @model RescateAcademico.Controllers.PlanMejoraViewModel
 @{
     ViewData["Title"] = "Editar Plan de Mejora";
+    Layout = "_Layout";
     var tutores = ViewBag.Tutores as List<RescateAcademico.Models.Tutor> ?? new List<RescateAcademico.Models.Tutor>();
 }
 
-<h2>Editar Plan de Mejora</h2>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header text-center" style="background-color: #6c1d45; color: white;">
+                <h3 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Plan de Mejora</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Editar" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="AlumnoMatricula" />
 
-<form asp-action="Editar" method="post">
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="AlumnoMatricula" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Alumno</label>
+                        <input class="form-control" value="@Model.AlumnoMatricula" disabled />
+                    </div>
 
-    <div class="mb-3">
-        <label class="form-label">Alumno</label>
-        <input class="form-control" value="@Model.AlumnoMatricula" disabled />
+                    <div class="mb-3">
+                        <label asp-for="TutorId" class="form-label fw-bold">Profesor Asignado</label>
+                        <select asp-for="TutorId" class="form-select">
+                            <option value="">-- Selecciona un Profesor --</option>
+                            @foreach (var prof in tutores)
+                            {
+                                <option value="@prof.Id">@prof.Nombre @prof.Apellidos - @prof.Especialidad</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Estado" class="form-label fw-bold">Estado</label>
+                        <select asp-for="Estado" class="form-select">
+                            <option value="Activo">Activo</option>
+                            <option value="Cumplido">Cumplido</option>
+                            <option value="Vencido">Vencido</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Recomendaciones" class="form-label fw-bold">Recomendaciones</label>
+                        <textarea asp-for="Recomendaciones" class="form-control" rows="4"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Metas" class="form-label fw-bold">Metas</label>
+                        <textarea asp-for="Metas" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AccionesTomadas" class="form-label fw-bold">Acciones Tomadas</label>
+                        <textarea asp-for="AccionesTomadas" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FechaCierre" class="form-label fw-bold">Fecha de Cierre Estimada</label>
+                        <input asp-for="FechaCierre" type="date" class="form-control" />
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">
+                            <i class="bi bi-check-circle"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="TutorId" class="form-label">Profesor Asignado</label>
-        <select asp-for="TutorId" class="form-select">
-            <option value="">-- Selecciona un Profesor --</option>
-            @foreach (var Profesor in tutores)
-            {
-                <option value="@Profesor.Id">@Profesor.Nombre @Profesor.Apellidos - @Profesor.Especialidad</option>
-            }
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Estado" class="form-label">Estado</label>
-        <select asp-for="Estado" class="form-select">
-            <option value="Activo">Activo</option>
-            <option value="Cumplido">Cumplido</option>
-            <option value="Vencido">Vencido</option>
-            <option value="Cancelado">Cancelado</option>
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Recomendaciones" class="form-label">Recomendaciones</label>
-        <textarea asp-for="Recomendaciones" class="form-control" rows="4"></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Metas" class="form-label">Metas</label>
-        <textarea asp-for="Metas" class="form-control" rows="3"></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="AccionesTomadas" class="form-label">Acciones Tomadas</label>
-        <textarea asp-for="AccionesTomadas" class="form-control" rows="3"></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="FechaCierre" class="form-label">Fecha de Cierre Estimada</label>
-        <input asp-for="FechaCierre" type="date" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-    <a asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

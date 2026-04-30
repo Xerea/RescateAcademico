@@ -25,9 +25,12 @@
                             <input name="email" class="form-control" id="inputEmail" type="email" placeholder="correo@alumno.ipn.mx" required />
                             <label for="inputEmail">Correo institucional</label>
                         </div>
-                        <div class="form-floating mb-3">
-                            <input name="password" class="form-control" id="inputPassword" type="password" placeholder="Contraseña" required />
+                        <div class="form-floating mb-3 position-relative">
+                            <input name="password" class="form-control pe-5" id="inputPassword" type="password" placeholder="Contraseña" required />
                             <label for="inputPassword">Contraseña</label>
+                            <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2" style="z-index: 10;" onclick="togglePassword()">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
                         </div>
                         <div class="form-check mb-3">
                             <input name="rememberMe" class="form-check-input" id="inputRememberPassword" type="checkbox" value="true" />
@@ -93,11 +96,29 @@
                                         <small class="text-muted d-block fw-bold">Alumno</small>
                                         <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
                                         <code class="small d-block">Demo123!</code>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('inputPassword');
+            const icon = document.getElementById('togglePasswordIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    </script>
+}
                 </div>
             </div>
         </div>

@@ -1,25 +1,36 @@
 @model RescateAcademico.Services.DesercionOutput
 @{
     ViewData["Title"] = "Detalle de Predicción";
+    Layout = "_Layout";
     var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
     var historial = ViewBag.Historial as List<RescateAcademico.Models.PrediccionDesercion> ?? new List<RescateAcademico.Models.PrediccionDesercion>();
+    var analisisJson = TempData["AnalisisIA"] as string;
+    RescateAcademico.Services.AnalisisIAResultado? analisisIA = null;
+    if (!string.IsNullOrEmpty(analisisJson))
+    {
+        try { analisisIA = System.Text.Json.JsonSerializer.Deserialize<RescateAcademico.Services.AnalisisIAResultado>(analisisJson); } catch { }
+    }
 }
 
-<h2>Detalle de Predicción de Deserción</h2>
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-brain"></i> Análisis de Riesgo de Deserción</h2>
+    </div>
+</div>
 
 @if (alumno != null)
 {
-    <div class="card mb-4">
-        <div class="card-header bg-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning text-dark" : Model.Probabilidad > 0.3m ? "info" : "success")">
-            <h5 class="mb-0">@alumno.Nombre @alumno.Apellidos (@alumno.Matricula)</h5>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header" style="background-color: @(Model.Probabilidad > 0.7m ? "#dc3545" : Model.Probabilidad > 0.5m ? "#ffc107" : Model.Probabilidad > 0.3m ? "#0dcaf0" : "#198754"); color: @(Model.Probabilidad > 0.5m && Model.Probabilidad <= 0.7m ? "black" : "white");">
+            <h5 class="mb-0"><i class="bi bi-person-badge"></i> @alumno.Nombre @alumno.Apellidos (@alumno.Matricula)</h5>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
                     <p><strong>Carrera:</strong> @alumno.Carrera</p>
                     <p><strong>Semestre:</strong> @alumno.SemestreActual</p>
-                    <p><strong>Promedio Global:</strong> @alumno.PromedioGlobal.ToString("F2")</p>
-                    <p><strong>Carga Académica:</strong> @alumno.CargaAcademicaActual materias</p>
+                    <p><strong>Promedio Global:</strong> <span class="badge @(alumno.PromedioGlobal >= 8 ? "bg-success" : alumno.PromedioGlobal >= 6 ? "bg-warning" : "bg-danger")">@alumno.PromedioGlobal.ToString("F2")</span></p>
+                    <p><strong>Carga Académica:</strong> @(alumno.CargaAcademicaActual ?? 0) materias</p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Materias Reprobadas:</strong> @(alumno.MateriasReprobadas ?? 0)</p>
@@ -30,45 +41,108 @@
             </div>
             <hr />
             <div class="text-center">
-                <h4>Probabilidad de Deserción: @((Model.Probabilidad * 100).ToString("F1"))%</h4>
-                <p class="text-muted">Método: @(Model.EsHeuristica ? "Heurística (fallback)" : "ML.NET FastTree")</p>
+                <h4 class="mb-2">Probabilidad de Deserción: <span class="text-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning" : Model.Probabilidad > 0.3m ? "info" : "success")">@((Model.Probabilidad * 100).ToString("F1"))%</span></h4>
+                <span class="badge bg-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning" : Model.Probabilidad > 0.3m ? "info" : "success") fs-6">Nivel: @(Model.Probabilidad > 0.7m ? "Crítico" : Model.Probabilidad > 0.5m ? "Alto" : Model.Probabilidad > 0.3m ? "Medio" : "Bajo")</span>
+                <p class="text-muted mt-2"><small>Método: Heurística Institucional (basada en promedio, reprobadas, ausencias, recursamientos)</small></p>
             </div>
         </div>
     </div>
 
-    <h4>Historial de Predicciones</h4>
-    @if (historial.Any())
+    @if (analisisIA != null)
     {
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Probabilidad</th>
-                    <th>Nivel</th>
-                    <th>Factores</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var h in historial)
+        <div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid #6c1d45 !important;">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-stars"></i> Análisis con Inteligencia Artificial (GPT-4o-mini)</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted">Resumen del Riesgo</h6>
+                    <p class="fw-bold">@analisisIA.ResumenRiesgo</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Análisis Detallado</h6>
+                    <p>@analisisIA.Analisis</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted">Recomendaciones</h6>
+                    <p style="white-space: pre-wrap;">@analisisIA.Recomendaciones</p>
+                </div>
+                @if (!string.IsNullOrEmpty(analisisIA.Alertas) && analisisIA.Alertas != "Ninguna")
                 {
-                    <tr>
-                        <td>@h.FechaPrediccion.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@((h.ProbabilidadDesercion * 100)?.ToString("F1"))%</td>
-                        <td>@h.NivelRiesgo</td>
-                        <td>@h.FactoresDetectados</td>
-                    </tr>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Alertas:</strong> @analisisIA.Alertas
+                    </div>
                 }
-            </tbody>
-        </table>
+                <p class="text-muted small mb-0"><i class="bi bi-clock"></i> Generado el @analisisIA.FechaGeneracion.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </div>
     }
     else
     {
-        <p class="text-muted">No hay predicciones previas registradas.</p>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body text-center">
+                <i class="bi bi-stars fs-1 text-muted mb-2"></i>
+                <p class="text-muted">Genera un análisis personalizado con Inteligencia Artificial basado en el perfil académico de este estudiante.</p>
+                <form asp-action="AnalisisIA" method="post" class="d-inline">
+                    <input type="hidden" name="matricula" value="@alumno.Matricula" />
+                    <button type="submit" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">
+                        <i class="bi bi-magic"></i> Generar Análisis con IA
+                    </button>
+                </form>
+            </div>
+        </div>
     }
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header" style="background-color: #6c1d45; color: white;">
+            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Historial de Predicciones</h5>
+        </div>
+        <div class="card-body">
+            @if (historial.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead style="background-color: #f8f9fa;">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Probabilidad</th>
+                                <th>Nivel</th>
+                                <th>Factores</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in historial)
+                            {
+                                <tr>
+                                    <td>@h.FechaPrediccion.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@((h.ProbabilidadDesercion * 100)?.ToString("F1"))%</td>
+                                    <td>@h.NivelRiesgo</td>
+                                    <td>@h.FactoresDetectados</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center mb-0">No hay predicciones previas registradas.</p>
+            }
+        </div>
+    </div>
 }
 
 <div class="mb-3">
-    <a asp-action="Index" class="btn btn-secondary">Volver al listado</a>
-    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno?.Matricula" class="btn btn-warning">Registrar Intervención</a>
-    <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@alumno?.Matricula" class="btn btn-success">Crear Plan de Mejora</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al listado
+    </a>
+    @if (!User.IsInRole("Autoridad") && alumno != null)
+    {
+        <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="btn btn-warning">
+            <i class="bi bi-clipboard-pulse"></i> Registrar Intervención
+        </a>
+        <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="btn btn-success">
+            <i class="bi bi-journal-check"></i> Crear Plan de Mejora
+        </a>
+    }
 </div>

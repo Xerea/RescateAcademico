@@ -1,57 +1,98 @@
 @model IEnumerable<RescateAcademico.Models.PlanMejora>
 @{
     ViewData["Title"] = "Planes de Mejora";
+    Layout = "_Layout";
 }
 
-<h2>Planes de Mejora Académica</h2>
-
-<div class="mb-3">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: #6c1d45;"><i class="bi bi-journal-check"></i> Planes de Mejora Académica</h2>
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Crear" class="btn btn-success">Crear Nuevo Plan</a>
+        <a asp-action="Crear" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">
+            <i class="bi bi-plus-circle"></i> Nuevo Plan
+        </a>
     }
-    <a asp-controller="Export" asp-action="AlumnosEnRiesgoCSV" class="btn btn-outline-secondary">Exportar Alumnos en Riesgo (CSV)</a>
 </div>
 
 @if (!string.IsNullOrEmpty(ViewBag.MatriculaFiltro))
 {
-    <div class="alert alert-info">
+    <div class="alert alert-info alert-dismissible fade show">
         Filtrando por matrícula: <strong>@ViewBag.MatriculaFiltro</strong>
         <a asp-action="Index" class="ms-2">Ver todos</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Alumno</th>
-            <th>Profesor</th>
-            <th>Fecha Creación</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var plan in Model)
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if (Model.Any())
         {
-            <tr>
-                <td>@plan.Alumno?.Nombre @plan.Alumno?.Apellidos (@plan.AlumnoMatricula)</td>
-                <td>@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
-                <td>@plan.FechaCreacion.ToString("yyyy-MM-dd")</td>
-                <td>
-                    <span class="badge bg-@(plan.Estado == "Activo" ? "primary" : plan.Estado == "Cumplido" ? "success" : plan.Estado == "Vencido" ? "danger" : "secondary")">
-                        @plan.Estado
-                    </span>
-                </td>
-                <td>
-                    <a asp-action="Detalles" asp-route-id="@plan.Id" class="btn btn-sm btn-info">Ver</a>
-                    @if (!User.IsInRole("Autoridad"))
-                    {
-                        <a asp-action="Editar" asp-route-id="@plan.Id" class="btn btn-sm btn-warning">Editar</a>
-                    }
-                    <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="btn btn-sm btn-secondary">Seguimiento</a>
-                </td>
-            </tr>
+            <div class="table-responsive">
+                <table class="table table-hover" id="tablaPlanes">
+                    <thead style="background-color: #6c1d45; color: white;">
+                        <tr>
+                            <th>Alumno</th>
+                            <th>Profesor</th>
+                            <th>Fecha Creación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var plan in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@plan.Alumno?.Nombre @plan.Alumno?.Apellidos</strong>
+                                    <br />
+                                    <small class="text-muted">@plan.AlumnoMatricula</small>
+                                </td>
+                                <td>@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
+                                <td>@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge bg-@(plan.Estado == "Activo" ? "primary" : plan.Estado == "Cumplido" ? "success" : plan.Estado == "Vencido" ? "danger" : "secondary")">
+                                        @plan.Estado
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-action="Detalles" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-info" title="Ver detalles">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    @if (!User.IsInRole("Autoridad"))
+                                    {
+                                        <a asp-action="Editar" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-warning" title="Editar">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                    }
+                                    <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-secondary" title="Seguimiento">
+                                        <i class="bi bi-clock-history"></i> Seguimiento
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
-    </tbody>
-</table>
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No hay planes de mejora registrados.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaPlanes').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}

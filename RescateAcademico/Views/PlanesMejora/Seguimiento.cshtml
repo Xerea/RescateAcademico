@@ -1,39 +1,57 @@
 @model RescateAcademico.Models.PlanMejora
 @{
     ViewData["Title"] = "Seguimiento del Plan de Mejora";
+    Layout = "_Layout";
 }
 
-<h2>Seguimiento del Plan de Mejora #@Model.Id</h2>
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-clock-history"></i> Seguimiento del Plan #@Model.Id</h2>
+        <p class="text-muted">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos — Boleta @Model.AlumnoMatricula</p>
+    </div>
+</div>
 
-<div class="card mb-4">
-    <div class="card-header bg-info text-white">
-        Información General
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h5>
     </div>
     <div class="card-body">
-        <p><strong>Alumno:</strong> @Model.Alumno?.Nombre @Model.Alumno?.Apellidos (@Model.AlumnoMatricula)</p>
-        <p><strong>Profesor:</strong> @Model.Tutor?.Nombre @Model.Tutor?.Apellidos</p>
-        <p><strong>Estado:</strong> <span class="badge bg-@(Model.Estado == "Activo" ? "primary" : Model.Estado == "Cumplido" ? "success" : Model.Estado == "Vencido" ? "danger" : "secondary")">@Model.Estado</span></p>
-        <p><strong>Fecha de creación:</strong> @Model.FechaCreacion.ToString("yyyy-MM-dd")</p>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Profesor:</strong> @Model.Tutor?.Nombre @Model.Tutor?.Apellidos</p>
+                <p><strong>Estado:</strong> <span class="badge bg-@(Model.Estado == "Activo" ? "primary" : Model.Estado == "Cumplido" ? "success" : Model.Estado == "Vencido" ? "danger" : "secondary")">@Model.Estado</span></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Fecha de creación:</strong> @Model.FechaCreacion.ToString("dd/MM/yyyy")</p>
+                <p><strong>Fecha de cierre:</strong> @(Model.FechaCierre?.ToString("dd/MM/yyyy") ?? "No definida")</p>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-6">
-        <div class="card mb-3">
-            <div class="card-header bg-warning">Recomendaciones</div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Recomendaciones</h5>
+            </div>
             <div class="card-body">@(Model.Recomendaciones ?? "Sin recomendaciones registradas.")</div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card mb-3">
-            <div class="card-header bg-success text-white">Metas</div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header" style="background-color: #198754; color: white;">
+                <h5 class="mb-0"><i class="bi bi-trophy"></i> Metas</h5>
+            </div>
             <div class="card-body">@(Model.Metas ?? "Sin metas registradas.")</div>
         </div>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header bg-secondary text-white">Acciones Tomadas / Bitácora</div>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header" style="background-color: #6c757d; color: white;">
+        <h5 class="mb-0"><i class="bi bi-list-check"></i> Acciones Tomadas / Bitácora</h5>
+    </div>
     <div class="card-body">
         @if (!string.IsNullOrEmpty(Model.AccionesTomadas))
         {
@@ -49,8 +67,14 @@
 <div class="mb-3">
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">Actualizar Acciones</a>
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Actualizar Acciones
+        </a>
     }
-    <a asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-info">Ver Detalles</a>
-    <a asp-action="Index" class="btn btn-outline-primary">Volver</a>
+    <a asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-info">
+        <i class="bi bi-eye"></i> Ver Detalles
+    </a>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
 </div>

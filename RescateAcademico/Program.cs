@@ -105,6 +105,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddScoped<AlertasService>();
+builder.Services.AddHttpClient<DesercionPredictionService>();
 builder.Services.AddScoped<DesercionPredictionService>();
 builder.Services.AddControllersWithViews();
 

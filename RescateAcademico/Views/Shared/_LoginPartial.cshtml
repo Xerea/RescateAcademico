@@ -6,8 +6,11 @@
 @if (SignInManager.IsSignedIn(User))
 {
     <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle text-dark d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+        <a class="nav-link dropdown-toggle text-dark d-flex align-items-center position-relative" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-bell me-1"></i>
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="display: none;" id="notifBadge">
+                <span class="visually-hidden">Notificaciones nuevas</span>
+            </span>
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" asp-controller="Notificaciones" asp-action="Index"><i class="bi bi-bell"></i> Ver Notificaciones</a></li>

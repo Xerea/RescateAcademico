@@ -1,98 +1,124 @@
 @model List<RescateAcademico.Services.PrediccionAlumnoViewModel>
 @{
-    ViewData["Title"] = "Predicción de Deserción (ML.NET)";
+    ViewData["Title"] = "Predicción de Deserción";
+    Layout = "_Layout";
 }
 
-<h2><i class="bi bi-brain"></i> Predicción de Deserción Estudiantil</h2>
-<p class="text-muted">Modelo ML.NET FastTree entrenado con datos académicos institucionales (simulación SAES).</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: #6c1d45;"><i class="bi bi-brain"></i> Predicción de Deserción Estudiantil</h2>
+</div>
 
-@if (!ViewBag.ModeloEntrenado)
-{
-    <div class="alert alert-warning">
-        <i class="bi bi-exclamation-triangle"></i> El modelo ML.NET no pudo entrenarse (insuficientes datos). Se están usando heurísticas.
-    </div>
-}
-else
-{
-    <div class="alert alert-success">
-        <i class="bi bi-check-circle"></i> Modelo ML.NET entrenado y activo. Basado en indicadores académicos simulados de SAES.
-    </div>
-}
-
-<div class="mb-3">
-    <a asp-action="Reentrenar" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Reentrenar Modelo</a>
-    <a asp-controller="Admin" asp-action="Index" class="btn btn-secondary">Volver al Panel</a>
+<div class="alert alert-info alert-dismissible fade show">
+    <i class="bi bi-info-circle"></i> Las predicciones se calculan con un modelo heurístico institucional basado en indicadores académicos (promedio, reprobadas, ausencias, recursamientos).
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card text-white bg-danger">
-            <div class="card-body text-center">
-                <h3>@Model.Count(m => m.Riesgo == "Crítico")</h3>
-                <p class="mb-0">Riesgo Crítico (>70%)</p>
+        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #dc3545 !important;">
+            <div class="card-body">
+                <i class="bi bi-exclamation-triangle-fill fs-2 text-danger mb-2"></i>
+                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Crítico")</h3>
+                <small class="text-muted">Riesgo Crítico (&gt;70%)</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-dark bg-warning">
-            <div class="card-body text-center">
-                <h3>@Model.Count(m => m.Riesgo == "Alto")</h3>
-                <p class="mb-0">Riesgo Alto (50-70%)</p>
+        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #ffc107 !important;">
+            <div class="card-body">
+                <i class="bi bi-exclamation-circle-fill fs-2 text-warning mb-2"></i>
+                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Alto")</h3>
+                <small class="text-muted">Riesgo Alto (50-70%)</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-white bg-info">
-            <div class="card-body text-center">
-                <h3>@Model.Count(m => m.Riesgo == "Medio")</h3>
-                <p class="mb-0">Riesgo Medio (30-50%)</p>
+        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #0dcaf0 !important;">
+            <div class="card-body">
+                <i class="bi bi-info-circle-fill fs-2 text-info mb-2"></i>
+                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Medio")</h3>
+                <small class="text-muted">Riesgo Medio (30-50%)</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body text-center">
-                <h3>@Model.Count(m => m.Riesgo == "Bajo")</h3>
-                <p class="mb-0">Riesgo Bajo (<30%)</p>
+        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #198754 !important;">
+            <div class="card-body">
+                <i class="bi bi-check-circle-fill fs-2 text-success mb-2"></i>
+                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Bajo")</h3>
+                <small class="text-muted">Riesgo Bajo (&lt;30%)</small>
             </div>
         </div>
     </div>
 </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Boleta</th>
-            <th>Nombre</th>
-            <th>Carrera</th>
-            <th>Promedio</th>
-            <th>Prob. Deserción</th>
-            <th>Riesgo</th>
-            <th>Método</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if (Model.Any())
         {
-            <tr>
-                <td>@item.Matricula</td>
-                <td>@item.Nombre</td>
-                <td>@item.Carrera</td>
-                <td>@item.Promedio.ToString("F2")</td>
-                <td>
-                    <div class="progress" style="height: 20px;">
-                        <div class="progress-bar bg-@item.Color" role="progressbar" style="width: @(item.ProbabilidadDesercion * 100)%" aria-valuenow="@item.ProbabilidadDesercion" aria-valuemin="0" aria-valuemax="1">
-                            @((item.ProbabilidadDesercion * 100).ToString("F0"))%
-                        </div>
-                    </div>
-                </td>
-                <td><span class="badge bg-@item.Color">@item.Riesgo</span></td>
-                <td><span class="badge bg-secondary">@item.Metodo</span></td>
-                <td>
-                    <a asp-action="Detalle" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-info">Ver</a>
-                </td>
-            </tr>
+            <div class="table-responsive">
+                <table class="table table-hover" id="tablaPredicciones">
+                    <thead style="background-color: #6c1d45; color: white;">
+                        <tr>
+                            <th>Boleta</th>
+                            <th>Nombre</th>
+                            <th>Carrera</th>
+                            <th>Promedio</th>
+                            <th>Prob. Deserción</th>
+                            <th>Riesgo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@item.Matricula</strong></td>
+                                <td>@item.Nombre</td>
+                                <td>@item.Carrera</td>
+                                <td>
+                                    <span class="badge @(item.Promedio >= 8 ? "bg-success" : item.Promedio >= 6 ? "bg-warning" : "bg-danger")">
+                                        @item.Promedio.ToString("F2")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-@item.Color" role="progressbar" style="width: @(item.ProbabilidadDesercion * 100)%" aria-valuenow="@item.ProbabilidadDesercion" aria-valuemin="0" aria-valuemax="1">
+                                            @((item.ProbabilidadDesercion * 100).ToString("F0"))%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-@item.Color">@item.Riesgo</span></td>
+                                <td>
+                                    <a asp-action="Detalle" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-outline-info" title="Ver detalle">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
-    </tbody>
-</table>
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-brain fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No hay predicciones disponibles.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaPredicciones').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}

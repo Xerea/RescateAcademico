@@ -20,9 +20,7 @@ namespace RescateAcademico.Controllers
 
         public async Task<IActionResult> Index()
         {
-            _predictionService.EntrenarModelo();
             var predicciones = await _predictionService.PredecirTodosAsync();
-            ViewBag.ModeloEntrenado = _predictionService.IsTrained;
             return View(predicciones);
         }
 
@@ -31,12 +29,8 @@ namespace RescateAcademico.Controllers
             var alumno = await _context.Alumnos.FindAsync(matricula);
             if (alumno == null) return NotFound();
 
-            if (!_predictionService.IsTrained)
-                _predictionService.EntrenarModelo();
-
             var prediccion = _predictionService.Predecir(alumno);
 
-            // Get historical predictions
             var historial = await _context.PrediccionesDesercion
                 .Where(p => p.AlumnoMatricula == matricula)
                 .OrderByDescending(p => p.FechaPrediccion)
@@ -44,19 +38,26 @@ namespace RescateAcademico.Controllers
 
             ViewBag.Alumno = alumno;
             ViewBag.Historial = historial;
-            ViewBag.ModeloEntrenado = _predictionService.IsTrained;
 
             return View(prediccion);
         }
 
-        [Authorize(Roles = "Administrador")]
-        public IActionResult Reentrenar()
+        [HttpPost]
+        public async Task<IActionResult> AnalisisIA(string matricula)
         {
-            _predictionService.EntrenarModelo();
-            TempData["Success"] = _predictionService.IsTrained
-                ? "Modelo ML.NET reentrenado exitosamente con datos actuales."
-                : "No hay suficientes datos para entrenar el modelo. Usando heurísticas.";
-            return RedirectToAction("Index");
+            var alumno = await _context.Alumnos.FindAsync(matricula);
+            if (alumno == null) return NotFound();
+
+            var analisis = await _predictionService.GenerarAnalisisIAAsync(alumno);
+
+            if (analisis == null)
+            {
+                TempData["Error"] = "El análisis con IA no está disponible en este momento. Verifica que la clave de API esté configurada.";
+                return RedirectToAction("Detalle", new { matricula });
+            }
+
+            TempData["AnalisisIA"] = System.Text.Json.JsonSerializer.Serialize(analisis);
+            return RedirectToAction("Detalle", new { matricula });
         }
     }
 }

@@ -171,6 +171,15 @@
     </header>
     <main role="main" class="pb-3">
         <div class="container">
+            <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house"></i> Inicio</a></li>
+                    @if (ViewData["Title"] != null && !string.Equals(ViewData["Title"]?.ToString(), "Inicio", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+                    }
+                </ol>
+            </nav>
             @RenderBody()
         </div>
     </main>

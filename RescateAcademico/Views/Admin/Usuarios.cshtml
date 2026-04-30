@@ -7,70 +7,93 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 style="color: #6c1d45;"><i class="bi bi-people"></i> Gestión de Usuarios</h2>
-    <a asp-controller="Account" asp-action="Register" class="btn btn-primary">
+    <a asp-controller="Account" asp-action="Register" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">
         <i class="bi bi-person-plus"></i> Nuevo Usuario
     </a>
 </div>
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead style="background-color: #6c1d45; color: white;">
-                    <tr>
-                        <th>Email</th>
-                        <th>Estado</th>
-                        <th>Email Confirmado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="tablaUsuarios">
+                    <thead style="background-color: #6c1d45; color: white;">
                         <tr>
-                            <td>@item.Email</td>
-                            <td>
-                                @if (item.IsActive)
-                                {
-                                    <span class="badge bg-success">Activo</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Inactivo</span>
-                                }
-                            </td>
-                            <td>
-                                @if (item.EmailConfirmed)
-                                {
-                                    <i class="bi bi-check-circle text-success"></i>
-                                }
-                                else
-                                {
-                                    <i class="bi bi-x-circle text-danger"></i>
-                                }
-                            </td>
-                            <td>
-                                @{
-                                    var lockoutEnd = item.LockoutEnd;
-                                    var isLocked = lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.Now;
-                                }
-                                @if (isLocked)
-                                {
-                                    <a asp-action="DesbloquearUsuario" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-unlock"></i> Desbloquear
-                                    </a>
-                                }
-                                else
-                                {
-                                    <a asp-action="BloquearUsuario" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Bloquear a este usuario por 20 minutos?')">
-                                        <i class="bi bi-lock"></i> Bloquear
-                                    </a>
-                                }
-                            </td>
+                            <th>Email</th>
+                            <th>Estado</th>
+                            <th>Email Confirmado</th>
+                            <th>Acciones</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Email</td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.EmailConfirmed)
+                                    {
+                                        <i class="bi bi-check-circle text-success"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-x-circle text-danger"></i>
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        var lockoutEnd = item.LockoutEnd;
+                                        var isLocked = lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.Now;
+                                    }
+                                    @if (isLocked)
+                                    {
+                                        <a asp-action="DesbloquearUsuario" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success" title="Desbloquear">
+                                            <i class="bi bi-unlock"></i> Desbloquear
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="BloquearUsuario" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Bloquear" onclick="return confirm('¿Bloquear a este usuario por 20 minutos?')">
+                                            <i class="bi bi-lock"></i> Bloquear
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-people fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No hay usuarios registrados.</p>
+            </div>
+        }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaUsuarios').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}

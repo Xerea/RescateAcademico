@@ -1,13 +1,18 @@
 @model RescateAcademico.Models.PlanMejora
 @{
     ViewData["Title"] = "Detalles del Plan de Mejora";
+    Layout = "_Layout";
 }
 
-<h2>Detalles del Plan de Mejora</h2>
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-journal-check"></i> Detalles del Plan de Mejora</h2>
+    </div>
+</div>
 
-<div class="card mb-3">
-    <div class="card-header">
-        Plan #@Model.Id - <span class="badge bg-@(Model.Estado == "Activo" ? "primary" : Model.Estado == "Cumplido" ? "success" : Model.Estado == "Vencido" ? "danger" : "secondary")">@Model.Estado</span>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <h5 class="mb-0">Plan #@Model.Id — <span class="badge bg-light text-dark">@Model.Estado</span></h5>
     </div>
     <div class="card-body">
         <dl class="row">
@@ -18,10 +23,10 @@
             <dd class="col-sm-9">@Model.Tutor?.Nombre @Model.Tutor?.Apellidos</dd>
 
             <dt class="col-sm-3">Fecha de Creación</dt>
-            <dd class="col-sm-9">@Model.FechaCreacion.ToString("yyyy-MM-dd HH:mm")</dd>
+            <dd class="col-sm-9">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</dd>
 
             <dt class="col-sm-3">Fecha de Cierre</dt>
-            <dd class="col-sm-9">@(Model.FechaCierre?.ToString("yyyy-MM-dd") ?? "No definida")</dd>
+            <dd class="col-sm-9">@(Model.FechaCierre?.ToString("dd/MM/yyyy") ?? "No definida")</dd>
 
             <dt class="col-sm-3">Recomendaciones</dt>
             <dd class="col-sm-9">@(Model.Recomendaciones ?? "N/A")</dd>
@@ -38,8 +43,14 @@
 <div class="mb-3">
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
     }
-    <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="btn btn-secondary">Seguimiento</a>
-    <a asp-action="Index" class="btn btn-outline-primary">Volver a la lista</a>
+    <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="btn btn-secondary">
+        <i class="bi bi-clock-history"></i> Seguimiento
+    </a>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver a la lista
+    </a>
 </div>

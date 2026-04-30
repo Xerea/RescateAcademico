@@ -33,61 +33,84 @@
             <div class="alert alert-success">@TempData["Success"]</div>
         }
 
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead style="background-color: #6c1d45; color: white;">
-                    <tr>
-                        <th>Alumno</th>
-                        <th>Proyecto</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="tablaPostulaciones">
+                    <thead style="background-color: #6c1d45; color: white;">
                         <tr>
-                            <td>
-                                <strong>@item.Alumno?.Nombre @item.Alumno?.Apellidos</strong>
-                                <br />
-                                <small class="text-muted">@item.AlumnoId</small>
-                            </td>
-                            <td>@item.Proyecto?.Titulo</td>
-                            <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
-                            <td>
-                                @if (item.Estado == "Aceptado")
-                                {
-                                    <span class="badge bg-success">Aceptado</span>
-                                }
-                                else if (item.Estado == "Rechazado")
-                                {
-                                    <span class="badge bg-danger">Rechazado</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning text-dark">En Revisión</span>
-                                }
-                            </td>
-                            <td>
-                                @if (item.Estado == "En Revisión")
-                                {
-                                    <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Aceptado" class="btn btn-sm btn-success">
-                                        <i class="bi bi-check"></i> Aceptar
-                                    </a>
-                                    <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Rechazado" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-x"></i> Rechazar
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">-</span>
-                                }
-                            </td>
+                            <th>Alumno</th>
+                            <th>Proyecto</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@item.Alumno?.Nombre @item.Alumno?.Apellidos</strong>
+                                    <br />
+                                    <small class="text-muted">@item.AlumnoId</small>
+                                </td>
+                                <td>@item.Proyecto?.Titulo</td>
+                                <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (item.Estado == "Aceptado")
+                                    {
+                                        <span class="badge bg-success">Aceptado</span>
+                                    }
+                                    else if (item.Estado == "Rechazado")
+                                    {
+                                        <span class="badge bg-danger">Rechazado</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">En Revisión</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.Estado == "En Revisión")
+                                    {
+                                        <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Aceptado" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check"></i> Aceptar
+                                        </a>
+                                        <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Rechazado" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-x"></i> Rechazar
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-3">No hay postulaciones registradas.</p>
+            </div>
+        }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaPostulaciones').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}
