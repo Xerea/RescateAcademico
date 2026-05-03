@@ -43,6 +43,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AnalisisIA(string matricula)
         {
             var alumno = await _context.Alumnos.FindAsync(matricula);

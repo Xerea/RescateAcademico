@@ -62,6 +62,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(PlanMejoraViewModel model)
         {
@@ -132,6 +133,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Editar(PlanMejoraViewModel model)
         {

@@ -105,6 +105,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Postularse(int convocatoriaId, IFormFile? documento)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -219,6 +220,8 @@ namespace RescateAcademico.Controllers
             return View(postulaciones);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador,Autoridad")]
         public async Task<IActionResult> CambiarEstado(int id, string estado)
         {

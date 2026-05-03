@@ -47,6 +47,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create(Proyecto proyecto)
         {
@@ -69,6 +70,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit(Proyecto proyecto)
         {
@@ -82,6 +84,8 @@ namespace RescateAcademico.Controllers
             return View(proyecto);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {

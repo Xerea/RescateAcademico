@@ -32,6 +32,8 @@ namespace RescateAcademico.Controllers
             return View(notificaciones);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarLeida(int id)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -49,6 +51,8 @@ namespace RescateAcademico.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarTodasLeidas()
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -69,6 +73,8 @@ namespace RescateAcademico.Controllers
             return await _context.Notificaciones.CountAsync(n => n.UserId == userId && !n.Leida);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> EliminarAntiguas()
         {

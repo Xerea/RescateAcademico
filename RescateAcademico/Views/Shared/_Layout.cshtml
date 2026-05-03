@@ -138,7 +138,14 @@
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="CrearCuenta"><i class="bi bi-person-plus"></i> Crear Cuenta</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Alumnos"><i class="bi bi-student"></i> Alumnos</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Tutores"><i class="bi bi-person-badge"></i> Profesores</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="EvaluarRiesgos"><i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos</a></li>
+                                        <li>
+                                            <form asp-controller="Admin" asp-action="EvaluarRiesgos" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item" style="background:none;border:none;width:100%;text-align:left;">
+                                                    <i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos
+                                                </button>
+                                            </form>
+                                        </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Proyectos" asp-action="Index"><i class="bi bi-folder"></i> Proyectos</a></li>
                                         <li><a class="dropdown-item" asp-controller="Convocatorias" asp-action="Todas"><i class="bi bi-megaphone"></i> Convocatorias</a></li>

@@ -56,6 +56,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearAlumno(Alumno alumno)
         {
             if (ModelState.IsValid)
@@ -76,6 +77,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditarAlumno(Alumno alumno)
         {
             if (ModelState.IsValid)
@@ -99,6 +101,8 @@ namespace RescateAcademico.Controllers
             return View(alumno);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarAlumno(string id)
         {
             var alumno = await _context.Alumnos.FindAsync(id);
@@ -123,6 +127,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearTutor(Tutor tutor)
         {
             if (ModelState.IsValid)
@@ -147,6 +152,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearCiclo(CicloEscolar ciclo)
         {
             if (ModelState.IsValid)
@@ -176,6 +182,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearCarrera(Carrera carrera)
         {
             if (ModelState.IsValid)
@@ -188,6 +195,8 @@ namespace RescateAcademico.Controllers
             return View(carrera);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleActivoCarrera(int id)
         {
             var carrera = await _context.Carreras.FindAsync(id);
@@ -217,6 +226,8 @@ namespace RescateAcademico.Controllers
             return View(auths);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> BloquearUsuario(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -228,6 +239,8 @@ namespace RescateAcademico.Controllers
             return RedirectToAction("Usuarios");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DesbloquearUsuario(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -246,6 +259,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearCuenta(CrearCuentaViewModel model)
         {
             if (!ModelState.IsValid)
@@ -418,6 +432,8 @@ namespace RescateAcademico.Controllers
         }
 
         // HU-RA-23: Evaluación automática de riesgo académico
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EvaluarRiesgos()
         {
             var (evaluados, cambios, detalles) = await _alertasService.EvaluarTodosAsync();

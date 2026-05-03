@@ -74,12 +74,22 @@
                                 <td>
                                     @if (item.Estado == "En Revisión")
                                     {
-                                        <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Aceptado" class="btn btn-sm btn-success">
-                                            <i class="bi bi-check"></i> Aceptar
-                                        </a>
-                                        <a asp-action="CambiarEstado" asp-route-id="@item.Id" asp-route-estado="Rechazado" class="btn btn-sm btn-danger">
-                                            <i class="bi bi-x"></i> Rechazar
-                                        </a>
+                                        <form asp-action="CambiarEstado" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="estado" value="Aceptado" />
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-check"></i> Aceptar
+                                            </button>
+                                        </form>
+                                        <form asp-action="CambiarEstado" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="estado" value="Rechazado" />
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-x"></i> Rechazar
+                                            </button>
+                                        </form>
                                     }
                                     else
                                     {

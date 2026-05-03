@@ -58,15 +58,23 @@
                                     }
                                     @if (isLocked)
                                     {
-                                        <a asp-action="DesbloquearUsuario" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success" title="Desbloquear">
-                                            <i class="bi bi-unlock"></i> Desbloquear
-                                        </a>
+                                        <form asp-action="DesbloquearUsuario" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Desbloquear">
+                                                <i class="bi bi-unlock"></i> Desbloquear
+                                            </button>
+                                        </form>
                                     }
                                     else
                                     {
-                                        <a asp-action="BloquearUsuario" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Bloquear" onclick="return confirm('¿Bloquear a este usuario por 20 minutos?')">
-                                            <i class="bi bi-lock"></i> Bloquear
-                                        </a>
+                                        <form asp-action="BloquearUsuario" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Bloquear" onclick="return confirm('¿Bloquear a este usuario por 20 minutos?')">
+                                                <i class="bi bi-lock"></i> Bloquear
+                                            </button>
+                                        </form>
                                     }
                                 </td>
                             </tr>

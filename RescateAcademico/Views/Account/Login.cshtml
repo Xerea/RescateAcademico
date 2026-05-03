@@ -1,7 +1,12 @@
 @model dynamic
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Inicio de Sesión";
     Layout = "_Layout";
+    var adminPw = Configuration["DEMO_ADMIN_PASSWORD"] ?? "Admin123!";
+    var autoridadPw = Configuration["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!";
+    var tutorPw = Configuration["DEMO_TUTOR_PASSWORD"] ?? "Demo123!";
+    var alumnoPw = Configuration["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!";
 }
 
 <div class="container mt-5">
@@ -68,7 +73,7 @@
                                     <div class="card-body p-2">
                                         <small class="text-muted d-block fw-bold">Administrador</small>
                                         <code class="small d-block">admin@ipn.mx</code>
-                                        <code class="small d-block">Admin123!</code>
+                                        <code class="small d-block">@adminPw</code>
                                     </div>
                                 </div>
                             </div>
@@ -77,7 +82,7 @@
                                     <div class="card-body p-2">
                                         <small class="text-muted d-block fw-bold">Autoridad Académica</small>
                                         <code class="small d-block">autoridad@ipn.mx</code>
-                                        <code class="small d-block">Autoridad123!</code>
+                                        <code class="small d-block">@autoridadPw</code>
                                     </div>
                                 </div>
                             </div>
@@ -86,7 +91,7 @@
                                     <div class="card-body p-2">
                                         <small class="text-muted d-block fw-bold">Profesor / Tutor</small>
                                         <code class="small d-block">profesor1@ipn.mx</code>
-                                        <code class="small d-block">Demo123!</code>
+                                        <code class="small d-block">@tutorPw</code>
                                     </div>
                                 </div>
                             </div>
@@ -95,7 +100,7 @@
                                     <div class="card-body p-2">
                                         <small class="text-muted d-block fw-bold">Alumno</small>
                                         <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
-                                        <code class="small d-block">Demo123!</code>
+                                        <code class="small d-block">@alumnoPw</code>
                 </div>
             </div>
         </div>

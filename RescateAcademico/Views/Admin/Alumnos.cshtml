@@ -81,9 +81,13 @@
                                 <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="btn btn-sm btn-outline-info">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a asp-action="EliminarAlumno" asp-route-id="@item.Matricula" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este alumno?')">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                <form asp-action="EliminarAlumno" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Matricula" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar este alumno?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     }

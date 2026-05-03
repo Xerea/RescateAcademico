@@ -130,7 +130,10 @@
 </div>
 
 <div class="mt-4">
-    <a asp-action="EvaluarRiesgos" class="btn btn-primary"><i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos Ahora</a>
+    <form asp-action="EvaluarRiesgos" method="post" style="display:inline;">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-primary"><i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos Ahora</button>
+    </form>
     <a asp-controller="Predicciones" asp-action="Index" class="btn btn-dark"><i class="bi bi-brain"></i> Predicciones ML.NET</a>
     <a asp-action="Index" class="btn btn-secondary">Volver al Panel</a>
 </div>

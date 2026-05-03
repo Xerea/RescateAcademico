@@ -8,9 +8,12 @@
     <h2 style="color: #6c1d45;"><i class="bi bi-bell"></i> Notificaciones</h2>
     @if (Model.Any(n => !n.Leida))
     {
-        <a asp-action="MarcarTodasLeidas" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-check-all"></i> Marcar todas como leídas
-        </a>
+        <form asp-action="MarcarTodasLeidas" method="post" style="display:inline;">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-check-all"></i> Marcar todas como leídas
+            </button>
+        </form>
     }
 </div>
 
@@ -53,15 +56,23 @@
                     <div>
                         @if (!string.IsNullOrEmpty(item.Enlace))
                         {
-                            <a asp-action="MarcarLeida" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> Ver
-                            </a>
+                            <form asp-action="MarcarLeida" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Ver
+                                </button>
+                            </form>
                         }
                         else
                         {
-                            <a asp-action="MarcarLeida" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary @(item.Leida ? "disabled" : "")">
-                                <i class="bi bi-check"></i>
-                            </a>
+                            <form asp-action="MarcarLeida" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary @(item.Leida ? "disabled" : "")">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
                         }
                     </div>
                 </div>

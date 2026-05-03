@@ -414,7 +414,7 @@
             new Chart(document.getElementById('chartCarrera'), {
                 type: 'bar',
                 data: {
-                    labels: [@Html.Raw(string.Join(", ", Model.AlumnosPorCarrera.Select(c => $"'{c.Carrera}'")))],
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorCarrera.Select(c => c.Carrera))),
                     datasets: [{
                         label: 'Alumnos',
                         data: [@string.Join(", ", Model.AlumnosPorCarrera.Select(c => c.Count))],
@@ -431,7 +431,7 @@
             new Chart(document.getElementById('chartSemestre'), {
                 type: 'bar',
                 data: {
-                    labels: [@Html.Raw(string.Join(", ", Model.AlumnosPorSemestre.Select(s => $"'Sem {s.Semestre}'")))],
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => $"Sem {s.Semestre}"))),
                     datasets: [{
                         label: 'Alumnos',
                         data: [@string.Join(", ", Model.AlumnosPorSemestre.Select(s => s.Count))],

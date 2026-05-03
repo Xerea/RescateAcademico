@@ -80,6 +80,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> Crear(IntervencionTutoria intervencion)
         {
@@ -113,6 +114,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> Seguimiento(int id, DateTime fechaSeguimiento, string notas)
         {

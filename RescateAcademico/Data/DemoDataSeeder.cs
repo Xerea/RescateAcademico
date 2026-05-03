@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
 using RescateAcademico.Services;
@@ -138,16 +139,21 @@ namespace RescateAcademico.Seeders
             }
 
             var alertas = new AlertasService(context);
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+            var adminPassword = config["DEMO_ADMIN_PASSWORD"] ?? "Admin123!";
+            var autoridadPassword = config["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!";
+            var tutorPassword = config["DEMO_TUTOR_PASSWORD"] ?? "Demo123!";
+            var alumnoPassword = config["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!";
 
             await SeedRolesAsync(roleManager);
-            var adminUser = await EnsureUserAsync(userManager, "admin@ipn.mx", "Admin123!", "Administrador");
-            var autoridadUser = await EnsureUserAsync(userManager, "autoridad@ipn.mx", "Autoridad123!", "Autoridad");
+            var adminUser = await EnsureUserAsync(userManager, "admin@ipn.mx", adminPassword, "Administrador");
+            var autoridadUser = await EnsureUserAsync(userManager, "autoridad@ipn.mx", autoridadPassword, "Autoridad");
 
             await SeedCarrerasAsync(context);
             await SeedCiclosAsync(context);
-            var profesores = await SeedProfesoresAsync(userManager, context);
+            var profesores = await SeedProfesoresAsync(userManager, context, tutorPassword);
             var grupos = await SeedGruposAsync(context, profesores);
-            var alumnos = await SeedAlumnosAsync(userManager, context, grupos);
+            var alumnos = await SeedAlumnosAsync(userManager, context, grupos, alumnoPassword);
             await SeedMateriasAsync(context);
             await SeedCalificacionesAsync(context, alumnos);
             await SeedAsignacionesTutorAsync(context, profesores, alumnos);
@@ -227,7 +233,7 @@ namespace RescateAcademico.Seeders
             await context.SaveChangesAsync();
         }
 
-        private static async Task<List<Tutor>> SeedProfesoresAsync(UserManager<ApplicationUser> um, ApplicationDbContext context)
+        private static async Task<List<Tutor>> SeedProfesoresAsync(UserManager<ApplicationUser> um, ApplicationDbContext context, string password)
         {
             if (await context.Tutores.AnyAsync()) return await context.Tutores.ToListAsync();
             var profesores = new List<Tutor>();
@@ -236,7 +242,7 @@ namespace RescateAcademico.Seeders
             for (int i = 0; i < 12; i++)
             {
                 var email = $"profesor{i + 1}@ipn.mx";
-                var user = await EnsureUserAsync(um, email, "Demo123!", "Tutor");
+                var user = await EnsureUserAsync(um, email, password, "Tutor");
                 var esHombre = _rng.NextDouble() > 0.4;
                 var nombre = esHombre ? NombresHombre[_rng.Next(NombresHombre.Length)] : NombresMujer[_rng.Next(NombresMujer.Length)];
                 var ap1 = Apellidos[_rng.Next(Apellidos.Length)];
@@ -332,7 +338,7 @@ namespace RescateAcademico.Seeders
             return sb.ToString().Normalize(NormalizationForm.FormC);
         }
 
-        private static async Task<List<Alumno>> SeedAlumnosAsync(UserManager<ApplicationUser> um, ApplicationDbContext context, List<Grupo> grupos)
+        private static async Task<List<Alumno>> SeedAlumnosAsync(UserManager<ApplicationUser> um, ApplicationDbContext context, List<Grupo> grupos, string password)
         {
             if (await context.Alumnos.AnyAsync()) return await context.Alumnos.ToListAsync();
             var alumnos = new List<Alumno>();
@@ -341,7 +347,7 @@ namespace RescateAcademico.Seeders
             // Hardcoded demo student for predictable login
             var demoEmail = "demo.alumno@alumno.ipn.mx";
             _emailsUsados.Add(demoEmail);
-            var demoUser = await EnsureUserAsync(um, demoEmail, "Demo123!", "Alumno");
+            var demoUser = await EnsureUserAsync(um, demoEmail, password, "Alumno");
             var demoGrupo = grupos.First();
             var demoAlumno = new Alumno
             {
@@ -380,7 +386,7 @@ namespace RescateAcademico.Seeders
                     seq++;
 
                     var perfil = GenerarPerfilAcademico();
-                    var user = await EnsureUserAsync(um, email, "Demo123!", "Alumno");
+                    var user = await EnsureUserAsync(um, email, password, "Alumno");
 
                     alumnos.Add(new Alumno
                     {

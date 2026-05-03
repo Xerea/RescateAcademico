@@ -54,6 +54,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create(Convocatoria convocatoria)
         {
@@ -79,6 +80,7 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit(Convocatoria convocatoria)
         {
@@ -93,6 +95,8 @@ namespace RescateAcademico.Controllers
             return View(convocatoria);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -116,6 +120,8 @@ namespace RescateAcademico.Controllers
             return View("Todas", convocatorias);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Validar(int id)
         {
