@@ -50,7 +50,7 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> Create(Proyecto proyecto)
+        public async Task<IActionResult> Create([Bind("Titulo,Descripcion,Tipo,CupoMaximo,FechaCierre")] Proyecto proyecto)
         {
             if (ModelState.IsValid)
             {
@@ -73,7 +73,7 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> Edit(Proyecto proyecto)
+        public async Task<IActionResult> Edit([Bind("Id,Titulo,Descripcion,Tipo,CupoMaximo,FechaCierre,EstaActivo")] Proyecto proyecto)
         {
             if (ModelState.IsValid)
             {

@@ -232,7 +232,8 @@
                 if (!response.ok) throw new Error('Error al cargar');
                 const data = await response.json();
 
-                document.getElementById('qvTitle').innerHTML = '<i class="bi bi-person-badge"></i> ' + data.nombre + ' ' + data.apellidos;
+                document.getElementById('qvTitle').innerHTML = '<i class="bi bi-person-badge"></i> ';
+                document.getElementById('qvTitle').appendChild(document.createTextNode(data.nombre + ' ' + data.apellidos));
                 document.getElementById('qvMatricula').textContent = data.matricula;
                 document.getElementById('qvCarrera').textContent = data.carrera || '—';
                 document.getElementById('qvSemestre').textContent = data.semestreActual;

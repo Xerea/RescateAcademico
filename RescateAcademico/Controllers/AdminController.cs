@@ -58,7 +58,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CrearAlumno(Alumno alumno)
+        public async Task<IActionResult> CrearAlumno([Bind("Matricula,Nombre,Apellidos,Carrera,PromedioGlobal,SemestreActual,RiesgoAcademico,CargaAcademicaActual,MateriasReprobadas,EtsPresentados,Recursamientos,Ausencias,ParcialesBajos,Estatus,Correo,GrupoId")] Alumno alumno)
         {
             if (ModelState.IsValid)
             {
@@ -79,7 +79,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditarAlumno(Alumno alumno)
+        public async Task<IActionResult> EditarAlumno([Bind("Matricula,Nombre,Apellidos,Carrera,PromedioGlobal,SemestreActual,RiesgoAcademico,CargaAcademicaActual,MateriasReprobadas,EtsPresentados,Recursamientos,Ausencias,ParcialesBajos,Estatus,Correo,GrupoId")] Alumno alumno)
         {
             if (ModelState.IsValid)
             {
@@ -130,7 +130,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CrearTutor(Tutor tutor)
+        public async Task<IActionResult> CrearTutor([Bind("Nombre,Apellidos,Email,Telefono,NumeroEmpleado,Especialidad,EstaActivo")] Tutor tutor)
         {
             if (ModelState.IsValid)
             {
@@ -155,7 +155,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CrearCiclo(CicloEscolar ciclo)
+        public async Task<IActionResult> CrearCiclo([Bind("Nombre,Periodo,FechaInicio,FechaFin,EsActual,EstaActivo")] CicloEscolar ciclo)
         {
             if (ModelState.IsValid)
             {
@@ -185,7 +185,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CrearCarrera(Carrera carrera)
+        public async Task<IActionResult> CrearCarrera([Bind("Clave,Nombre,Descripcion,Semestres,EstaActiva")] Carrera carrera)
         {
             if (ModelState.IsValid)
             {

@@ -57,7 +57,7 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> Create(Convocatoria convocatoria)
+        public async Task<IActionResult> Create([Bind("Titulo,Descripcion,Tipo,ProyectoId,CupoMaximo,FechaCierre,Requisitos,PromedioMinimo,SemestreMinimo,CarreraRequerida,Modalidad,Ubicacion,Horario,RequisitosTecnicos,Area")] Convocatoria convocatoria)
         {
             if (ModelState.IsValid)
             {
@@ -83,7 +83,7 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> Edit(Convocatoria convocatoria)
+        public async Task<IActionResult> Edit([Bind("Id,Titulo,Descripcion,Tipo,ProyectoId,CupoMaximo,FechaCierre,Requisitos,PromedioMinimo,SemestreMinimo,CarreraRequerida,Modalidad,Ubicacion,Horario,RequisitosTecnicos,Area,EstaActiva,ValidadaPorAcademia")] Convocatoria convocatoria)
         {
             if (ModelState.IsValid)
             {

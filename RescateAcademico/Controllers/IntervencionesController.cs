@@ -82,7 +82,7 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Tutor")]
-        public async Task<IActionResult> Crear(IntervencionTutoria intervencion)
+        public async Task<IActionResult> Crear([Bind("AlumnoMatricula,Tipo,Descripcion,Resultado,RequiereSeguimiento,FechaSeguimiento,NotasSeguimiento")] IntervencionTutoria intervencion)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
