@@ -1,6 +1,70 @@
 @{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Política de Privacidad";
+    Layout = "_Layout";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="row mb-4">
+    <div class="col">
+        <h2 style="color: #6c1d45;"><i class="bi bi-shield-lock"></i> Política de Privacidad</h2>
+        <p class="text-muted">Rescate Académico IPN — CECyT No. 13 "Ricardo Flores Magón"</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">1. Responsable del Tratamiento de Datos</h5>
+        <p>El sistema <strong>Rescate Académico</strong> es operado por la Coordinación de Orientación Educativa y Tutoría del Centro de Estudios Científicos y Tecnológicos No. 13 del Instituto Politécnico Nacional (IPN). La información recopilada se utiliza exclusivamente con fines académicos, de seguimiento estudiantil y mejora continua de los procesos institucionales.</p>
+
+        <h5 class="mb-3 mt-4">2. Datos Personales Recopilados</h5>
+        <p>Conforme a la Ley General de Protección de Datos Personales en Posesión de Sujetos Obligados, el sistema puede recopilar los siguientes datos:</p>
+        <ul>
+            <li><strong>Identificación:</strong> nombre completo, boleta, correo institucional (&#64;alumno.ipn.mx o &#64;ipn.mx).</li>
+            <li><strong>Académicos:</strong> carrera, semestre, promedio global, materias cursadas, calificaciones, historial de reprobaciones.</li>
+            <li><strong>Conducta y asistencia:</strong> ausencias, parciales bajos, ETS presentados, recursamientos.</li>
+            <li><strong>Intervenciones:</strong> registros de tutorías, planes de mejora, dictámenes académicos y reportes COSECOVI.</li>
+        </ul>
+
+        <h5 class="mb-3 mt-4">3. Finalidades del Tratamiento</h5>
+        <p>Los datos se utilizan para:</p>
+        <ol>
+            <li>Identificar estudiantes en riesgo académico y prevenir la deserción escolar.</li>
+            <li>Asignar y dar seguimiento a planes de mejora personalizados.</li>
+            <li>Generar estadísticas institucionales para la toma de decisiones académicas.</li>
+            <li>Gestionar convocatorias de servicio social, investigación y apoyo académico.</li>
+            <li>Emitir reportes oficiales para autoridades académicas del plantel.</li>
+        </ol>
+
+        <h5 class="mb-3 mt-4">4. Medidas de Seguridad</h5>
+        <p>El sistema implementa las siguientes medidas para proteger la información:</p>
+        <ul>
+            <li>Acceso restringido por roles (Administrador, Autoridad, Profesor/Tutor, Alumno).</li>
+            <li>Contraseñas encriptadas mediante ASP.NET Core Identity.</li>
+            <li>Conexión HTTPS obligatoria en producción.</li>
+            <li>Base de datos alojada en infraestructura segura (Railway / PostgreSQL).</li>
+            <li>Bitácora de auditoría de accesos y modificaciones.</li>
+        </ul>
+
+        <h5 class="mb-3 mt-4">5. Derechos ARCO</h5>
+        <p>Usted tiene derecho a <strong>Acceder, Rectificar, Cancelar u Oponerse</strong> al tratamiento de sus datos personales. Para ejercer estos derechos, envíe una solicitud formal a la Coordinación de Orientación Educativa del CECyT 13, adjuntando identificación oficial.</p>
+
+        <h5 class="mb-3 mt-4">6. Conservación de Datos</h5>
+        <p>Los datos académicos se conservarán durante el tiempo necesario para cumplir con las finalidades descritas y con las obligaciones legales del IPN. Una vez concluido el período de conservación, la información será eliminada de forma segura.</p>
+
+        <h5 class="mb-3 mt-4">7. Uso de Inteligencia Artificial</h5>
+        <p>El sistema utiliza análisis heurísticos y, opcionalmente, modelos de lenguaje (OpenAI GPT-4o-mini) para generar recomendaciones académicas personalizadas. Los datos enviados a la API de OpenAI se limitan a indicadores académicos agregados (promedio, reprobadas, ausencias, semestre, carrera) y <strong>no incluyen información sensible de identificación directa</strong> como nombre completo o dirección.</p>
+
+        <h5 class="mb-3 mt-4">8. Contacto</h5>
+        <p>Para dudas sobre esta política de privacidad, contacte a:</p>
+        <p class="mb-0"><strong>Coordinación de Orientación Educativa</strong><br />
+        CECyT No. 13 "Ricardo Flores Magón" — IPN<br />
+        Correo institucional: orientacion@cecyt13.ipn.mx</p>
+
+        <p class="text-muted small mt-4"><em>Última actualización: 3 de mayo de 2026.</em></p>
+    </div>
+</div>
+
+<div class="mb-3">
+    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al inicio
+    </a>
+</div>

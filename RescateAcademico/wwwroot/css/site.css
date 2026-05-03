@@ -41,3 +41,14 @@ main {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Active nav link highlighting */
+.nav-link.active {
+  color: #6c1d45 !important;
+  border-bottom: 2px solid #6c1d45;
+}
+
+.navbar-nav .nav-link {
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+}

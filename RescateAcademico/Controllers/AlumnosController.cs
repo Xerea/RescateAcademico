@@ -169,5 +169,33 @@ namespace RescateAcademico.Controllers
 
             return View(alumno);
         }
+
+        [Authorize(Roles = "Administrador,Tutor,Autoridad")]
+        public async Task<IActionResult> QuickView(string matricula)
+        {
+            var alumno = await _context.Alumnos
+                .Include(a => a.Grupo)
+                .FirstOrDefaultAsync(a => a.Matricula == matricula);
+
+            if (alumno == null) return NotFound();
+
+            return Json(new
+            {
+                alumno.Matricula,
+                alumno.Nombre,
+                alumno.Apellidos,
+                alumno.Carrera,
+                alumno.SemestreActual,
+                Grupo = alumno.Grupo?.Clave,
+                alumno.PromedioGlobal,
+                alumno.RiesgoAcademico,
+                alumno.CargaAcademicaActual,
+                alumno.MateriasReprobadas,
+                alumno.Ausencias,
+                alumno.EtsPresentados,
+                alumno.Recursamientos,
+                FechaUltimaActualizacion = alumno.FechaUltimaActualizacion?.ToString("dd/MM/yyyy")
+            });
+        }
     }
 }

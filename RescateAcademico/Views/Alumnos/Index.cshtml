@@ -94,19 +94,19 @@
                                 @(item.FechaUltimaActualizacion?.ToString("dd/MM/yyyy") ?? "—")
                             </td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalAlumno_@item.Matricula">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadQuickView('@item.Matricula')" title="Vista rápida">
                                     <i class="bi bi-lightning"></i> Rápido
                                 </button>
-                                <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="btn btn-sm btn-outline-info">
+                                <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="btn btn-sm btn-outline-info" title="Ver detalle">
                                     <i class="bi bi-eye"></i> Detalle
                                 </a>
-                                <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@item.Matricula" class="btn btn-sm btn-outline-primary">
+                                <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@item.Matricula" class="btn btn-sm btn-outline-primary" title="Historial académico">
                                     <i class="bi bi-journal-text"></i> Historial
                                 </a>
-                                <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-outline-dark">
+                                <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-outline-dark" title="Predicción IA">
                                     <i class="bi bi-brain"></i> IA
                                 </a>
-                                <a asp-controller="Alumnos" asp-action="Timeline" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-outline-warning">
+                                <a asp-controller="Alumnos" asp-action="Timeline" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-outline-warning" title="Línea de tiempo">
                                     <i class="bi bi-clock-history"></i> Línea de Tiempo
                                 </a>
                             </td>
@@ -118,28 +118,32 @@
     </div>
 </div>
 
-@foreach (var item in Model)
-{
-    <div class="modal fade" id="modalAlumno_@item.Matricula" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color: #6c1d45; color: white;">
-                    <h5 class="modal-title"><i class="bi bi-person-badge"></i> @item.Nombre @item.Apellidos</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- Single reusable modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #6c1d45; color: white;">
+                <h5 class="modal-title" id="qvTitle"><i class="bi bi-person-badge"></i> Cargando...</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="qvLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+                    <p class="text-muted mt-2">Cargando información del estudiante...</p>
                 </div>
-                <div class="modal-body">
+                <div id="qvContent" style="display:none;">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="card border-0 bg-light h-100">
                                 <div class="card-body">
                                     <h6 class="text-muted">Boleta</h6>
-                                    <p class="fw-bold">@item.Matricula</p>
+                                    <p class="fw-bold" id="qvMatricula">—</p>
                                     <h6 class="text-muted">Carrera</h6>
-                                    <p>@item.Carrera</p>
+                                    <p id="qvCarrera">—</p>
                                     <h6 class="text-muted">Semestre</h6>
-                                    <p>@item.SemestreActual</p>
+                                    <p id="qvSemestre">—</p>
                                     <h6 class="text-muted">Grupo</h6>
-                                    <p>@(item.Grupo?.Clave ?? "—")</p>
+                                    <p id="qvGrupo">—</p>
                                 </div>
                             </div>
                         </div>
@@ -147,26 +151,13 @@
                             <div class="card border-0 bg-light h-100">
                                 <div class="card-body">
                                     <h6 class="text-muted">Promedio Global</h6>
-                                    <p class="fw-bold @(item.PromedioGlobal >= 8 ? "text-success" : item.PromedioGlobal >= 6 ? "text-warning" : "text-danger")">@item.PromedioGlobal.ToString("F2")</p>
+                                    <p class="fw-bold" id="qvPromedio">—</p>
                                     <h6 class="text-muted">Riesgo Académico</h6>
-                                    <p>
-                                        @if (item.RiesgoAcademico == "Rojo")
-                                        {
-                                            <span class="badge bg-danger">Rojo</span>
-                                        }
-                                        else if (item.RiesgoAcademico == "Amarillo")
-                                        {
-                                            <span class="badge bg-warning text-dark">Amarillo</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-success">Verde</span>
-                                        }
-                                    </p>
+                                    <p id="qvRiesgo">—</p>
                                     <h6 class="text-muted">Carga Académica</h6>
-                                    <p>@item.CargaAcademicaActual materias</p>
+                                    <p id="qvCarga">—</p>
                                     <h6 class="text-muted">Última Actualización</h6>
-                                    <p>@(item.FechaUltimaActualizacion?.ToString("dd/MM/yyyy") ?? "—")</p>
+                                    <p id="qvActualizacion">—</p>
                                 </div>
                             </div>
                         </div>
@@ -174,25 +165,25 @@
                             <div class="row text-center">
                                 <div class="col-3">
                                     <div class="p-2 bg-danger text-white rounded">
-                                        <h5 class="mb-0">@(item.MateriasReprobadas ?? 0)</h5>
+                                        <h5 class="mb-0" id="qvReprobadas">0</h5>
                                         <small>Reprobadas</small>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="p-2 bg-warning text-dark rounded">
-                                        <h5 class="mb-0">@(item.Ausencias ?? 0)</h5>
+                                        <h5 class="mb-0" id="qvAusencias">0</h5>
                                         <small>Ausencias</small>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="p-2 bg-info text-white rounded">
-                                        <h5 class="mb-0">@(item.EtsPresentados ?? 0)</h5>
+                                        <h5 class="mb-0" id="qvEts">0</h5>
                                         <small>ETS</small>
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="p-2 bg-secondary text-white rounded">
-                                        <h5 class="mb-0">@(item.Recursamientos ?? 0)</h5>
+                                        <h5 class="mb-0" id="qvRecursadas">0</h5>
                                         <small>Recursadas</small>
                                     </div>
                                 </div>
@@ -200,19 +191,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="btn btn-info">
-                        <i class="bi bi-eye"></i> Ver Detalle Completo
-                    </a>
-                    <a asp-controller="Alumnos" asp-action="Timeline" asp-route-matricula="@item.Matricula" class="btn btn-warning">
-                        <i class="bi bi-clock-history"></i> Línea de Tiempo
-                    </a>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="qvLinkDetalle" href="#" class="btn btn-info">
+                    <i class="bi bi-eye"></i> Ver Detalle Completo
+                </a>
+                <a id="qvLinkTimeline" href="#" class="btn btn-warning">
+                    <i class="bi bi-clock-history"></i> Línea de Tiempo
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
-}
+</div>
 
 @section Scripts {
     <script>
@@ -227,5 +218,54 @@
                 ]
             });
         });
+
+        async function loadQuickView(matricula) {
+            const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+            modal.show();
+
+            document.getElementById('qvLoading').style.display = 'block';
+            document.getElementById('qvContent').style.display = 'none';
+            document.getElementById('qvTitle').innerHTML = '<i class="bi bi-person-badge"></i> Cargando...';
+
+            try {
+                const response = await fetch('/Alumnos/QuickView?matricula=' + encodeURIComponent(matricula));
+                if (!response.ok) throw new Error('Error al cargar');
+                const data = await response.json();
+
+                document.getElementById('qvTitle').innerHTML = '<i class="bi bi-person-badge"></i> ' + data.nombre + ' ' + data.apellidos;
+                document.getElementById('qvMatricula').textContent = data.matricula;
+                document.getElementById('qvCarrera').textContent = data.carrera || '—';
+                document.getElementById('qvSemestre').textContent = data.semestreActual;
+                document.getElementById('qvGrupo').textContent = data.grupo || '—';
+
+                const promedioEl = document.getElementById('qvPromedio');
+                promedioEl.textContent = data.promedioGlobal.toFixed(2);
+                promedioEl.className = 'fw-bold ' + (data.promedioGlobal >= 8 ? 'text-success' : data.promedioGlobal >= 6 ? 'text-warning' : 'text-danger');
+
+                const riesgoEl = document.getElementById('qvRiesgo');
+                const riesgo = data.riesgoAcademico || 'Verde';
+                let riesgoBadge = '';
+                if (riesgo === 'Rojo') riesgoBadge = '<span class="badge bg-danger">Rojo</span>';
+                else if (riesgo === 'Amarillo') riesgoBadge = '<span class="badge bg-warning text-dark">Amarillo</span>';
+                else riesgoBadge = '<span class="badge bg-success">Verde</span>';
+                riesgoEl.innerHTML = riesgoBadge;
+
+                document.getElementById('qvCarga').textContent = (data.cargaAcademicaActual || 0) + ' materias';
+                document.getElementById('qvActualizacion').textContent = data.fechaUltimaActualizacion || '—';
+
+                document.getElementById('qvReprobadas').textContent = data.materiasReprobadas || 0;
+                document.getElementById('qvAusencias').textContent = data.ausencias || 0;
+                document.getElementById('qvEts').textContent = data.etsPresentados || 0;
+                document.getElementById('qvRecursadas').textContent = data.recursamientos || 0;
+
+                document.getElementById('qvLinkDetalle').href = '/Alumnos/Detalles/' + data.matricula;
+                document.getElementById('qvLinkTimeline').href = '/Alumnos/Timeline?matricula=' + data.matricula;
+
+                document.getElementById('qvLoading').style.display = 'none';
+                document.getElementById('qvContent').style.display = 'block';
+            } catch (err) {
+                document.getElementById('qvLoading').innerHTML = '<p class="text-danger">No se pudo cargar la información. Intenta de nuevo.</p>';
+            }
+        }
     </script>
 }

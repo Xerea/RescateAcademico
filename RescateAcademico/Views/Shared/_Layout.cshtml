@@ -23,96 +23,95 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+                        @{
+                            var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                            var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                        }
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">
+                                <a class="nav-link @(currentController == "Home" && currentAction == "Index" ? "active fw-bold" : "text-dark")" asp-controller="Home" asp-action="Index">
                                     <i class="bi bi-house"></i> Inicio
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark fw-bold" asp-controller="Dashboard" asp-action="Index" style="color: #6c1d45;">
+                                <a class="nav-link @(currentController == "Dashboard" ? "active fw-bold" : "text-dark")" asp-controller="Dashboard" asp-action="Index">
                                     <i class="bi bi-grid-1x2"></i> Dashboard
                                 </a>
                             </li>
-                            
+
                             @if (User.IsInRole("Alumno"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="PerfilAcademico" asp-action="MiPerfil">
+                                    <a class="nav-link @(currentController == "PerfilAcademico" ? "active fw-bold" : "text-dark")" asp-controller="PerfilAcademico" asp-action="MiPerfil">
                                         <i class="bi bi-person-badge"></i> Mi Perfil
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Convocatorias" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Convocatorias" ? "active fw-bold" : "text-dark")" asp-controller="Convocatorias" asp-action="Index">
                                         <i class="bi bi-megaphone"></i> Convocatorias
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Postulaciones" asp-action="MisPostulaciones">
+                                    <a class="nav-link @(currentController == "Postulaciones" ? "active fw-bold" : "text-dark")" asp-controller="Postulaciones" asp-action="MisPostulaciones">
                                         <i class="bi bi-send-check"></i> Mis Postulaciones
                                     </a>
                                 </li>
                             }
-                            
+
                             @if (User.IsInRole("Tutor"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark fw-bold" asp-controller="Profesor" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Profesor" ? "active fw-bold" : "text-dark")" asp-controller="Profesor" asp-action="Index">
                                         <i class="bi bi-person-workspace"></i> Panel Profesor
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Profesor" asp-action="MisEstudiantes">
-                                        <i class="bi bi-people"></i> Mis Estudiantes
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Intervenciones" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Intervenciones" ? "active fw-bold" : "text-dark")" asp-controller="Intervenciones" asp-action="Index">
                                         <i class="bi bi-clipboard-pulse"></i> Intervenciones
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="PlanesMejora" asp-action="Index">
+                                    <a class="nav-link @(currentController == "PlanesMejora" ? "active fw-bold" : "text-dark")" asp-controller="PlanesMejora" asp-action="Index">
                                         <i class="bi bi-journal-check"></i> Planes de Mejora
                                     </a>
                                 </li>
                             }
-                            
+
                             @if (User.IsInRole("Autoridad"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Alumnos" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Alumnos" ? "active fw-bold" : "text-dark")" asp-controller="Alumnos" asp-action="Index">
                                         <i class="bi bi-people"></i> Alumnos
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Autoridad" asp-action="Profesores">
+                                    <a class="nav-link @(currentController == "Autoridad" ? "active fw-bold" : "text-dark")" asp-controller="Autoridad" asp-action="Profesores">
                                         <i class="bi bi-person-badge"></i> Profesores
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Intervenciones" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Intervenciones" ? "active fw-bold" : "text-dark")" asp-controller="Intervenciones" asp-action="Index">
                                         <i class="bi bi-clipboard-pulse"></i> Intervenciones
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="PlanesMejora" asp-action="Index">
+                                    <a class="nav-link @(currentController == "PlanesMejora" ? "active fw-bold" : "text-dark")" asp-controller="PlanesMejora" asp-action="Index">
                                         <i class="bi bi-journal-check"></i> Planes de Mejora
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Estadisticas" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Estadisticas" ? "active fw-bold" : "text-dark")" asp-controller="Estadisticas" asp-action="Index">
                                         <i class="bi bi-bar-chart-line"></i> Estadísticas
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Predicciones" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Predicciones" ? "active fw-bold" : "text-dark")" asp-controller="Predicciones" asp-action="Index">
                                         <i class="bi bi-brain"></i> Predicciones IA
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Postulaciones" asp-action="Todas">
+                                    <a class="nav-link @(currentController == "Postulaciones" ? "active fw-bold" : "text-dark")" asp-controller="Postulaciones" asp-action="Todas">
                                         <i class="bi bi-clipboard-check"></i> Postulaciones
                                     </a>
                                 </li>
@@ -126,11 +125,11 @@
                                     </ul>
                                 </li>
                             }
-                            
+
                             @if (User.IsInRole("Administrador"))
                             {
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-dark" href="#" role="button" data-bs-toggle="dropdown">
+                                    <a class="nav-link dropdown-toggle @(new[] {"Admin","Proyectos","Convocatorias","Export","Predicciones","Bitacora"}.Contains(currentController) ? "active fw-bold" : "text-dark")" href="#" role="button" data-bs-toggle="dropdown">
                                         <i class="bi bi-gear"></i> Administración
                                     </a>
                                     <ul class="dropdown-menu">
@@ -147,7 +146,7 @@
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Export" asp-action="ReporteImprimible" target="_blank"><i class="bi bi-printer"></i> Reporte en Riesgo (PDF)</a></li>
                                         <li><a class="dropdown-item" asp-controller="Export" asp-action="AlumnosCSV"><i class="bi bi-file-earmark-excel"></i> Exportar Alumnos (CSV)</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Predicciones" asp-action="Index"><i class="bi bi-brain"></i> Predicción ML.NET</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Predicciones" asp-action="Index"><i class="bi bi-brain"></i> Predicción IA</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="CiclosEscolares"><i class="bi bi-calendar"></i> Ciclos</a></li>
                                         <li><a class="dropdown-item" asp-controller="Admin" asp-action="Carreras"><i class="bi bi-mortarboard"></i> Carreras</a></li>
@@ -157,7 +156,7 @@
                                     </ul>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Estadisticas" asp-action="Index">
+                                    <a class="nav-link @(currentController == "Estadisticas" ? "active fw-bold" : "text-dark")" asp-controller="Estadisticas" asp-action="Index">
                                         <i class="bi bi-bar-chart"></i> Estadísticas
                                     </a>
                                 </li>
