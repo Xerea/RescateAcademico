@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
+using RescateAcademico.Filters;
 using RescateAcademico.Models;
 using RescateAcademico.Services;
 using System.ComponentModel.DataAnnotations;
@@ -103,6 +104,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Eliminar", Tabla = "Alumnos")]
         public async Task<IActionResult> EliminarAlumno(string id)
         {
             var alumno = await _context.Alumnos.FindAsync(id);
@@ -197,6 +199,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Cambiar Estado", Tabla = "Carreras")]
         public async Task<IActionResult> ToggleActivoCarrera(int id)
         {
             var carrera = await _context.Carreras.FindAsync(id);
@@ -228,6 +231,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Bloquear", Tabla = "Usuarios")]
         public async Task<IActionResult> BloquearUsuario(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -241,6 +245,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Desbloquear", Tabla = "Usuarios")]
         public async Task<IActionResult> DesbloquearUsuario(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -260,6 +265,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Crear Cuenta", Tabla = "Usuarios")]
         public async Task<IActionResult> CrearCuenta(CrearCuentaViewModel model)
         {
             if (!ModelState.IsValid)
@@ -434,6 +440,7 @@ namespace RescateAcademico.Controllers
         // HU-RA-23: Evaluación automática de riesgo académico
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Evaluar Riesgos", Tabla = "Alumnos")]
         public async Task<IActionResult> EvaluarRiesgos()
         {
             var (evaluados, cambios, detalles) = await _alertasService.EvaluarTodosAsync();

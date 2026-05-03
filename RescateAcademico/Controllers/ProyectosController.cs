@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
+using RescateAcademico.Filters;
 using RescateAcademico.Models;
 
 namespace RescateAcademico.Controllers
@@ -87,6 +88,7 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
+        [AuditLog(Accion = "Desactivar", Tabla = "Proyectos")]
         public async Task<IActionResult> Delete(int id)
         {
             var proyecto = await _context.Proyectos.FindAsync(id);

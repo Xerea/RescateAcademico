@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
+using RescateAcademico.Filters;
 using RescateAcademico.Services;
 
 namespace RescateAcademico.Controllers
@@ -44,6 +45,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Análisis IA", Tabla = "Predicciones")]
         public async Task<IActionResult> AnalisisIA(string matricula)
         {
             var alumno = await _context.Alumnos.FindAsync(matricula);
