@@ -106,6 +106,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(10 * 1024 * 1024)] // 10 MB total request
         public async Task<IActionResult> Postularse(int convocatoriaId, IFormFile? documento)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -155,12 +156,42 @@ namespace RescateAcademico.Controllers
 
             if (documento != null && documento.Length > 0)
             {
+                const long maxFileSize = 5 * 1024 * 1024; // 5 MB
+                if (documento.Length > maxFileSize)
+                {
+                    TempData["Error"] = "El archivo excede el tamaño máximo permitido de 5 MB.";
+                    return RedirectToAction("Index", "Convocatorias");
+                }
+
+                var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png" };
+                var ext = Path.GetExtension(documento.FileName).ToLowerInvariant();
+                if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
+                {
+                    TempData["Error"] = "Tipo de archivo no permitido. Solo se aceptan PDF, DOC, DOCX, JPG, JPEG y PNG.";
+                    return RedirectToAction("Index", "Convocatorias");
+                }
+
+                var allowedMimeTypes = new Dictionary<string, string[]>
+                {
+                    [".pdf"] = new[] { "application/pdf" },
+                    [".doc"] = new[] { "application/msword" },
+                    [".docx"] = new[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+                    [".jpg"] = new[] { "image/jpeg" },
+                    [".jpeg"] = new[] { "image/jpeg" },
+                    [".png"] = new[] { "image/png" }
+                };
+                if (!allowedMimeTypes[ext].Contains(documento.ContentType.ToLowerInvariant()))
+                {
+                    TempData["Error"] = "El contenido del archivo no coincide con su extensión.";
+                    return RedirectToAction("Index", "Convocatorias");
+                }
+
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "postulaciones");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(documento.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
+                var safeFileName = $"{Guid.NewGuid()}{ext}";
+                var filePath = Path.Combine(uploadsFolder, safeFileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -168,7 +199,7 @@ namespace RescateAcademico.Controllers
                 }
 
                 postulacion.DocumentoNombre = documento.FileName;
-                postulacion.DocumentoRuta = $"/uploads/postulaciones/{fileName}";
+                postulacion.DocumentoRuta = $"/uploads/postulaciones/{safeFileName}";
                 postulacion.DocumentoTamano = documento.Length;
             }
 

@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RescateAcademico.Models;
 using System.ComponentModel.DataAnnotations;
 
@@ -26,6 +27,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
