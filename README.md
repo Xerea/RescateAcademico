@@ -7,8 +7,9 @@ Plataforma web institucional para el monitoreo y seguimiento del desempeño estu
 - ASP.NET Core MVC (.NET 8.0)
 - Entity Framework Core (SQLite local / PostgreSQL para producción)
 - ASP.NET Identity (autenticación y roles)
-- Bootstrap 5 + Bootstrap Icons
-- ML.NET (predicción de deserción)
+- Bootstrap 5 + Bootstrap Icons + DataTables
+- Chart.js (dashboard visualizations)
+- OpenAI GPT-4o-mini (análisis narrativo de riesgo)
 
 ## Cómo ejecutar localmente
 
@@ -30,6 +31,18 @@ dotnet run
 ```
 
 La aplicación estará disponible en `https://localhost:5001` (o el puerto que indique la consola).
+
+### Variables de entorno (opcionales)
+```bash
+# Contraseñas de cuentas demo (si no se establecen, usan valores por defecto)
+DEMO_ADMIN_PASSWORD=Admin123!
+DEMO_AUTORIDAD_PASSWORD=Autoridad123!
+DEMO_TUTOR_PASSWORD=Demo123!
+DEMO_ALUMNO_PASSWORD=Demo123!
+
+# OpenAI API Key para análisis con IA
+OPENAI_API_KEY=sk-...
+```
 
 ### Credenciales de prueba (Demo)
 
@@ -83,8 +96,9 @@ El proyecto está configurado para desplegarse automáticamente en Railway usand
 2. Agregar un servicio **PostgreSQL** desde el dashboard de Railway.
 3. Railway inyectará automáticamente la variable de entorno `DATABASE_URL`.
 4. `Program.cs` detecta `DATABASE_URL` y usa `Npgsql` automáticamente. **No necesitas modificar `appsettings.json` ni `Program.cs`.**
+5. (Opcional) Agrega `OPENAI_API_KEY` en Variables para habilitar el análisis con IA.
 
-> **Nota**: El primer despliegue creará las tablas y sembrará los 300+ registros demo automáticamente. Este proceso puede tardar 2-3 minutos.
+> **Nota**: El primer despliegue creará las tablas y sembrará los 300+ registros demo automáticamente. Este proceso puede tardar 8-10 minutos. Se recomienda aumentar el timeout de health checks en Railway.
 
 ## Estructura del Proyecto
 ```
@@ -102,22 +116,25 @@ wwwroot/        -> Archivos estáticos (CSS, JS, imágenes, uploads)
 4. **Autoridad** - Estadísticas globales, reportes institucionales, revisión de postulaciones
 
 ## Funcionalidades Implementadas
-- Autenticación segura con bloqueo por intentos fallidos
-- Gestión de roles y permisos
+- Autenticación segura con bloqueo por intentos fallidos y rate limiting
+- Gestión de roles y permisos (Administrador, Profesor, Alumno, Autoridad)
 - Radiografía académica con semáforo de riesgo (Verde/Amarillo/Rojo)
-- Catálogo de convocatorias con filtros
-- Sistema de postulación con validación de elegibilidad
-- Notificaciones automáticas
-- Tablero estadístico
-- Bitácora de auditoría
-- Carga masiva de alumnos (CSV)
-- Registro de intervenciones
-- Dashboard de integridad de datos
+- Catálogo de convocatorias con filtros y validación por academia
+- Sistema de postulación con validación de elegibilidad automática
+- Notificaciones automáticas en tiempo real
+- Tablero estadístico con Chart.js (distribución por carrera, semestre, riesgo)
+- Bitácora de auditoría completa con IP y user agent
+- Registro de intervenciones y seguimiento por tutor
+- Dashboard de integridad de datos con 14+ checks automáticos
 - Exportación a CSV e impresión de reportes
-- Predicción de deserción con ML.NET
+- Predicción de deserción con heurísticas + análisis narrativo con OpenAI GPT-4o-mini
 - Planes de mejora académica personalizados
 - Dictámenes académicos y reportes COSECOVI
-- Panel de profesor con semáforo, grupos y historial académico tipo SAES
+- Panel de profesor con grupos, semáforo y historial académico tipo SAES
+- Línea de tiempo cronológica por estudiante
+- Filtros avanzados en listados con DataTables
+- Wizard de registro en 3 pasos
+- Política de privacidad completa
 
 ## Funcionalidades Pendientes
 - Exportación a PDF/Excel con logo institucional
@@ -132,8 +149,22 @@ wwwroot/        -> Archivos estáticos (CSS, JS, imágenes, uploads)
 
 ## Notas para Desarrolladores
 - `ResetOnStartup` está en `false` en producción. No modificar.
-- El seeding de datos ocurre automáticamente al iniciar si las tablas están vacías.
-- Las contraseñas deben cumplir: mínimo 6 caracteres, al menos una mayúscula y un número.
+- El seeding de datos ocurre automáticamente al iniciar si las tablas están vacías (< 50 alumnos).
+- Las contraseñas deben cumplir: mínimo 8 caracteres, mayúscula, minúscula, dígito, símbolo, 4 caracteres únicos.
+- `RoleSeeder.cs` fue eliminado; `DemoDataSeeder` maneja todo el seeding.
+
+## Seguridad Implementada
+- **[ValidateAntiForgeryToken]** en todas las acciones POST + filtro global `AutoValidateAntiforgeryToken`
+- **Rate limiting** en login: 10 intentos/minuto
+- **Security headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- **Cookie hardening**: HttpOnly, Secure, SameSite=Strict
+- **Antiforgery cookie**: HttpOnly, Secure, SameSite=Strict
+- **[Bind]** en todas las acciones de creación/edición para prevenir over-posting
+- **Validación de uploads**: extensión, MIME type, tamaño máximo 5 MB
+- **XSS sanitization**: `JsonSerializer.Serialize` en Chart.js, `textContent` en modales AJAX
+- **Open redirect fix**: `Url.IsLocalUrl()` en login
+- **Audit logging**: filtro `[AuditLog]` en mutaciones críticas (eliminar, bloquear, validar, IA)
+- **Contraseñas demo configurables** mediante variables de entorno
 
 ---
 *Proyecto académico - IPN CECyT No. 13 - 2026*
