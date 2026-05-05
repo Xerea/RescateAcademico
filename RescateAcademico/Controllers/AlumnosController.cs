@@ -69,6 +69,9 @@ namespace RescateAcademico.Controllers
 
             if (alumno == null) return NotFound();
 
+            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(id))
+                return Forbid();
+
             return View(alumno);
         }
 
@@ -151,6 +154,9 @@ namespace RescateAcademico.Controllers
 
             if (alumno == null) return NotFound();
 
+            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(matricula))
+                return Forbid();
+
             var intervenciones = await _context.IntervencionesTutoria
                 .Include(i => i.Tutor)
                 .Where(i => i.AlumnoMatricula == matricula)
@@ -179,6 +185,9 @@ namespace RescateAcademico.Controllers
 
             if (alumno == null) return NotFound();
 
+            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(matricula))
+                return Forbid();
+
             return Json(new
             {
                 alumno.Matricula,
@@ -196,6 +205,21 @@ namespace RescateAcademico.Controllers
                 alumno.Recursamientos,
                 FechaUltimaActualizacion = alumno.FechaUltimaActualizacion?.ToString("dd/MM/yyyy")
             });
+        }
+
+        private async Task<bool> EsAlumnoDeTutorAsync(string matricula)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (tutor == null) return false;
+
+            var grupos = await _context.Grupos
+                .Where(g => g.ProfesorId == tutor.Id)
+                .Include(g => g.Alumnos)
+                .ToListAsync();
+
+            var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
+            return alumnosIds.Contains(matricula);
         }
     }
 }

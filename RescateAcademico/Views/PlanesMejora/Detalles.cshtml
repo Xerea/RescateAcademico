@@ -4,53 +4,51 @@
     Layout = "_Layout";
 }
 
-<div class="row mb-4">
+<div class="row mb-4 align-items-end">
     <div class="col">
-        <h2 style="color: var(--ra-accent);"><i class="bi bi-journal-check"></i> Detalles del Plan de Mejora</h2>
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-journal-check ra-text-accent me-2"></i>Detalles del Plan</h1>
+        <p class="text-secondary small mb-0">Plan #@Model.Id — <span class="ra-badge @(Model.Estado == "Activo" ? "ra-badge-primary" : Model.Estado == "Cumplido" ? "ra-badge-success" : Model.Estado == "Vencido" ? "ra-badge-danger" : "ra-badge-neutral")">@Model.Estado</span></p>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header" style="background-color: #6c1d45; color: white;">
-        <h5 class="mb-0">Plan #@Model.Id — <span class="badge bg-light text-dark">@Model.Estado</span></h5>
-    </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">Alumno</dt>
-            <dd class="col-sm-9">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos (@Model.AlumnoMatricula)</dd>
+<div class="ra-card mb-4">
+    <div class="ra-card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3 text-secondary small">Alumno</dt>
+            <dd class="col-sm-9 fw-medium">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos (@Model.AlumnoMatricula)</dd>
 
-            <dt class="col-sm-3">Profesor</dt>
+            <dt class="col-sm-3 text-secondary small">Profesor</dt>
             <dd class="col-sm-9">@Model.Tutor?.Nombre @Model.Tutor?.Apellidos</dd>
 
-            <dt class="col-sm-3">Fecha de Creación</dt>
+            <dt class="col-sm-3 text-secondary small">Fecha de Creación</dt>
             <dd class="col-sm-9">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</dd>
 
-            <dt class="col-sm-3">Fecha de Cierre</dt>
+            <dt class="col-sm-3 text-secondary small">Fecha de Cierre</dt>
             <dd class="col-sm-9">@(Model.FechaCierre?.ToString("dd/MM/yyyy") ?? "No definida")</dd>
 
-            <dt class="col-sm-3">Recomendaciones</dt>
+            <dt class="col-sm-3 text-secondary small">Recomendaciones</dt>
             <dd class="col-sm-9">@(Model.Recomendaciones ?? "N/A")</dd>
 
-            <dt class="col-sm-3">Metas</dt>
+            <dt class="col-sm-3 text-secondary small">Metas</dt>
             <dd class="col-sm-9">@(Model.Metas ?? "N/A")</dd>
 
-            <dt class="col-sm-3">Acciones Tomadas</dt>
-            <dd class="col-sm-9">@(Model.AccionesTomadas ?? "N/A")</dd>
+            <dt class="col-sm-3 text-secondary small">Acciones Tomadas</dt>
+            <dd class="col-sm-9 mb-0">@(Model.AccionesTomadas ?? "N/A")</dd>
         </dl>
     </div>
 </div>
 
-<div class="mb-3">
+<div class="d-flex flex-wrap gap-2">
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-primary">
             <i class="bi bi-pencil"></i> Editar
         </a>
     }
-    <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="btn btn-secondary">
+    <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="ra-btn ra-btn-outline">
         <i class="bi bi-clock-history"></i> Seguimiento
     </a>
-    <a asp-action="Index" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Volver a la lista
+    <a asp-action="Index" class="ra-btn ra-btn-ghost">
+        <i class="bi bi-arrow-left"></i> Volver
     </a>
 </div>

@@ -52,7 +52,20 @@
                             </li>
                         }
 
-                        @* Tutor: no extra nav items — everything is in Panel *@
+                        @* Tutor: Mis Estudiantes + Intervenciones *@
+                        @if (User.IsInRole("Tutor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(cc == "Alumnos" ? "active" : "")" asp-controller="Alumnos" asp-action="MisTutorados">
+                                    <i class="bi bi-people"></i> Mis Estudiantes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(cc == "Intervenciones" ? "active" : "")" asp-controller="Intervenciones" asp-action="Index">
+                                    <i class="bi bi-clipboard-pulse"></i> Intervenciones
+                                </a>
+                            </li>
+                        }
 
                         @* Autoridad: Alumnos + Reportes *@
                         @if (User.IsInRole("Autoridad"))

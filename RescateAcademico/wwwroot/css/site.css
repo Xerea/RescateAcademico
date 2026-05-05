@@ -450,9 +450,9 @@ a:hover { color: var(--ra-primary-hover); }
   border-color: var(--ra-border);
 }
 .ra-btn-outline:hover {
-  background-color: var(--ra-border-subtle);
-  color: var(--ra-text);
-  border-color: var(--ra-border);
+  background-color: var(--ra-primary-soft);
+  color: var(--ra-primary);
+  border-color: var(--ra-primary);
 }
 
 .ra-btn-ghost {
@@ -663,11 +663,11 @@ a:hover { color: var(--ra-primary-hover); }
    ANIMATIONS
    ============================================ */
 @keyframes raFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .ra-fade-in {
-  animation: raFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: raFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* ============================================

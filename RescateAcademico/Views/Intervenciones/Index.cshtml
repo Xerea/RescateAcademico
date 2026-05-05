@@ -4,17 +4,20 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: var(--ra-accent);"><i class="bi bi-clipboard-pulse"></i> Intervenciones</h2>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-clipboard-pulse ra-text-accent me-2"></i>Intervenciones</h1>
+        <p class="text-secondary small mb-0">Registro de intervenciones y seguimientos.</p>
+    </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead style="background-color: #6c1d45; color: white;">
+                <table class="table ra-table" id="tablaIntervenciones">
+                    <thead>
                         <tr>
                             <th>Fecha</th>
                             <th>Alumno</th>
@@ -30,32 +33,34 @@
                             <tr>
                                 <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
                                 <td>@item.Alumno?.Nombre @item.Alumno?.Apellidos</td>
-                                <td><span class="badge bg-info">@item.Tipo</span></td>
+                                <td><span class="ra-badge ra-badge-info">@item.Tipo</span></td>
                                 <td>@item.Descripcion</td>
                                 <td>
                                     @if (item.RequiereSeguimiento)
                                     {
-                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                        <span class="ra-badge ra-badge-warning">Pendiente</span>
                                     }
                                     else if (item.FechaSeguimiento.HasValue)
                                     {
-                                        <span class="badge bg-success">Completado</span>
+                                        <span class="ra-badge ra-badge-success">Completado</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">No requiere</span>
+                                        <span class="ra-badge ra-badge-neutral">No requiere</span>
                                     }
                                 </td>
                                 <td>
-                                    @if (item.RequiereSeguimiento && !User.IsInRole("Autoridad"))
-                                    {
-                                        <a asp-action="Seguimiento" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-check"></i> Seguimiento
+                                    <div class="d-flex gap-1">
+                                        @if (item.RequiereSeguimiento && !User.IsInRole("Autoridad"))
+                                        {
+                                            <a asp-action="Seguimiento" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-primary" title="Seguimiento">
+                                                <i class="bi bi-check"></i>
+                                            </a>
+                                        }
+                                        <a asp-action="PorAlumno" asp-route-matricula="@item.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver">
+                                            <i class="bi bi-eye"></i>
                                         </a>
-                                    }
-                                    <a asp-action="PorAlumno" asp-route-matricula="@item.AlumnoMatricula" class="btn btn-sm btn-outline-info">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -65,10 +70,23 @@
         }
         else
         {
-            <div class="text-center py-5">
-                <i class="bi bi-clipboard-x fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No has registrado intervenciones aún.</p>
+            <div class="ra-empty">
+                <i class="bi bi-clipboard-x"></i>
+                <p>No has registrado intervenciones aún.</p>
             </div>
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaIntervenciones').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}

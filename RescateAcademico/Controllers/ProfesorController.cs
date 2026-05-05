@@ -100,6 +100,20 @@ namespace RescateAcademico.Controllers
 
             if (alumno == null) return NotFound();
 
+            if (User.IsInRole("Tutor"))
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var profesor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (profesor == null) return Forbid();
+
+                var grupos = await _context.Grupos
+                    .Where(g => g.ProfesorId == profesor.Id)
+                    .Include(g => g.Alumnos)
+                    .ToListAsync();
+                var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
+                if (!alumnosIds.Contains(boleta)) return Forbid();
+            }
+
             var historial = alumno.Calificaciones
                 .Where(c => c.Materia != null)
                 .GroupBy(c => c.CicloEscolar ?? "Sin Periodo")

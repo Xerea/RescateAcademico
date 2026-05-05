@@ -4,32 +4,39 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: var(--ra-accent);"><i class="bi bi-journal-check"></i> Planes de Mejora Académica</h2>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-journal-check ra-text-accent me-2"></i>Planes de Mejora</h1>
+        <p class="text-secondary small mb-0">Seguimiento académico personalizado.</p>
+    </div>
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Crear" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">
-            <i class="bi bi-plus-circle"></i> Nuevo Plan
-        </a>
+        <div class="col-auto">
+            <a asp-action="Crear" class="ra-btn ra-btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Plan
+            </a>
+        </div>
     }
 </div>
 
 @if (!string.IsNullOrEmpty(ViewBag.MatriculaFiltro))
 {
-    <div class="alert alert-info alert-dismissible fade show">
-        Filtrando por matrícula: <strong>@ViewBag.MatriculaFiltro</strong>
-        <a asp-action="Index" class="ms-2">Ver todos</a>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="ra-alert ra-alert-info mb-4" role="alert">
+        <i class="bi bi-info-circle-fill fs-5"></i>
+        <div>
+            Filtrando por matrícula: <strong>@ViewBag.MatriculaFiltro</strong>
+            <a asp-action="Index" class="ms-2">Ver todos</a>
+        </div>
     </div>
 }
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table table-hover" id="tablaPlanes">
-                    <thead style="background-color: #6c1d45; color: white;">
+                <table class="table ra-table" id="tablaPlanes">
+                    <thead>
                         <tr>
                             <th>Alumno</th>
                             <th>Profesor</th>
@@ -45,28 +52,30 @@
                                 <td>
                                     <strong>@plan.Alumno?.Nombre @plan.Alumno?.Apellidos</strong>
                                     <br />
-                                    <small class="text-muted">@plan.AlumnoMatricula</small>
+                                    <span class="text-secondary small">@plan.AlumnoMatricula</span>
                                 </td>
                                 <td>@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
                                 <td>@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
                                 <td>
-                                    <span class="badge bg-@(plan.Estado == "Activo" ? "primary" : plan.Estado == "Cumplido" ? "success" : plan.Estado == "Vencido" ? "danger" : "secondary")">
+                                    <span class="ra-badge @(plan.Estado == "Activo" ? "ra-badge-primary" : plan.Estado == "Cumplido" ? "ra-badge-success" : plan.Estado == "Vencido" ? "ra-badge-danger" : "ra-badge-neutral")">
                                         @plan.Estado
                                     </span>
                                 </td>
                                 <td>
-                                    <a asp-action="Detalles" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-info" title="Ver detalles">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                    @if (!User.IsInRole("Autoridad"))
-                                    {
-                                        <a asp-action="Editar" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-warning" title="Editar">
-                                            <i class="bi bi-pencil"></i> Editar
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Detalles" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
                                         </a>
-                                    }
-                                    <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="btn btn-sm btn-outline-secondary" title="Seguimiento">
-                                        <i class="bi bi-clock-history"></i> Seguimiento
-                                    </a>
+                                        @if (!User.IsInRole("Autoridad"))
+                                        {
+                                            <a asp-action="Editar" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        }
+                                        <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Seguimiento">
+                                            <i class="bi bi-clock-history"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -76,9 +85,9 @@
         }
         else
         {
-            <div class="text-center py-5">
-                <i class="bi bi-journal-x fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay planes de mejora registrados.</p>
+            <div class="ra-empty">
+                <i class="bi bi-journal-x"></i>
+                <p>No hay planes de mejora registrados.</p>
             </div>
         }
     </div>

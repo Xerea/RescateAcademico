@@ -244,7 +244,13 @@
 
             document.getElementById('qvLoading').style.display = 'block';
             document.getElementById('qvContent').style.display = 'none';
-            document.getElementById('qvTitle').innerHTML = '<i class="bi bi-person-badge me-2" style="color: var(--ra-primary);"></i>Cargando...';
+            const qvTitle = document.getElementById('qvTitle');
+            qvTitle.innerHTML = '';
+            const loadIcon = document.createElement('i');
+            loadIcon.className = 'bi bi-person-badge me-2';
+            loadIcon.style.color = 'var(--ra-primary)';
+            qvTitle.appendChild(loadIcon);
+            qvTitle.appendChild(document.createTextNode('Cargando...'));
 
             try {
                 const response = await fetch('/Alumnos/QuickView?matricula=' + encodeURIComponent(matricula));
@@ -252,7 +258,11 @@
                 const data = await response.json();
 
                 const title = document.getElementById('qvTitle');
-                title.innerHTML = '<i class="bi bi-person-badge me-2" style="color: var(--ra-primary);"></i>';
+                title.innerHTML = '';
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-person-badge me-2';
+                icon.style.color = 'var(--ra-primary)';
+                title.appendChild(icon);
                 title.appendChild(document.createTextNode(data.nombre + ' ' + data.apellidos));
 
                 document.getElementById('qvMatricula').textContent = data.matricula;
@@ -266,8 +276,12 @@
 
                 const riesgoEl = document.getElementById('qvRiesgo');
                 const riesgo = data.riesgoAcademico || 'Verde';
-                let badgeClass = riesgo === 'Rojo' ? 'ra-badge-danger' : riesgo === 'Amarillo' ? 'ra-badge-warning' : 'ra-badge-success';
-                riesgoEl.innerHTML = '<span class="ra-badge ' + badgeClass + '">' + riesgo + '</span>';
+                const badgeClass = riesgo === 'Rojo' ? 'ra-badge-danger' : riesgo === 'Amarillo' ? 'ra-badge-warning' : 'ra-badge-success';
+                riesgoEl.innerHTML = '';
+                const badgeSpan = document.createElement('span');
+                badgeSpan.className = 'ra-badge ' + badgeClass;
+                badgeSpan.textContent = riesgo;
+                riesgoEl.appendChild(badgeSpan);
 
                 document.getElementById('qvCarga').textContent = (data.cargaAcademicaActual || 0) + ' materias';
                 document.getElementById('qvActualizacion').textContent = data.fechaUltimaActualizacion || '—';
@@ -277,13 +291,18 @@
                 document.getElementById('qvEts').textContent = data.etsPresentados || 0;
                 document.getElementById('qvRecursadas').textContent = data.recursamientos || 0;
 
-                document.getElementById('qvLinkDetalle').href = '/Alumnos/Detalles/' + data.matricula;
-                document.getElementById('qvLinkTimeline').href = '/Alumnos/Timeline?matricula=' + data.matricula;
+                document.getElementById('qvLinkDetalle').href = '/Alumnos/Detalles/' + encodeURIComponent(data.matricula);
+                document.getElementById('qvLinkTimeline').href = '/Alumnos/Timeline?matricula=' + encodeURIComponent(data.matricula);
 
                 document.getElementById('qvLoading').style.display = 'none';
                 document.getElementById('qvContent').style.display = 'block';
             } catch (err) {
-                document.getElementById('qvLoading').innerHTML = '<p class="text-danger">No se pudo cargar la información. Intenta de nuevo.</p>';
+                const loadingEl = document.getElementById('qvLoading');
+                loadingEl.innerHTML = '';
+                const errP = document.createElement('p');
+                errP.className = 'text-danger';
+                errP.textContent = 'No se pudo cargar la información. Intenta de nuevo.';
+                loadingEl.appendChild(errP);
             }
         }
     </script>
