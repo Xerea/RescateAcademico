@@ -933,6 +933,14 @@ ra-semaforo:hover .ra-semaforo-tooltip,
 }
 
 /* ============================================
+   MODAL Z-INDEX FIX
+   ============================================ */
+.modal { z-index: 1055 !important; }
+.modal-backdrop { z-index: 1040 !important; }
+.modal-dialog { z-index: 1056 !important; }
+.modal-content { position: relative; z-index: 1057 !important; }
+
+/* ============================================
    REDUCED MOTION
    ============================================ */
 @media (prefers-reduced-motion: reduce) {

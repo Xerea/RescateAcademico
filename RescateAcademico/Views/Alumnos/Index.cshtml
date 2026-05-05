@@ -228,7 +228,11 @@
         });
 
         async function loadQuickView(matricula) {
-            const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+            const modalEl = document.getElementById('quickViewModal');
+            // Dispose existing instance to prevent duplicate backdrops
+            const existing = bootstrap.Modal.getInstance(modalEl);
+            if (existing) existing.dispose();
+            const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
             modal.show();
 
             document.getElementById('qvLoading').style.display = 'block';

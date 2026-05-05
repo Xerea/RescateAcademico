@@ -239,6 +239,37 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Un error ocurrió durante el seeding de datos.");
         throw;
     }
+
+    // Data integrity: ensure all students have a computed risk level
+    try
+    {
+        var alumnosSinRiesgo = await context.Alumnos
+            .Where(a => string.IsNullOrEmpty(a.RiesgoAcademico))
+            .ToListAsync();
+        if (alumnosSinRiesgo.Count > 0)
+        {
+            logger.LogInformation("Found {Count} students without RiesgoAcademico. Re-evaluating...", alumnosSinRiesgo.Count);
+            var alertas = new RescateAcademico.Services.AlertasService(context);
+            int fixedCount = 0;
+            foreach (var alumno in alumnosSinRiesgo)
+            {
+                try
+                {
+                    var resultado = await alertas.EvaluarYAlertarAsync(alumno.Matricula);
+                    if (resultado.Contains("actualizado")) fixedCount++;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to evaluate risk for {Matricula}", alumno.Matricula);
+                }
+            }
+            logger.LogInformation("Re-evaluated {Fixed} student risk levels.", fixedCount);
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Risk re-evaluation check failed.");
+    }
 }
 
 app.MapControllerRoute(
