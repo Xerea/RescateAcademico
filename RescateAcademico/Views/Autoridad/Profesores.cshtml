@@ -5,16 +5,16 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: var(--ra-accent);"><i class="bi bi-person-badge"></i> Catálogo de Profesores</h2>
+    <h2 class="ra-text-accent"><i class="bi bi-person-badge"></i> Catálogo de Profesores</h2>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table table-hover" id="tablaProfesores">
-                    <thead style="background-color: #6c1d45; color: white;">
+                <table class="table ra-table" id="tablaProfesores">
+                    <thead>
                         <tr>
                             <th>Nombre</th>
                             <th>No. Empleado</th>
@@ -29,7 +29,7 @@
                         {
                             <tr>
                                 <td>@item.Nombre @item.Apellidos</td>
-                                <td><span class="badge bg-light text-dark border">@item.NumeroEmpleado</span></td>
+                                <td><span class="ra-badge ra-badge-neutral">@item.NumeroEmpleado</span></td>
                                 <td>@item.Email</td>
                                 <td>@item.Especialidad</td>
                                 <td>
@@ -40,22 +40,22 @@
                                     {
                                         @foreach (var g in grupos)
                                         {
-                                            <span class="badge bg-info me-1">@g.Clave</span>
+                                            <span class="ra-badge ra-badge-info me-1">@g.Clave</span>
                                         }
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Sin grupos</span>
+                                        <span class="text-secondary">Sin grupos</span>
                                     }
                                 </td>
                                 <td>
                                     @if (item.EstaActivo)
                                     {
-                                        <span class="badge bg-success">Activo</span>
+                                        <span class="ra-badge ra-badge-success">Activo</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-danger">Inactivo</span>
+                                        <span class="ra-badge ra-badge-danger">Inactivo</span>
                                     }
                                 </td>
                             </tr>
@@ -66,9 +66,9 @@
         }
         else
         {
-            <div class="text-center py-5">
-                <i class="bi bi-person-badge fs-1 text-muted"></i>
-                <p class="text-muted mt-2">No hay profesores registrados</p>
+            <div class="ra-empty">
+                <i class="bi bi-person-badge"></i>
+                <p>No hay profesores registrados</p>
             </div>
         }
     </div>

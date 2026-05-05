@@ -6,29 +6,29 @@
 
 <div class="row">
     <div class="col-md-8 mx-auto">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <div class="ra-card">
+            <div class="ra-card-header">
                 <h5 class="mb-0"><i class="bi bi-person-plus"></i> Crear Cuenta Institucional</h5>
             </div>
-            <div class="card-body">
+            <div class="ra-card-body">
                 <form asp-action="CrearCuenta" method="post">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Correo Institucional *</label>
-                            <input asp-for="Email" class="form-control" placeholder="usuario@ipn.mx" required />
+                            <label class="ra-label">Correo Institucional *</label>
+                            <input asp-for="Email" class="ra-input" placeholder="usuario@ipn.mx" required />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Contraseña Temporal *</label>
-                            <input asp-for="Password" type="password" class="form-control" required />
+                            <label class="ra-label">Contraseña Temporal *</label>
+                            <input asp-for="Password" type="password" class="ra-input" required />
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Rol *</label>
-                            <select asp-for="Rol" class="form-select" id="rolSelect" required>
+                            <label class="ra-label">Rol *</label>
+                            <select asp-for="Rol" class="ra-select" id="rolSelect" required>
                                 <option value="Alumno">Alumno</option>
                                 <option value="Profesor">Profesor</option>
                                 <option value="Autoridad">Autoridad</option>
@@ -36,42 +36,42 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Boleta</label>
-                            <input asp-for="Matricula" class="form-control" placeholder="2023600000" />
+                            <label class="ra-label">Boleta</label>
+                            <input asp-for="Matricula" class="ra-input" placeholder="2023600000" />
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Nombre</label>
-                            <input asp-for="Nombre" class="form-control" />
+                            <label class="ra-label">Nombre</label>
+                            <input asp-for="Nombre" class="ra-input" />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Apellidos</label>
-                            <input asp-for="Apellidos" class="form-control" />
+                            <label class="ra-label">Apellidos</label>
+                            <input asp-for="Apellidos" class="ra-input" />
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3" id="carreraField">
-                            <label class="form-label">Carrera</label>
-                            <input asp-for="Carrera" class="form-control" placeholder="Informática" />
+                            <label class="ra-label">Carrera</label>
+                            <input asp-for="Carrera" class="ra-input" placeholder="Informática" />
                         </div>
                         <div class="col-md-6 mb-3" id="semestreField">
-                            <label class="form-label">Semestre</label>
-                            <input asp-for="SemestreActual" type="number" class="form-control" min="1" max="12" value="1" />
+                            <label class="ra-label">Semestre</label>
+                            <input asp-for="SemestreActual" type="number" class="ra-input" min="1" max="12" value="1" />
                         </div>
                         <div class="col-md-6 mb-3 d-none" id="especialidadField">
-                            <label class="form-label">Especialidad</label>
-                            <input asp-for="Especialidad" class="form-control" placeholder="Asesoría Académica" />
+                            <label class="ra-label">Especialidad</label>
+                            <input asp-for="Especialidad" class="ra-input" placeholder="Asesoría Académica" />
                         </div>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="ra-btn ra-btn-primary">
                             <i class="bi bi-save"></i> Crear Cuenta
                         </button>
-                        <a asp-action="Usuarios" class="btn btn-outline-secondary">Cancelar</a>
+                        <a asp-action="Usuarios" class="ra-btn ra-btn-ghost">Cancelar</a>
                     </div>
                 </form>
             </div>

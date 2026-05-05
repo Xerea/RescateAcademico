@@ -6,14 +6,14 @@
 
 <div class="row mb-4">
     <div class="col">
-        <h2 style="color: var(--ra-accent);"><i class="bi bi-megaphone"></i> @Model.Titulo</h2>
+        <h2 class="ra-text-accent"><i class="bi bi-megaphone"></i> @Model.Titulo</h2>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
+        <div class="ra-card">
+            <div class="ra-card-body">
                 <h5>Descripción</h5>
                 <p>@Model.Descripcion</p>
                 <hr />
@@ -43,11 +43,11 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <div class="ra-card">
+            <div class="ra-card-header">
                 <h5 class="mb-0">Estado</h5>
             </div>
-            <div class="card-body text-center">
+            <div class="ra-card-body text-center">
                 @if (Model.ValidadaPorAcademia)
                 {
                     <i class="bi bi-check-circle-fill text-success fs-1"></i>
@@ -66,7 +66,7 @@
 </div>
 
 <div class="mt-3">
-    <a asp-action="Index" class="btn btn-outline-secondary">
+    <a asp-action="Index" class="ra-btn ra-btn-ghost">
         <i class="bi bi-arrow-left"></i> Volver
     </a>
 </div>

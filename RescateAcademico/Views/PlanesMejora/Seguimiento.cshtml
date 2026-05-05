@@ -6,20 +6,20 @@
 
 <div class="row mb-4">
     <div class="col">
-        <h2 style="color: var(--ra-accent);"><i class="bi bi-clock-history"></i> Seguimiento del Plan #@Model.Id</h2>
-        <p class="text-muted">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos — Boleta @Model.AlumnoMatricula</p>
+        <h2 class="ra-text-accent"><i class="bi bi-clock-history"></i> Seguimiento del Plan #@Model.Id</h2>
+        <p class="text-secondary">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos — Boleta @Model.AlumnoMatricula</p>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header" style="background-color: #6c1d45; color: white;">
+<div class="ra-card mb-4">
+    <div class="ra-card-header">
         <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h5>
     </div>
-    <div class="card-body">
+    <div class="ra-card-body">
         <div class="row">
             <div class="col-md-6">
                 <p><strong>Profesor:</strong> @Model.Tutor?.Nombre @Model.Tutor?.Apellidos</p>
-                <p><strong>Estado:</strong> <span class="badge bg-@(Model.Estado == "Activo" ? "primary" : Model.Estado == "Cumplido" ? "success" : Model.Estado == "Vencido" ? "danger" : "secondary")">@Model.Estado</span></p>
+                <p><strong>Estado:</strong> <span class="ra-badge ra-badge-@(Model.Estado == "Activo" ? "primary" : Model.Estado == "Cumplido" ? "success" : Model.Estado == "Vencido" ? "danger" : "secondary")">@Model.Estado</span></p>
             </div>
             <div class="col-md-6">
                 <p><strong>Fecha de creación:</strong> @Model.FechaCreacion.ToString("dd/MM/yyyy")</p>
@@ -31,35 +31,37 @@
 
 <div class="row">
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header" style="background-color: #6c1d45; color: white;">
+        <div class="ra-card mb-4">
+            <div class="ra-card-header">
                 <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Recomendaciones</h5>
             </div>
-            <div class="card-body">@(Model.Recomendaciones ?? "Sin recomendaciones registradas.")</div>
+            <div class="ra-card-body">@(Model.Recomendaciones ?? "Sin recomendaciones registradas.")</div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header" style="background-color: #198754; color: white;">
+        <div class="ra-card mb-4">
+            <div class="ra-card-header">
                 <h5 class="mb-0"><i class="bi bi-trophy"></i> Metas</h5>
             </div>
-            <div class="card-body">@(Model.Metas ?? "Sin metas registradas.")</div>
+            <div class="ra-card-body">@(Model.Metas ?? "Sin metas registradas.")</div>
         </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header" style="background-color: #6c757d; color: white;">
+<div class="ra-card mb-4">
+    <div class="ra-card-header">
         <h5 class="mb-0"><i class="bi bi-list-check"></i> Acciones Tomadas / Bitácora</h5>
     </div>
-    <div class="card-body">
+    <div class="ra-card-body">
         @if (!string.IsNullOrEmpty(Model.AccionesTomadas))
         {
             <pre style="white-space: pre-wrap;">@Model.AccionesTomadas</pre>
         }
         else
         {
-            <p class="text-muted">No hay acciones registradas aún.</p>
+            <div class="ra-empty">
+                <p>No hay acciones registradas aún.</p>
+            </div>
         }
     </div>
 </div>
@@ -67,14 +69,14 @@
 <div class="mb-3">
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-warning">
             <i class="bi bi-pencil"></i> Actualizar Acciones
         </a>
     }
-    <a asp-action="Detalles" asp-route-id="@Model.Id" class="btn btn-info">
+    <a asp-action="Detalles" asp-route-id="@Model.Id" class="ra-btn ra-btn-info">
         <i class="bi bi-eye"></i> Ver Detalles
     </a>
-    <a asp-action="Index" class="btn btn-outline-secondary">
+    <a asp-action="Index" class="ra-btn ra-btn-ghost">
         <i class="bi bi-arrow-left"></i> Volver
     </a>
 </div>
