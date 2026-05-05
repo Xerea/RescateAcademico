@@ -53,10 +53,12 @@ namespace RescateAcademico.Controllers
                 var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
                 if (tutor != null)
                 {
-                    var assignedMatriculas = await _context.AsignacionesTutor
-                        .Where(a => a.TutorId == tutor.Id && a.EstaActiva)
-                        .Select(a => a.AlumnoMatricula)
+                    var grupos = await _context.Grupos
+                        .Where(g => g.ProfesorId == tutor.Id)
+                        .Include(g => g.Alumnos)
                         .ToListAsync();
+
+                    var assignedMatriculas = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
 
                     stats.TutorAssignedStudents = assignedMatriculas.Count;
                     stats.TutorStudentsAtRisk = await _context.Alumnos

@@ -97,7 +97,11 @@
 
     <main role="main" class="pb-4">
         <div class="container-fluid px-4 px-lg-5">
-            @if (ViewData["Title"] != null && !string.Equals(ViewData["Title"]?.ToString(), "Panel Principal", StringComparison.OrdinalIgnoreCase))
+            @{
+                var isHome = cc == "Home" && ca == "Index";
+                var isPanel = cc == "Dashboard" && ca == "Index";
+            }
+            @if (!isHome && !isPanel)
             {
                 <nav aria-label="breadcrumb" class="ra-breadcrumb mt-3">
                     <ol class="breadcrumb mb-0">

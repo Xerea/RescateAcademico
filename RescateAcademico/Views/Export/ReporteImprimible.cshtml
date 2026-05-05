@@ -1,114 +1,315 @@
 @model List<RescateAcademico.Models.Alumno>
 @{
-    ViewData["Title"] = "Reporte de Alumnos en Riesgo";
+    ViewData["Title"] = "Reporte Institucional — Alumnos en Riesgo";
     Layout = null;
+    var totalAlumnos = ViewBag.TotalAlumnos as int? ?? 0;
+    var enRojo = ViewBag.EnRojo as int? ?? 0;
+    var enAmarillo = ViewBag.EnAmarillo as int? ?? 0;
+    var enRiesgo = enRojo + enAmarillo;
+    var pctRiesgo = totalAlumnos > 0 ? (enRiesgo * 100.0 / totalAlumnos) : 0;
 }
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Reporte de Riesgo Académico - IPN</title>
+    <title>Reporte Institucional — Rescate Académico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-        .institutional-header {
-            border-bottom: 3px solid #6A1B3D;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+        :root {
+            --ipn-burgundy: #6c1d45;
+            --ipn-burgundy-dark: #4a1430;
+            --text-main: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --border-color: #e5e5ea;
+            --surface: #ffffff;
+            --success: #15803d;
+            --warning: #b45309;
+            --danger: #b91c1c;
         }
-        .institutional-header h1 {
-            color: #6A1B3D;
-            font-size: 1.5rem;
-            margin-bottom: 0;
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: var(--text-main);
+            background: #f5f5f7;
+            padding: 0;
+            margin: 0;
         }
-        .institutional-header h2 {
-            color: #333;
-            font-size: 1.1rem;
-            margin-top: 5px;
+        .report-page {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: var(--surface);
+            padding: 48px 56px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            border-radius: 12px;
         }
-        .logo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: #6A1B3D;
-            color: white;
+        .report-header {
+            border-bottom: 3px solid var(--ipn-burgundy);
+            padding-bottom: 20px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .report-header .logo-box {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            background: var(--ipn-burgundy);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 800;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .report-header .org-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--ipn-burgundy);
+            margin-bottom: 2px;
+        }
+        .report-header .system-name {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+        .report-header .report-meta {
             font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .summary-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
             text-align: center;
-            float: left;
-            margin-right: 15px;
         }
-        .summary-box {
-            background: #f8f9fa;
-            border-left: 4px solid #6A1B3D;
-            padding: 15px;
-            margin-bottom: 20px;
+        .summary-card .label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
         }
+        .summary-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .summary-card.total .value { color: var(--text-main); }
+        .summary-card.rojo .value { color: var(--danger); }
+        .summary-card.amarillo .value { color: var(--warning); }
+        .summary-card.pct .value { color: var(--ipn-burgundy); }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--ipn-burgundy);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+        }
+        .data-table thead th {
+            background: var(--ipn-burgundy);
+            color: #fff;
+            font-weight: 600;
+            padding: 8px 10px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .data-table tbody td {
+            padding: 7px 10px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        .data-table tbody tr:nth-child(even) { background: #fafafa; }
+        .data-table tbody tr:hover { background: #f0f0f3; }
+        .badge-risk {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .badge-rojo { background: #fee2e2; color: #991b1b; }
+        .badge-amarillo { background: #fef3c7; color: #92400e; }
+        .badge-verde { background: #dcfce7; color: #166534; }
+
+        .report-footer {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        .report-footer strong {
+            color: var(--text-main);
+        }
+
+        .no-print-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #1d1d1f;
+            padding: 12px 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .no-print-bar button, .no-print-bar a {
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-print { background: var(--ipn-burgundy); color: #fff; }
+        .btn-back { background: #3a3a3c; color: #fff; }
+
         @@media print {
-            .no-print { display: none; }
-            body { padding: 0; }
+            .no-print-bar { display: none !important; }
+            body { background: #fff; }
+            .report-page {
+                margin: 0;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 32px 40px;
+                max-width: 100%;
+            }
+            .data-table tbody tr { page-break-inside: avoid; }
+            .summary-grid { page-break-inside: avoid; }
+        }
+        @@media (max-width: 767px) {
+            .report-page { padding: 24px; margin: 0; border-radius: 0; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
-    <div class="no-print mb-3">
-        <button onclick="window.print()" class="btn btn-primary">Imprimir / Guardar como PDF</button>
-        <a href="/Admin" class="btn btn-secondary">Volver al Dashboard</a>
+    <div class="no-print-bar">
+        <button class="btn-print" onclick="window.print()">
+            <i class="bi bi-printer"></i> Imprimir / Guardar PDF
+        </button>
+        <a href="/Dashboard" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Volver al Panel
+        </a>
     </div>
 
-    <div class="institutional-header clearfix">
-        <div class="logo-placeholder">IPN<br/>Logo</div>
-        <h1>Instituto Politécnico Nacional</h1>
-        <h2>Sistema de Monitoreo Académico - Rescate Académico</h2>
-        <p class="mb-0 text-muted">Reporte de Alumnos en Riesgo Académico</p>
-        <p class="mb-0 text-muted">Generado: @ViewBag.FechaReporte.ToString("yyyy-MM-dd HH:mm")</p>
-    </div>
+    <div class="report-page">
+        <div class="report-header">
+            <div class="logo-box">IPN</div>
+            <div>
+                <div class="org-name">Instituto Politécnico Nacional — CECyT No. 13</div>
+                <div class="system-name">Sistema de Monitoreo Académico</div>
+                <div class="report-meta">
+                    <strong>Reporte:</strong> Alumnos en Riesgo Académico &nbsp;|&nbsp;
+                    <strong>Generado:</strong> @ViewBag.FechaReporte.ToString("dddd, dd 'de' MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("es-MX"))
+                </div>
+            </div>
+        </div>
 
-    <div class="summary-box">
-        <div class="row">
-            <div class="col-md-3"><strong>Total Alumnos:</strong> @ViewBag.TotalAlumnos</div>
-            <div class="col-md-3"><strong>En Riesgo Rojo:</strong> <span class="text-danger">@ViewBag.EnRojo</span></div>
-            <div class="col-md-3"><strong>En Riesgo Amarillo:</strong> <span class="text-warning">@ViewBag.EnAmarillo</span></div>
-            <div class="col-md-3"><strong>% en Riesgo:</strong> @(((ViewBag.EnRojo + ViewBag.EnAmarillo) * 100.0 / Math.Max(ViewBag.TotalAlumnos, 1)).ToString("F1"))%</div>
+        <div class="summary-grid">
+            <div class="summary-card total">
+                <div class="label">Total Alumnos</div>
+                <div class="value">@totalAlumnos</div>
+            </div>
+            <div class="summary-card rojo">
+                <div class="label">Riesgo Rojo</div>
+                <div class="value">@enRojo</div>
+            </div>
+            <div class="summary-card amarillo">
+                <div class="label">Riesgo Amarillo</div>
+                <div class="value">@enAmarillo</div>
+            </div>
+            <div class="summary-card pct">
+                <div class="label">% en Riesgo</div>
+                <div class="value">@pctRiesgo.ToString("F1")%</div>
+            </div>
+        </div>
+
+        <div class="section-title">Detalle de Alumnos en Riesgo</div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 90px;">Boleta</th>
+                    <th>Nombre Completo</th>
+                    <th>Carrera</th>
+                    <th style="width: 60px;">Sem</th>
+                    <th style="width: 60px;">Prom</th>
+                    <th style="width: 70px;">Riesgo</th>
+                    <th style="width: 50px;">Rep</th>
+                    <th style="width: 50px;">Aus</th>
+                    <th style="width: 50px;">PB</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model)
+                {
+                    <tr>
+                        <td><strong>@a.Matricula</strong></td>
+                        <td>@a.Apellidos, @a.Nombre</td>
+                        <td>@a.Carrera</td>
+                        <td>@a.SemestreActual</td>
+                        <td>@a.PromedioGlobal.ToString("F2")</td>
+                        <td>
+                            @if (a.RiesgoAcademico == "Rojo")
+                            {
+                                <span class="badge-risk badge-rojo">Rojo</span>
+                            }
+                            else if (a.RiesgoAcademico == "Amarillo")
+                            {
+                                <span class="badge-risk badge-amarillo">Amarillo</span>
+                            }
+                            else
+                            {
+                                <span class="badge-risk badge-verde">Verde</span>
+                            }
+                        </td>
+                        <td>@(a.MateriasReprobadas ?? 0)</td>
+                        <td>@(a.Ausencias ?? 0)</td>
+                        <td>@(a.ParcialesBajos ?? 0)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="report-footer">
+            <p class="mb-1"><strong>Rescate Académico</strong> — Sistema de Monitoreo y Prevención de Deserción Estudiantil</p>
+            <p class="mb-0">Documento confidencial de uso exclusivamente institucional. Queda prohibida su reproducción sin autorización.</p>
         </div>
     </div>
-
-    <table class="table table-bordered table-sm">
-        <thead class="table-dark">
-            <tr>
-                <th>Boleta</th>
-                <th>Nombre</th>
-                <th>Carrera</th>
-                <th>Semestre</th>
-                <th>Promedio</th>
-                <th>Riesgo</th>
-                <th>Reprobadas</th>
-                <th>Ausencias</th>
-                <th>Parciales Bajos</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var a in Model)
-            {
-                <tr class="@(a.RiesgoAcademico == "Rojo" ? "table-danger" : a.RiesgoAcademico == "Amarillo" ? "table-warning" : "")">
-                    <td>@a.Matricula</td>
-                    <td>@a.Nombre @a.Apellidos</td>
-                    <td>@a.Carrera</td>
-                    <td>@a.SemestreActual</td>
-                    <td>@a.PromedioGlobal.ToString("F2")</td>
-                    <td><strong>@a.RiesgoAcademico</strong></td>
-                    <td>@(a.MateriasReprobadas ?? 0)</td>
-                    <td>@(a.Ausencias ?? 0)</td>
-                    <td>@(a.ParcialesBajos ?? 0)</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <footer class="mt-4 text-muted small">
-        <p>Documento generado automáticamente por el Sistema Rescate Académico. Este reporte es confidencial y de uso institucional.</p>
-    </footer>
 </body>
 </html>
