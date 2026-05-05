@@ -1,0 +1,58 @@
+@model List<RescateAcademico.Models.Autenticacion>
+@{
+    ViewData["Title"] = "Autenticaciones";
+}
+
+<div class="ra-card">
+    <div class="ra-card-header">
+        <i class="bi bi-shield-check"></i> Historial de Autenticaciones
+    </div>
+    <div class="ra-card-body">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="ra-empty">
+                <i class="bi bi-shield-check"></i>
+                <p>No hay registros de autenticaciones. El sistema de autenticación detallado estará disponible en una versión futura.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="ra-table" id="autenticacionesTable">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Fecha</th>
+                            <th>Exitosa</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model)
+                        {
+                            <tr>
+                                <td class="ra-mono">@(a.UserId ?? "—")</td>
+                                <td>@a.FechaIntento.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (a.Exitosa)
+                                    {
+                                        <span class="ra-badge ra-badge-success"><i class="bi bi-check"></i> Sí</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ra-badge ra-badge-danger"><i class="bi bi-x"></i> No</span>
+                                    }
+                                </td>
+                                <td class="ra-mono">@(a.IpAddress ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>$(document).ready(function () { $('#autenticacionesTable').DataTable({ language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' } }); });</script>
+}

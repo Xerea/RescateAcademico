@@ -75,25 +75,9 @@ namespace RescateAcademico.Controllers
             return View(alumno);
         }
 
-        public async Task<IActionResult> MiPerfil()
+        public IActionResult MiPerfil()
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var alumno = await _context.Alumnos
-                .Include(a => a.Calificaciones)
-                    .ThenInclude(c => c.Materia)
-                .Include(a => a.TutoresAsignados)
-                    .ThenInclude(at => at.Tutor)
-                .Include(a => a.Postulaciones)
-                    .ThenInclude(p => p.Proyecto)
-                .FirstOrDefaultAsync(a => a.UserId == userId);
-
-            if (alumno == null)
-            {
-                TempData["Error"] = "No tienes un perfil de alumno asociado";
-                return RedirectToAction("Index", "Home");
-            }
-
-            return View(alumno);
+            return RedirectToAction("MiPerfil", "PerfilAcademico");
         }
 
         [Authorize(Roles = "Tutor")]
@@ -124,22 +108,9 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> DetallesTutorado(string matricula)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
-
-            var asignacion = await _context.AsignacionesTutor
-                .Include(at => at.Alumno)
-                    .ThenInclude(a => a!.Calificaciones)
-                        .ThenInclude(c => c.Materia)
-                .Include(at => at.Alumno)
-                    .ThenInclude(a => a!.Postulaciones)
-                        .ThenInclude(p => p!.Proyecto)
-                .Include(at => at.Tutor)
-                .FirstOrDefaultAsync(at => at.AlumnoMatricula == matricula && at.TutorId == tutor!.Id);
-
-            if (asignacion?.Alumno == null) return NotFound();
-
-            return View(asignacion.Alumno);
+            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(matricula))
+                return Forbid();
+            return RedirectToAction("Detalles", new { id = matricula });
         }
 
         [Authorize(Roles = "Administrador,Tutor,Autoridad")]

@@ -24,7 +24,7 @@
                 <div class="col-md-6">
                     <p class="mb-2"><span class="text-secondary small">Promedio General:</span> <span class="fs-4 fw-bold @(alumno.PromedioGlobal < 6.0m ? "ra-text-danger" : alumno.PromedioGlobal < 7.5m ? "ra-text-warning" : "ra-text-success")">@alumno.PromedioGlobal.ToString("F2")</span></p>
                     <p class="mb-2"><span class="text-secondary small">Estatus:</span> <span class="ra-badge ra-badge-success">@alumno.Estatus</span></p>
-                    <p class="mb-0"><span class="text-secondary small">Riesgo Académico:</span> <span class="ra-badge @(alumno.RiesgoAcademico == "Rojo" ? "ra-badge-danger" : alumno.RiesgoAcademico == "Amarillo" ? "ra-badge-warning" : "ra-badge-success")">@(alumno.RiesgoAcademico ?? "Verde")</span></p>
+                    <p class="mb-0"><span class="text-secondary small">Riesgo Académico:</span> <ra-semaforo riesgo="@(alumno.RiesgoAcademico ?? "Verde")" size="sm"></ra-semaforo></p>
                 </div>
             </div>
         </div>

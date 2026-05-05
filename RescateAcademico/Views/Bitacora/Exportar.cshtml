@@ -1,0 +1,76 @@
+@model List<RescateAcademico.Models.BitacoraLog>
+@{
+    ViewData["Title"] = "Exportar Bitácora";
+}
+
+<div class="ra-card">
+    <div class="ra-card-header">
+        <i class="bi bi-download"></i> Exportar Bitácora
+    </div>
+    <div class="ra-card-body">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="ra-label">Desde</label>
+                <input type="date" class="ra-input" id="exportDesde" />
+            </div>
+            <div class="col-md-4">
+                <label class="ra-label">Hasta</label>
+                <input type="date" class="ra-input" id="exportHasta" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="button" class="ra-btn ra-btn-primary w-100" onclick="exportarCSV()">
+                    <i class="bi bi-filetype-csv"></i> Descargar CSV
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="ra-table" id="exportTable">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Tabla</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var l in Model)
+                    {
+                        <tr>
+                            <td>@l.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="ra-mono">@(l.UsuarioEmail ?? "—")</td>
+                            <td>@l.Accion</td>
+                            <td class="ra-mono">@l.TablaAfectada</td>
+                            <td class="ra-mono">@(l.IpAddress ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function exportarCSV() {
+            var rows = [];
+            rows.push(['Fecha','Usuario','Accion','Tabla','IP'].join(','));
+            document.querySelectorAll('#exportTable tbody tr').forEach(function(tr) {
+                var cols = [];
+                tr.querySelectorAll('td').forEach(function(td) {
+                    cols.push('"' + td.textContent.trim().replace(/"/g,'""') + '"');
+                });
+                rows.push(cols.join(','));
+            });
+            var blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'bitacora_' + new Date().toISOString().slice(0,10) + '.csv';
+            link.click();
+            RaToast.show('Archivo CSV descargado correctamente', 'success');
+        }
+        $(document).ready(function () { $('#exportTable').DataTable({ language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' }, pageLength: 25 }); });
+    </script>
+}

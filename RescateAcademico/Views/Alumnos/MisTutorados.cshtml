@@ -58,18 +58,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @if (alumno.RiesgoAcademico == "Rojo")
-                                    {
-                                        <span class="ra-badge ra-badge-danger"><i class="bi bi-exclamation-triangle"></i> Rojo</span>
-                                    }
-                                    else if (alumno.RiesgoAcademico == "Amarillo")
-                                    {
-                                        <span class="ra-badge ra-badge-warning"><i class="bi bi-exclamation"></i> Amarillo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="ra-badge ra-badge-success"><i class="bi bi-check-circle"></i> Verde</span>
-                                    }
+                                    <ra-semaforo riesgo="@alumno.RiesgoAcademico" size="sm"></ra-semaforo>
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
@@ -117,18 +106,7 @@
                         <div class="col-md-6">
                             <p class="mb-2"><span class="text-secondary small">Promedio:</span> <span class="ra-badge @(alumno.PromedioGlobal >= 8 ? "ra-badge-success" : alumno.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">@alumno.PromedioGlobal.ToString("F2")</span></p>
                             <p class="mb-2"><span class="text-secondary small">Riesgo:</span>
-                                @if (alumno.RiesgoAcademico == "Rojo")
-                                {
-                                    <span class="ra-badge ra-badge-danger">Rojo</span>
-                                }
-                                else if (alumno.RiesgoAcademico == "Amarillo")
-                                {
-                                    <span class="ra-badge ra-badge-warning">Amarillo</span>
-                                }
-                                else
-                                {
-                                    <span class="ra-badge ra-badge-success">Verde</span>
-                                }
+                                <ra-semaforo riesgo="@alumno.RiesgoAcademico" size="sm"></ra-semaforo>
                             </p>
                             <p class="mb-2"><span class="text-secondary small">Materias Reprobadas:</span> <strong>@(alumno.MateriasReprobadas ?? 0)</strong></p>
                             <p class="mb-0"><span class="text-secondary small">Ausencias:</span> <strong>@(alumno.Ausencias ?? 0)</strong></p>

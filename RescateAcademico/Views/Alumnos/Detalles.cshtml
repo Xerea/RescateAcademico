@@ -26,18 +26,7 @@
                 <p class="mb-2"><strong>Semestre:</strong> @Model.SemestreActual</p>
                 <p class="mb-0">
                     <strong>Riesgo:</strong>
-                    @if (Model.RiesgoAcademico == "Rojo")
-                    {
-                        <span class="ra-badge ra-badge-danger">Rojo</span>
-                    }
-                    else if (Model.RiesgoAcademico == "Amarillo")
-                    {
-                        <span class="ra-badge ra-badge-warning">Amarillo</span>
-                    }
-                    else
-                    {
-                        <span class="ra-badge ra-badge-success">Verde</span>
-                    }
+                    <ra-semaforo riesgo="@Model.RiesgoAcademico" size="sm"></ra-semaforo>
                 </p>
             </div>
         </div>

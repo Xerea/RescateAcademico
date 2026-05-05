@@ -14,7 +14,7 @@
             <p class="text-secondary small">Crea tu cuenta institucional del IPN</p>
         </div>
 
-        <div class="ra-card">
+            <div class="ra-card">
             <div class="ra-card-header text-center">
                 <h3 class="font-weight-light my-3">Registrar Nueva Cuenta</h3>
             </div>
@@ -22,11 +22,19 @@
                 <form asp-controller="Account" asp-action="Register" method="post" id="registerForm">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+                    <div class="ra-alert ra-alert-info mb-3 py-2 px-3">
+                        <i class="bi bi-info-circle"></i>
+                        <div>
+                            <strong>Correo institucional</strong> (@@alumno.ipn.mx): acceso inmediato.<br>
+                            <strong>Otro correo</strong> (Gmail, Outlook, etc.): requiere validación por tu coordinador.
+                        </div>
+                    </div>
+
                     <!-- Step 1: Cuenta -->
                     <div id="step1">
                         <h5 class="text-secondary mb-3"><span class="badge bg-secondary">1/3</span> Datos de Cuenta</h5>
                         <div class="mb-3">
-                            <label asp-for="Email" class="ra-label">Correo Institucional <span class="text-danger">*</span></label>
+                            <label asp-for="Email" class="ra-label">Correo <span class="text-danger">*</span></label>
                             <input asp-for="Email" class="ra-input" placeholder="nombre@alumno.ipn.mx" required />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>

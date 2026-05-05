@@ -1,4 +1,5 @@
 using System;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -44,6 +45,11 @@ namespace RescateAcademico.Controllers
                 ModelState.AddModelError(string.Empty, "Esta cuenta no está activa.");
                 return View();
             }
+            if (user != null && user.PendienteVerificacion)
+            {
+                ModelState.AddModelError(string.Empty, "Tu cuenta está pendiente de validación institucional. Contacta a tu coordinador académico.");
+                return View();
+            }
 
             var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: true);
 
@@ -86,6 +92,79 @@ namespace RescateAcademico.Controllers
         [HttpGet]
         public IActionResult AccessDenied()
         {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View(new RegisterViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var isInstitucional = model.Email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase) || model.Email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase);
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                IsActive = true,
+                PendienteVerificacion = !isInstitucional
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "Alumno");
+                if (user.PendienteVerificacion)
+                {
+                    TempData["Success"] = "Cuenta creada correctamente. Tu cuenta está pendiente de validación institucional. Contacta a tu coordinador académico.";
+                    return RedirectToAction("Login");
+                }
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult CambiarContrasena()
+        {
+            return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarContrasena(string currentPassword, string newPassword, string confirmPassword)
+        {
+            if (newPassword != confirmPassword)
+            {
+                ModelState.AddModelError(string.Empty, "Las contraseñas nuevas no coinciden.");
+                return View();
+            }
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login");
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "Contraseña actualizada correctamente.";
+                return RedirectToAction("Index", "Dashboard");
+            }
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
             return View();
         }
 

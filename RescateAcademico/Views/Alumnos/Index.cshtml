@@ -87,18 +87,7 @@
                             </span>
                         </td>
                         <td>
-                            @if (item.RiesgoAcademico == "Rojo")
-                            {
-                                <span class="ra-badge ra-badge-danger">Rojo</span>
-                            }
-                            else if (item.RiesgoAcademico == "Amarillo")
-                            {
-                                <span class="ra-badge ra-badge-warning">Amarillo</span>
-                            }
-                            else
-                            {
-                                <span class="ra-badge ra-badge-success">Verde</span>
-                            }
+                            <ra-semaforo riesgo="@item.RiesgoAcademico" size="sm"></ra-semaforo>
                         </td>
                         <td class="text-secondary small">@(item.FechaUltimaActualizacion?.ToString("dd/MM/yyyy") ?? "—")</td>
                         <td>
@@ -276,12 +265,11 @@
 
                 const riesgoEl = document.getElementById('qvRiesgo');
                 const riesgo = data.riesgoAcademico || 'Verde';
-                const badgeClass = riesgo === 'Rojo' ? 'ra-badge-danger' : riesgo === 'Amarillo' ? 'ra-badge-warning' : 'ra-badge-success';
                 riesgoEl.innerHTML = '';
-                const badgeSpan = document.createElement('span');
-                badgeSpan.className = 'ra-badge ' + badgeClass;
-                badgeSpan.textContent = riesgo;
-                riesgoEl.appendChild(badgeSpan);
+                const sem = document.createElement('ra-semaforo');
+                sem.setAttribute('riesgo', riesgo);
+                sem.setAttribute('size', 'sm');
+                riesgoEl.appendChild(sem);
 
                 document.getElementById('qvCarga').textContent = (data.cargaAcademicaActual || 0) + ' materias';
                 document.getElementById('qvActualizacion').textContent = data.fechaUltimaActualizacion || '—';

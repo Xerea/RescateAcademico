@@ -66,18 +66,7 @@
                                 </span>
                             </td>
                             <td>
-                                @if (item.RiesgoAcademico == "Rojo")
-                                {
-                                    <span class="ra-badge ra-badge-danger">Rojo</span>
-                                }
-                                else if (item.RiesgoAcademico == "Amarillo")
-                                {
-                                    <span class="ra-badge ra-badge-warning">Amarillo</span>
-                                }
-                                else
-                                {
-                                    <span class="ra-badge ra-badge-success">Verde</span>
-                                }
+                                <ra-semaforo riesgo="@item.RiesgoAcademico" size="sm"></ra-semaforo>
                             </td>
                             <td>
                                 <div class="d-flex gap-1">

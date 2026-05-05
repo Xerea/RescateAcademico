@@ -46,9 +46,18 @@
         <div class="col-6 col-md-3">
             <div class="ra-stat @(Model.NivelRiesgo == "Rojo" ? "ra-stat-danger" : Model.NivelRiesgo == "Amarillo" ? "ra-stat-warning" : "ra-stat-success") text-center">
                 <div class="ra-stat-label">Riesgo</div>
-                <div class="ra-stat-value">@Model.NivelRiesgo</div>
+                <div class="ra-stat-value" style="font-size:1.4rem;"><ra-semaforo riesgo="@Model.NivelRiesgo" size="lg"></ra-semaforo></div>
             </div>
         </div>
+    </div>
+
+    <!-- What-If Calculator Trigger -->
+    <div class="mb-4">
+        <button type="button" class="ra-btn ra-btn-outline w-100 py-3" data-bs-toggle="modal" data-bs-target="#calculadoraModal">
+            <i class="bi bi-calculator fs-4 me-2"></i>
+            <span class="fw-semibold">¿Cómo me va? — Simulador de Calificaciones</span>
+            <span class="d-block text-secondary small mt-1">Calcula tu promedio, riesgo y elegibilidad para convocatorias</span>
+        </button>
     </div>
 
     @if (Model.Sugerencias.Any())
@@ -227,4 +236,115 @@
             </div>
         </div>
     </div>
+
+    <!-- Integration Footer -->
+    <div class="text-center mt-4 mb-2">
+        <p class="text-secondary" style="font-size:0.75rem;opacity:0.7;">
+            <i class="bi bi-cloud-check me-1"></i> Información académica sincronizada con sistemas institucionales
+        </p>
+    </div>
+
+    <!-- Calculadora Modal -->
+    <div class="modal fade" id="calculadoraModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="ra-modal-content">
+                <div class="ra-card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-calculator"></i> Simulador de Calificaciones</span>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div class="ra-card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="ra-heading mb-3">Tus materias actuales</div>
+                            <div id="materiasInputs">
+                                @for (int i = 0; i < (Model.Alumno.CargaAcademicaActual ?? 5); i++)
+                                {
+                                    <div class="mb-2 d-flex align-items-center gap-2">
+                                        <span class="ra-mono text-secondary small" style="width:24px;">@(i+1)</span>
+                                        <input type="number" class="ra-input calif-input" min="0" max="10" step="0.1" value="7.0" placeholder="0-10" oninput="calcularSimulacion()" />
+                                    </div>
+                                }
+                            </div>
+                            <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost mt-2" onclick="agregarMateria()">
+                                <i class="bi bi-plus"></i> Agregar materia
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ra-card h-100 text-center">
+                                <div class="ra-card-body d-flex flex-column justify-content-center">
+                                    <div class="ra-heading mb-2">Promedio proyectado</div>
+                                    <div class="ra-stat-value" id="simPromedio" style="font-size:3rem;">7.00</div>
+                                    <div class="mb-3">
+                                        <ra-semaforo id="simSemaforo" riesgo="Amarillo" size="lg"></ra-semaforo>
+                                    </div>
+                                    <div class="ra-heading mb-2">Riesgo estimado</div>
+                                    <div class="fw-semibold mb-3" id="simRiesgoTexto">Amarillo</div>
+
+                                    <div style="height:8px;background:var(--ra-border);border-radius:4px;overflow:hidden;margin-bottom:1rem;">
+                                        <div id="simBarra" style="height:100%;width:70%;background:var(--ra-warning);transition:width 0.3s ease,background 0.3s ease;"></div>
+                                    </div>
+
+                                    <div class="ra-heading mb-2">Elegibilidad convocatorias</div>
+                                    <p class="small text-secondary mb-0" id="simElegibilidad">Promedio mínimo requerido: 7.5</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ra-card-footer d-flex justify-content-between">
+                    <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="ra-btn ra-btn-primary" onclick="resetSimulacion()">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reiniciar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            function calcularSimulacion() {
+                var inputs = document.querySelectorAll('.calif-input');
+                var sum = 0, count = 0;
+                inputs.forEach(function(inp) {
+                    var v = parseFloat(inp.value);
+                    if (!isNaN(v)) { sum += v; count++; }
+                });
+                var promedio = count > 0 ? sum / count : 0;
+                var promedioFixed = promedio.toFixed(2);
+                document.getElementById('simPromedio').textContent = promedioFixed;
+
+                var riesgo = 'Verde', color = 'var(--ra-success)';
+                if (promedio < 6) { riesgo = 'Rojo'; color = 'var(--ra-danger)'; }
+                else if (promedio < 7.5) { riesgo = 'Amarillo'; color = 'var(--ra-warning)'; }
+
+                document.getElementById('simRiesgoTexto').textContent = riesgo;
+                document.getElementById('simBarra').style.width = Math.min(promedio * 10, 100) + '%';
+                document.getElementById('simBarra').style.background = color;
+
+                var sem = document.getElementById('simSemaforo');
+                sem.setAttribute('riesgo', riesgo);
+
+                var eleg = document.getElementById('simElegibilidad');
+                if (promedio >= 8.5) eleg.textContent = 'Elegible para todas las convocatorias';
+                else if (promedio >= 7.5) eleg.textContent = 'Elegible para la mayoría de convocatorias';
+                else if (promedio >= 6) eleg.textContent = 'Elegibilidad limitada — algunas convocatorias requieren 7.5+';
+                else eleg.textContent = 'No elegible para convocatorias con promedio mínimo';
+            }
+            function agregarMateria() {
+                var container = document.getElementById('materiasInputs');
+                var idx = container.children.length + 1;
+                var div = document.createElement('div');
+                div.className = 'mb-2 d-flex align-items-center gap-2';
+                div.innerHTML = '<span class="ra-mono text-secondary small" style="width:24px;">' + idx + '</span><input type="number" class="ra-input calif-input" min="0" max="10" step="0.1" value="7.0" placeholder="0-10" oninput="calcularSimulacion()" />';
+                container.appendChild(div);
+                calcularSimulacion();
+            }
+            function resetSimulacion() {
+                document.querySelectorAll('.calif-input').forEach(function(inp) { inp.value = '7.0'; });
+                calcularSimulacion();
+            }
+            calcularSimulacion();
+        </script>
+    }
 }

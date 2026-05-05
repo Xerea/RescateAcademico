@@ -1,0 +1,57 @@
+@model RescateAcademico.Models.BitacoraLog
+@{
+    ViewData["Title"] = "Detalle de Bitácora";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="ra-card">
+            <div class="ra-card-header">
+                <i class="bi bi-journal-text"></i> Detalle del Registro
+            </div>
+            <div class="ra-card-body">
+                <div class="mb-3">
+                    <span class="ra-heading">Usuario</span>
+                    <p class="ra-mono mb-0">@Model.UsuarioEmail</p>
+                </div>
+                <div class="mb-3">
+                    <span class="ra-heading">Acción</span>
+                    <p class="mb-0">@Model.Accion</p>
+                </div>
+                <div class="mb-3">
+                    <span class="ra-heading">Tabla Afectada</span>
+                    <p class="ra-mono mb-0">@Model.TablaAfectada</p>
+                </div>
+                <div class="mb-3">
+                    <span class="ra-heading">Fecha y Hora</span>
+                    <p class="mb-0">@Model.FechaHora.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                </div>
+                <div class="mb-3">
+                    <span class="ra-heading">Dirección IP</span>
+                    <p class="ra-mono mb-0">@(Model.IpAddress ?? "—")</p>
+                </div>
+                <div class="mb-3">
+                    <span class="ra-heading">User Agent</span>
+                    <p class="ra-mono mb-0 text-break">@(Model.UserAgent ?? "—")</p>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.RegistroAnterior))
+                {
+                    <div class="mb-3">
+                        <span class="ra-heading">Registro Anterior</span>
+                        <pre class="ra-mono p-2 rounded" style="background:var(--ra-border-subtle);font-size:0.75rem;">@Model.RegistroAnterior</pre>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.RegistroNuevo))
+                {
+                    <div class="mb-3">
+                        <span class="ra-heading">Registro Nuevo</span>
+                        <pre class="ra-mono p-2 rounded" style="background:var(--ra-border-subtle);font-size:0.75rem;">@Model.RegistroNuevo</pre>
+                    </div>
+                }
+                <div class="mt-4">
+                    <a asp-action="Index" class="ra-btn ra-btn-outline"><i class="bi bi-arrow-left"></i> Volver a la bitácora</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

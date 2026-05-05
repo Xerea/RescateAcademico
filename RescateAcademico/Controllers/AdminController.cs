@@ -216,13 +216,9 @@ namespace RescateAcademico.Controllers
             return RedirectToAction("Carreras");
         }
 
-        public async Task<IActionResult> Bitacora()
+        public IActionResult Bitacora()
         {
-            var logs = await _context.BitacoraLogs
-                .OrderByDescending(b => b.FechaHora)
-                .Take(100)
-                .ToListAsync();
-            return View(logs);
+            return RedirectToAction("Index", "Bitacora");
         }
 
         public async Task<IActionResult> Autenticaciones()
