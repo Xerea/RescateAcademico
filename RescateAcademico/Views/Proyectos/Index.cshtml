@@ -4,25 +4,33 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: #6c1d45;"><i class="bi bi-folder"></i> Gestión de Proyectos</h2>
-    <a asp-action="Create" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">
-        <i class="bi bi-plus-circle"></i> Nuevo Proyecto
-    </a>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-folder"></i> Gestión de Proyectos</h1>
+        <p class="text-secondary small mb-0">Catálogo de proyectos académicos y de servicio social.</p>
+    </div>
+    <div class="col-auto">
+        <a asp-action="Create" class="ra-btn ra-btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Proyecto
+        </a>
+    </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            <div class="ra-alert ra-alert-success mb-3" role="alert">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <div>@TempData["Success"]</div>
+            </div>
         }
 
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table table-hover" id="tablaProyectos">
-                    <thead style="background-color: #6c1d45; color: white;">
+                <table class="table ra-table" id="tablaProyectos">
+                    <thead>
                         <tr>
                             <th>Título</th>
                             <th>Tipo</th>
@@ -39,7 +47,7 @@
                                 <td>
                                     <strong>@item.Titulo</strong>
                                     <br />
-                                    <small class="text-muted">@item.Descripcion</small>
+                                    <span class="text-secondary small">@item.Descripcion</span>
                                 </td>
                                 <td>@item.Tipo</td>
                                 <td>@item.CupoMaximo</td>
@@ -47,27 +55,29 @@
                                 <td>
                                     @if (item.EstaActivo)
                                     {
-                                        <span class="badge bg-success">Activo</span>
+                                        <span class="ra-badge ra-badge-success">Activo</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">Inactivo</span>
+                                        <span class="ra-badge ra-badge-neutral">Inactivo</span>
                                     }
                                 </td>
                                 <td>
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Ver">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <form asp-action="Delete" method="post" style="display:inline;">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Desactivar este proyecto?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <form asp-action="Delete" method="post" class="m-0" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Eliminar" onclick="return confirm('¿Desactivar este proyecto?')">
+                                                <i class="bi bi-trash ra-text-danger"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -77,9 +87,9 @@
         }
         else
         {
-            <div class="text-center py-5">
-                <i class="bi bi-folder-x fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay proyectos registrados.</p>
+            <div class="ra-empty">
+                <i class="bi bi-folder-x"></i>
+                <p>No hay proyectos registrados.</p>
             </div>
         }
     </div>

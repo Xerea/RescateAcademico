@@ -9,22 +9,22 @@
 
 @if (alumno != null)
 {
-    <div class="card mb-4">
-        <div class="card-header" style="background-color: #6c1d45; color: white;">
-            <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Historial Académico</h4>
+    <div class="ra-card mb-4">
+        <div class="ra-card-header">
+            <i class="bi bi-file-earmark-text ra-text-accent me-2"></i> Historial Académico
         </div>
-        <div class="card-body">
+        <div class="ra-card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>Estudiante:</strong> @alumno.Nombre @alumno.Apellidos</p>
-                    <p><strong>Boleta:</strong> @alumno.Matricula</p>
-                    <p><strong>Carrera:</strong> @alumno.Carrera</p>
-                    <p><strong>Semestre Actual:</strong> @alumno.SemestreActual</p>
+                    <p class="mb-2"><span class="text-secondary small">Estudiante:</span> <strong>@alumno.Nombre @alumno.Apellidos</strong></p>
+                    <p class="mb-2"><span class="text-secondary small">Boleta:</span> <strong>@alumno.Matricula</strong></p>
+                    <p class="mb-2"><span class="text-secondary small">Carrera:</span> <strong>@alumno.Carrera</strong></p>
+                    <p class="mb-0"><span class="text-secondary small">Semestre Actual:</span> <strong>@alumno.SemestreActual</strong></p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Promedio General:</strong> <span class="fs-4 fw-bold @(alumno.PromedioGlobal < 6.0m ? "text-danger" : alumno.PromedioGlobal < 7.5m ? "text-warning" : "text-success")">@alumno.PromedioGlobal.ToString("F2")</span></p>
-                    <p><strong>Estatus:</strong> <span class="badge bg-success">@alumno.Estatus</span></p>
-                    <p><strong>Riesgo Académico:</strong> <span class="badge bg-@(alumno.RiesgoAcademico == "Rojo" ? "danger" : alumno.RiesgoAcademico == "Amarillo" ? "warning text-dark" : "success")">@(alumno.RiesgoAcademico ?? "Verde")</span></p>
+                    <p class="mb-2"><span class="text-secondary small">Promedio General:</span> <span class="fs-4 fw-bold @(alumno.PromedioGlobal < 6.0m ? "ra-text-danger" : alumno.PromedioGlobal < 7.5m ? "ra-text-warning" : "ra-text-success")">@alumno.PromedioGlobal.ToString("F2")</span></p>
+                    <p class="mb-2"><span class="text-secondary small">Estatus:</span> <span class="ra-badge ra-badge-success">@alumno.Estatus</span></p>
+                    <p class="mb-0"><span class="text-secondary small">Riesgo Académico:</span> <span class="ra-badge @(alumno.RiesgoAcademico == "Rojo" ? "ra-badge-danger" : alumno.RiesgoAcademico == "Amarillo" ? "ra-badge-warning" : "ra-badge-success")">@(alumno.RiesgoAcademico ?? "Verde")</span></p>
                 </div>
             </div>
         </div>
@@ -32,67 +32,70 @@
 
     @if (reprobadas.Any())
     {
-        <div class="alert alert-danger">
-            <i class="bi bi-x-circle"></i> <strong>Materias reprobadas:</strong> @string.Join(", ", reprobadas)
+        <div class="ra-alert ra-alert-danger mb-4" role="alert">
+            <i class="bi bi-x-circle-fill fs-5"></i>
+            <div><strong>Materias reprobadas:</strong> @string.Join(", ", reprobadas)</div>
         </div>
     }
 
     @foreach (var periodo in Model)
     {
-        <div class="card mb-3">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">@periodo.Periodo</h5>
+        <div class="ra-card mb-3">
+            <div class="ra-card-header">
+                <i class="bi bi-calendar-event me-2"></i> @periodo.Periodo
             </div>
-            <div class="card-body p-0">
-                <table class="table table-sm mb-0">
-                    <thead class="table-secondary">
-                        <tr>
-                            <th>Clave</th>
-                            <th>Materia</th>
-                            <th>Evaluación</th>
-                            <th>Calificación</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var m in periodo.Materias)
-                        {
-                            <tr class="@(m.Calificacion < 6 ? "table-danger" : m.Tipo != "Ordinario" ? "table-warning" : "")">
-                                <td><code>@m.Clave</code></td>
-                                <td>@m.Nombre</td>
-                                <td>@m.Tipo @(m.VecesCursada > 1 ? $"({m.VecesCursada}° vez)" : "")</td>
-                                <td><strong>@m.Calificacion.ToString("F1")</strong></td>
-                                <td>
-                                    @if (m.Aprobada)
-                                    {
-                                        <span class="badge bg-success">Aprobada</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Reprobada</span>
-                                    }
-                                </td>
+            <div class="ra-card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ra-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Clave</th>
+                                <th>Materia</th>
+                                <th>Evaluación</th>
+                                <th>Calificación</th>
+                                <th>Estado</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in periodo.Materias)
+                            {
+                                <tr class="@(m.Calificacion < 6 ? "ra-bg-danger" : m.Tipo != "Ordinario" ? "ra-bg-warning" : "")">
+                                    <td><code>@m.Clave</code></td>
+                                    <td>@m.Nombre</td>
+                                    <td>@m.Tipo @(m.VecesCursada > 1 ? $"({m.VecesCursada}° vez)" : "")</td>
+                                    <td><strong>@m.Calificacion.ToString("F1")</strong></td>
+                                    <td>
+                                        @if (m.Aprobada)
+                                        {
+                                            <span class="ra-badge ra-badge-success">Aprobada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="ra-badge ra-badge-danger">Reprobada</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     }
 
     @if (dictamenes.Any())
     {
-        <div class="card mb-3 border-danger">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0"><i class="bi bi-file-earmark-lock"></i> Dictámenes Académicos</h5>
+        <div class="ra-card ra-card-danger mb-3">
+            <div class="ra-card-header">
+                <i class="bi bi-file-earmark-lock me-2"></i> Dictámenes Académicos
             </div>
-            <div class="card-body">
+            <div class="ra-card-body">
                 @foreach (var d in dictamenes)
                 {
-                    <div class="mb-2 p-2 border rounded">
-                        <strong>@d.Tipo</strong> <span class="badge bg-@(d.Estado == "Activo" ? "warning" : "secondary")">@d.Estado</span>
+                    <div class="mb-2 p-2 rounded-3" style="border: 1px solid var(--ra-border);">
+                        <strong>@d.Tipo</strong> <span class="ra-badge @(d.Estado == "Activo" ? "ra-badge-warning" : "ra-badge-neutral")">@d.Estado</span>
                         <p class="mb-1">@d.Descripcion</p>
-                        <small class="text-muted">Emitido: @d.FechaEmision.ToString("yyyy-MM-dd") | @d.EmitidoPor</small>
+                        <small class="text-secondary">Emitido: @d.FechaEmision.ToString("yyyy-MM-dd") | @d.EmitidoPor</small>
                         @if (!string.IsNullOrEmpty(d.Observaciones))
                         {
                             <p class="mb-0 mt-1"><small><strong>Obs:</strong> @d.Observaciones</small></p>
@@ -105,17 +108,17 @@
 
     @if (cosecovi.Any())
     {
-        <div class="card mb-3 border-info">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-clipboard-pulse"></i> Reportes COSECOVI</h5>
+        <div class="ra-card ra-card-info mb-3">
+            <div class="ra-card-header">
+                <i class="bi bi-clipboard-pulse me-2"></i> Reportes COSECOVI
             </div>
-            <div class="card-body">
+            <div class="ra-card-body">
                 @foreach (var r in cosecovi)
                 {
-                    <div class="mb-2 p-2 border rounded">
-                        <strong>@r.Periodo</strong> <span class="badge bg-@(r.Estado == "Atendido" ? "success" : "warning")">@r.Estado</span>
+                    <div class="mb-2 p-2 rounded-3" style="border: 1px solid var(--ra-border);">
+                        <strong>@r.Periodo</strong> <span class="ra-badge @(r.Estado == "Atendido" ? "ra-badge-success" : "ra-badge-warning")">@r.Estado</span>
                         <p class="mb-1">@r.SituacionObservada</p>
-                        <small class="text-muted">Canalización: @r.Canalizacion | @r.FechaReporte.ToString("yyyy-MM-dd")</small>
+                        <small class="text-secondary">Canalización: @r.Canalizacion | @r.FechaReporte.ToString("yyyy-MM-dd")</small>
                     </div>
                 }
             </div>
@@ -124,5 +127,7 @@
 }
 
 <div class="mb-4">
-    <a href="javascript:history.back()" class="btn btn-secondary">Volver</a>
+    <a href="javascript:history.back()" class="ra-btn ra-btn-outline">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
 </div>

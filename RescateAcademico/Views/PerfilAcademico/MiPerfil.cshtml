@@ -12,7 +12,7 @@
 
 <div class="row mb-4">
     <div class="col">
-        <h2 style="color: #6c1d45;">
+        <h2 style="color: var(--ra-accent);">
             <i class="bi bi-person-badge"></i> Mi Perfil Académico
         </h2>
     </div>
@@ -25,7 +25,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="mb-3">
-                        <i class="bi bi-person-circle fs-1" style="color: #6c1d45;"></i>
+                        <i class="bi bi-person-circle fs-1" style="color: var(--ra-accent);"></i>
                     </div>
                     <h5>@Model.Alumno.Nombre @Model.Alumno.Apellidos</h5>
                     <p class="text-muted mb-1"><strong>Boleta:</strong> @Model.Alumno.Matricula</p>
@@ -168,7 +168,7 @@
                             @foreach (var asignacion in Model.Alumno.TutoresAsignados.Where(a => a.EstaActiva))
                             {
                                 <li class="mb-2">
-                                    <i class="bi bi-person-badge" style="color: #6c1d45;"></i>
+                                    <i class="bi bi-person-badge" style="color: var(--ra-accent);"></i>
                                     @asignacion.Tutor?.Nombre @asignacion.Tutor?.Apellidos
                                     <br />
                                     <small class="text-muted">@asignacion.Tutor?.Especialidad</small>

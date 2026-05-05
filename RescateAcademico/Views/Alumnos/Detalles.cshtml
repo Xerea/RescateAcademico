@@ -4,39 +4,39 @@
     Layout = "_Layout";
 }
 
-<div class="row mb-4">
+<div class="row mb-4 align-items-end">
     <div class="col">
-        <h2 style="color: #6c1d45;">
-            <i class="bi bi-person-badge"></i> @Model.Nombre @Model.Apellidos
-        </h2>
-        <p class="text-muted">Boleta: @Model.Matricula</p>
+        <h1 class="fw-bold h3 mb-1">
+            <i class="bi bi-person-badge ra-text-accent me-2"></i>@Model.Nombre @Model.Apellidos
+        </h1>
+        <p class="text-secondary small mb-0">Boleta: @Model.Matricula</p>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-4 mb-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h4 class="mb-0 @(Model.PromedioGlobal >= 8 ? "text-success" : Model.PromedioGlobal >= 6 ? "text-warning" : "text-danger")">
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="ra-card h-100">
+            <div class="ra-card-body text-center">
+                <h4 class="mb-0 @(Model.PromedioGlobal >= 8 ? "ra-text-success" : Model.PromedioGlobal >= 6 ? "ra-text-warning" : "ra-text-danger")">
                     @Model.PromedioGlobal.ToString("F2")
                 </h4>
-                <small class="text-muted">Promedio Global</small>
-                <hr />
-                <p><strong>Carrera:</strong> @Model.Carrera</p>
-                <p><strong>Semestre:</strong> @Model.SemestreActual</p>
-                <p>
+                <small class="text-secondary">Promedio Global</small>
+                <hr style="border-color: var(--ra-border);" />
+                <p class="mb-2"><strong>Carrera:</strong> @Model.Carrera</p>
+                <p class="mb-2"><strong>Semestre:</strong> @Model.SemestreActual</p>
+                <p class="mb-0">
                     <strong>Riesgo:</strong>
                     @if (Model.RiesgoAcademico == "Rojo")
                     {
-                        <span class="badge bg-danger">Rojo</span>
+                        <span class="ra-badge ra-badge-danger">Rojo</span>
                     }
                     else if (Model.RiesgoAcademico == "Amarillo")
                     {
-                        <span class="badge bg-warning text-dark">Amarillo</span>
+                        <span class="ra-badge ra-badge-warning">Amarillo</span>
                     }
                     else
                     {
-                        <span class="badge bg-success">Verde</span>
+                        <span class="ra-badge ra-badge-success">Verde</span>
                     }
                 </p>
             </div>
@@ -44,23 +44,23 @@
     </div>
 
     <div class="col-md-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header" style="background-color: #6c1d45; color: white;">
-                <h5 class="mb-0">Información Académica</h5>
+        <div class="ra-card">
+            <div class="ra-card-header">
+                <i class="bi bi-journal-text"></i> Información Académica
             </div>
-            <div class="card-body">
+            <div class="ra-card-body">
                 <div class="row text-center">
                     <div class="col-4">
-                        <h5 class="text-success">@Model.CargaAcademicaActual</h5>
-                        <small>Materias Actuales</small>
+                        <h5 class="ra-text-success">@Model.CargaAcademicaActual</h5>
+                        <small class="text-secondary">Materias Actuales</small>
                     </div>
                     <div class="col-4">
-                        <h5 class="text-danger">@(Model.MateriasReprobadas ?? 0)</h5>
-                        <small>Reprobadas</small>
+                        <h5 class="ra-text-danger">@(Model.MateriasReprobadas ?? 0)</h5>
+                        <small class="text-secondary">Reprobadas</small>
                     </div>
                     <div class="col-4">
-                        <h5 class="text-warning">@(Model.Recursamientos ?? 0)</h5>
-                        <small>Recursadas</small>
+                        <h5 class="ra-text-warning">@(Model.Recursamientos ?? 0)</h5>
+                        <small class="text-secondary">Recursadas</small>
                     </div>
                 </div>
             </div>
@@ -68,13 +68,13 @@
 
         @if (Model.Calificaciones?.Any() == true)
         {
-            <div class="card border-0 shadow-sm mt-3">
-                <div class="card-header" style="background-color: #6c1d45; color: white;">
-                    <h5 class="mb-0">Historial de Calificaciones</h5>
+            <div class="ra-card mt-3">
+                <div class="ra-card-header">
+                    <i class="bi bi-list-check"></i> Historial de Calificaciones
                 </div>
-                <div class="card-body">
+                <div class="ra-card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-sm">
+                        <table class="table ra-table mb-0">
                             <thead>
                                 <tr>
                                     <th>Materia</th>
@@ -93,11 +93,11 @@
                                         <td>
                                             @if (calif.Aprobada)
                                             {
-                                                <span class="badge bg-success">Aprobada</span>
+                                                <span class="ra-badge ra-badge-success">Aprobada</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-danger">Reprobada</span>
+                                                <span class="ra-badge ra-badge-danger">Reprobada</span>
                                             }
                                         </td>
                                     </tr>
@@ -111,8 +111,8 @@
     </div>
 </div>
 
-<div class="mt-3">
-    <a asp-controller="Alumnos" asp-action="Index" class="btn btn-outline-secondary">
+<div class="mt-4">
+    <a asp-controller="Alumnos" asp-action="Index" class="ra-btn ra-btn-outline">
         <i class="bi bi-arrow-left"></i> Volver a la lista
     </a>
 </div>

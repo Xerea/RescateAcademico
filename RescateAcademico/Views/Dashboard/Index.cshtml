@@ -266,7 +266,7 @@
     </div>
 }
 
-@if (User.IsInRole("Autoridad"))
+@if (User.IsInRole("Autoridad") || User.IsInRole("Administrador"))
 {
     <div class="row g-3">
         <div class="col-md-4">
@@ -276,7 +276,7 @@
                         <i class="bi bi-bar-chart-line fs-1" style="color: var(--ra-accent);"></i>
                     </div>
                     <h5 class="fw-semibold">Tablero Estadístico</h5>
-                    <p class="text-secondary small">Reportes globales de desempeño y situación estudiantil.</p>
+                    <p class="text-secondary small">Métricas globales de desempeño y situación estudiantil.</p>
                     <a asp-controller="Estadisticas" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver Estadísticas</a>
                 </div>
             </div>
@@ -288,8 +288,8 @@
                         <i class="bi bi-clipboard-data fs-1" style="color: var(--ra-accent);"></i>
                     </div>
                     <h5 class="fw-semibold">Reportes</h5>
-                    <p class="text-secondary small">Genera reportes oficiales en PDF o Excel.</p>
-                    <a asp-controller="Estadisticas" asp-action="Reporte" class="ra-btn ra-btn-primary w-100">Generar Reporte</a>
+                    <p class="text-secondary small">Estadísticas, predicciones y exportes institucionales.</p>
+                    <a asp-controller="Reportes" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ir a Reportes</a>
                 </div>
             </div>
         </div>
@@ -302,92 +302,6 @@
                     <h5 class="fw-semibold">Postulaciones</h5>
                     <p class="text-secondary small">Revisa y gestiona las postulaciones pendientes.</p>
                     <a asp-controller="Postulaciones" asp-action="Todas" class="ra-btn ra-btn-primary w-100">Ver Postulaciones</a>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
-@if (User.IsInRole("Administrador"))
-{
-    <div class="row g-3">
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-shield-lock fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Usuarios</h6>
-                    <p class="text-secondary small mb-3">Roles, alumnos y tutores.</p>
-                    <a asp-controller="Admin" asp-action="Usuarios" class="ra-btn ra-btn-outline ra-btn-sm w-100">Administrar</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-person-lines-fill fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Alumnos</h6>
-                    <p class="text-secondary small mb-3">Gestión integral del alumnado.</p>
-                    <a asp-controller="Admin" asp-action="Alumnos" class="ra-btn ra-btn-outline ra-btn-sm w-100">Ver Alumnos</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-calendar-event fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Ciclos</h6>
-                    <p class="text-secondary small mb-3">Períodos académicos.</p>
-                    <a asp-controller="Admin" asp-action="CiclosEscolares" class="ra-btn ra-btn-outline ra-btn-sm w-100">Gestionar</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-clock-history fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Bitácora</h6>
-                    <p class="text-secondary small mb-3">Registro de acciones.</p>
-                    <a asp-controller="Bitacora" asp-action="Index" class="ra-btn ra-btn-outline ra-btn-sm w-100">Ver Logs</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-folder-plus fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Proyectos</h6>
-                    <p class="text-secondary small mb-3">Crear y gestionar proyectos.</p>
-                    <a asp-controller="Proyectos" asp-action="Index" class="ra-btn ra-btn-outline ra-btn-sm w-100">Proyectos</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-megaphone fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Convocatorias</h6>
-                    <p class="text-secondary small mb-3">Publicar y gestionar.</p>
-                    <a asp-controller="Convocatorias" asp-action="Todas" class="ra-btn ra-btn-outline ra-btn-sm w-100">Convocatorias</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-mortarboard fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Carreras</h6>
-                    <p class="text-secondary small mb-3">Gestión de carreras.</p>
-                    <a asp-controller="Admin" asp-action="Carreras" class="ra-btn ra-btn-outline ra-btn-sm w-100">Carreras</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <i class="bi bi-shield-check fs-1 mb-2" style="color: var(--ra-primary);"></i>
-                    <h6 class="fw-semibold">Integridad</h6>
-                    <p class="text-secondary small mb-3">Checks de datos.</p>
-                    <a asp-controller="Admin" asp-action="IntegridadDatos" class="ra-btn ra-btn-outline ra-btn-sm w-100">Verificar</a>
                 </div>
             </div>
         </div>

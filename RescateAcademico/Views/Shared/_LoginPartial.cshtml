@@ -2,11 +2,11 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
-<ul class="navbar-nav align-items-center">
+<ul class="navbar-nav align-items-center gap-1">
 @if (SignInManager.IsSignedIn(User))
 {
     <li class="nav-item dropdown">
-        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" title="Notificaciones">
+        <a class="nav-link position-relative px-2" href="#" role="button" data-bs-toggle="dropdown" title="Notificaciones" aria-label="Notificaciones">
             <i class="bi bi-bell fs-5"></i>
             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-2 rounded-circle" style="display: none; border-color: var(--ra-surface) !important;" id="notifBadge">
                 <span class="visually-hidden">Notificaciones nuevas</span>
@@ -17,17 +17,16 @@
         </ul>
     </li>
 
-    <li class="nav-item dropdown ms-2">
-        <a class="nav-link d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
-            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:var(--ra-primary-soft);color:var(--ra-primary);">
+    <li class="nav-item dropdown ms-1">
+        <a class="nav-link d-flex align-items-center gap-2 ps-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="ra-avatar">
                 <i class="bi bi-person-fill"></i>
             </div>
-            <span class="d-none d-lg-inline">@User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value</span>
+            <span class="d-none d-lg-inline fw-medium">@User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value</span>
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
             <li><span class="dropdown-item-text text-secondary small">@User.Identity?.Name</span></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid"></i> Dashboard</a></li>
             <li>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
                     <button type="submit" class="dropdown-item text-danger">
@@ -42,7 +41,7 @@ else
 {
     <li class="nav-item">
         <a class="ra-btn ra-btn-primary ra-btn-sm" asp-controller="Account" asp-action="Login">
-            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+            <i class="bi bi-box-arrow-in-right"></i> Acceder
         </a>
     </li>
 }

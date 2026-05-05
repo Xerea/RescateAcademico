@@ -4,72 +4,77 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: #6c1d45;"><i class="bi bi-bell"></i> Notificaciones</h2>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-bell ra-text-accent me-2"></i>Notificaciones</h1>
+        <p class="text-secondary small mb-0">Centro de notificaciones del sistema.</p>
+    </div>
     @if (Model.Any(n => !n.Leida))
     {
-        <form asp-action="MarcarTodasLeidas" method="post" style="display:inline;">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-check-all"></i> Marcar todas como leídas
-            </button>
-        </form>
+        <div class="col-auto">
+            <form asp-action="MarcarTodasLeidas" method="post" class="m-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="ra-btn ra-btn-outline ra-btn-sm">
+                    <i class="bi bi-check-all"></i> Marcar todas como leídas
+                </button>
+            </form>
+        </div>
     }
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (Model.Any())
         {
             @foreach (var item in Model)
             {
-                <div class="d-flex align-items-start p-3 mb-2 rounded @(item.Leida ? "bg-light" : "bg-white border-start border-4 border-primary")">
-                    <div class="me-3">
+                <div class="d-flex align-items-start p-3 mb-2 rounded-3 @(item.Leida ? "" : "ra-bg-primary")" style="border: 1px solid var(--ra-border);">
+                    <div class="me-3 flex-shrink-0">
                         @if (item.Tipo == "Exito")
                         {
-                            <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                            <i class="bi bi-check-circle-fill ra-text-success fs-4"></i>
                         }
                         else if (item.Tipo == "Error")
                         {
-                            <i class="bi bi-x-circle-fill text-danger fs-4"></i>
+                            <i class="bi bi-x-circle-fill ra-text-danger fs-4"></i>
                         }
                         else if (item.Tipo == "Informacion")
                         {
-                            <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                            <i class="bi bi-info-circle-fill ra-text-info fs-4"></i>
                         }
                         else
                         {
-                            <i class="bi bi-bell-fill text-secondary fs-4"></i>
+                            <i class="bi bi-bell-fill ra-text-secondary fs-4"></i>
                         }
                     </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1 @(item.Leida ? "text-muted" : "")">
+                    <div class="flex-grow-1 min-width-0">
+                        <h6 class="mb-1 @(item.Leida ? "text-secondary" : "fw-semibold")">
                             @item.Titulo
                             @if (!item.Leida)
                             {
-                                <span class="badge bg-primary ms-2">Nuevo</span>
+                                <span class="ra-badge ra-badge-primary ms-2">Nuevo</span>
                             }
                         </h6>
-                        <p class="mb-1 @(!item.Leida ? "fw-normal" : "text-muted")">@item.Mensaje</p>
-                        <small class="text-muted">@item.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</small>
+                        <p class="mb-1 @(!item.Leida ? "" : "text-secondary")">@item.Mensaje</p>
+                        <small class="text-secondary">@item.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</small>
                     </div>
-                    <div>
+                    <div class="flex-shrink-0 ms-2">
                         @if (!string.IsNullOrEmpty(item.Enlace))
                         {
-                            <form asp-action="MarcarLeida" method="post" style="display:inline;">
+                            <form asp-action="MarcarLeida" method="post" class="m-0" style="display:inline;">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@item.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline">
                                     <i class="bi bi-eye"></i> Ver
                                 </button>
                             </form>
                         }
                         else
                         {
-                            <form asp-action="MarcarLeida" method="post" style="display:inline;">
+                            <form asp-action="MarcarLeida" method="post" class="m-0" style="display:inline;">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@item.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-secondary @(item.Leida ? "disabled" : "")">
+                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline @(item.Leida ? "disabled" : "")">
                                     <i class="bi bi-check"></i>
                                 </button>
                             </form>
@@ -80,9 +85,9 @@
         }
         else
         {
-            <div class="text-center py-5">
-                <i class="bi bi-bell-slash fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No tienes notificaciones</p>
+            <div class="ra-empty">
+                <i class="bi bi-bell-slash"></i>
+                <p>No tienes notificaciones</p>
             </div>
         }
     </div>

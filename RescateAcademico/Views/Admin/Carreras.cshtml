@@ -4,18 +4,23 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: #6c1d45;"><i class="bi bi-mortarboard"></i> Gestión de Carreras</h2>
-    <a asp-action="CrearCarrera" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Nueva Carrera
-    </a>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-mortarboard"></i> Gestión de Carreras</h1>
+        <p class="text-secondary small mb-0">Programas académicos del CECyT 13.</p>
+    </div>
+    <div class="col-auto">
+        <a asp-action="CrearCarrera" class="ra-btn ra-btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Carrera
+        </a>
+    </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
-                <thead style="background-color: #6c1d45; color: white;">
+            <table class="table ra-table" id="tablaCarreras">
+                <thead>
                     <tr>
                         <th>Clave</th>
                         <th>Nombre</th>
@@ -34,18 +39,18 @@
                             <td>
                                 @if (item.EstaActiva)
                                 {
-                                    <span class="badge bg-success">Activa</span>
+                                    <span class="ra-badge ra-badge-success">Activa</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">Inactiva</span>
+                                    <span class="ra-badge ra-badge-neutral">Inactiva</span>
                                 }
                             </td>
                             <td>
-                                <form asp-action="ToggleActivoCarrera" method="post" style="display:inline;">
+                                <form asp-action="ToggleActivoCarrera" method="post" class="m-0" style="display:inline;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@item.Id" />
-                                    <button type="submit" class="btn btn-sm @(item.EstaActiva ? "btn-outline-warning" : "btn-outline-success")">
+                                    <button type="submit" class="ra-btn ra-btn-sm @(item.EstaActiva ? "ra-btn-outline" : "ra-btn-primary")">
                                         @(item.EstaActiva ? "Desactivar" : "Activar")
                                     </button>
                                 </form>
@@ -57,3 +62,16 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaCarreras').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}

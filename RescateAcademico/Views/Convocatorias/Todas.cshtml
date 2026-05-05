@@ -4,23 +4,31 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: #6c1d45;"><i class="bi bi-megaphone"></i> Gestión de Convocatorias</h2>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Nueva Convocatoria
-    </a>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-megaphone"></i> Gestión de Convocatorias</h1>
+        <p class="text-secondary small mb-0">Publicación, validación y cierre de convocatorias.</p>
+    </div>
+    <div class="col-auto">
+        <a asp-action="Create" class="ra-btn ra-btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Convocatoria
+        </a>
+    </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success">@TempData["Success"]</div>
+            <div class="ra-alert ra-alert-success mb-3" role="alert">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <div>@TempData["Success"]</div>
+            </div>
         }
 
         <div class="table-responsive">
-            <table class="table table-hover">
-                <thead style="background-color: #6c1d45; color: white;">
+            <table class="table ra-table" id="tablaConvocatorias">
+                <thead>
                     <tr>
                         <th>Título</th>
                         <th>Tipo</th>
@@ -42,15 +50,15 @@
                             <td>
                                 @if (item.ValidadaPorAcademia)
                                 {
-                                    <i class="bi bi-check-circle text-success"></i>
+                                    <i class="bi bi-check-circle ra-text-success"></i>
                                 }
                                 else
                                 {
-                                    <form asp-action="Validar" method="post" style="display:inline;">
+                                    <form asp-action="Validar" method="post" class="m-0" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.Id" />
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
-                                            <i class="bi bi-check"></i> Validar
+                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Validar">
+                                            <i class="bi bi-check ra-text-success"></i> Validar
                                         </button>
                                     </form>
                                 }
@@ -58,24 +66,26 @@
                             <td>
                                 @if (item.EstaActiva)
                                 {
-                                    <span class="badge bg-success">Activa</span>
+                                    <span class="ra-badge ra-badge-success">Activa</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">Inactiva</span>
+                                    <span class="ra-badge ra-badge-neutral">Inactiva</span>
                                 }
                             </td>
                             <td>
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form asp-action="Delete" method="post" style="display:inline;">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@item.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Cerrar esta convocatoria?')">
-                                        <i class="bi bi-x-circle"></i>
-                                    </button>
-                                </form>
+                                <div class="d-flex gap-1">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="Delete" method="post" class="m-0" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Cerrar" onclick="return confirm('¿Cerrar esta convocatoria?')">
+                                            <i class="bi bi-x-circle ra-text-danger"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -88,7 +98,7 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('table').DataTable({
+            $('#tablaConvocatorias').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
                 },

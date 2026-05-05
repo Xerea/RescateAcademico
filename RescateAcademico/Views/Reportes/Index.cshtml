@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "Reportes";
+    Layout = "_Layout";
+}
+
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1">Reportes</h1>
+        <p class="text-secondary small mb-0">Estadísticas, predicciones y exportes institucionales.</p>
+    </div>
+</div>
+
+<div class="ra-tabs" role="tablist">
+    <button class="ra-tab active" data-bs-toggle="tab" data-bs-target="#tab-estadisticas" role="tab" aria-selected="true">
+        <i class="bi bi-bar-chart"></i> Estadísticas
+    </button>
+    <button class="ra-tab" data-bs-toggle="tab" data-bs-target="#tab-predicciones" role="tab" aria-selected="false">
+        <i class="bi bi-brain"></i> Predicciones IA
+    </button>
+    <button class="ra-tab" data-bs-toggle="tab" data-bs-target="#tab-exportes" role="tab" aria-selected="false">
+        <i class="bi bi-download"></i> Exportes
+    </button>
+</div>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-estadisticas" role="tabpanel">
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-bar-chart-line fs-1 mb-3" style="color: var(--ra-primary);"></i>
+                        <h5 class="fw-semibold">Tablero Estadístico</h5>
+                        <p class="text-secondary small">Métricas globales de desempeño estudiantil.</p>
+                        <a asp-controller="Estadisticas" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver Estadísticas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-pie-chart fs-1 mb-3" style="color: var(--ra-accent);"></i>
+                        <h5 class="fw-semibold">Reporte por Carrera</h5>
+                        <p class="text-secondary small">Análisis desagregado por programa académico.</p>
+                        <a asp-controller="Estadisticas" asp-action="PorCarrera" class="ra-btn ra-btn-outline w-100">Ver por Carrera</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-file-earmark-text fs-1 mb-3" style="color: var(--ra-info);"></i>
+                        <h5 class="fw-semibold">Reporte Institucional</h5>
+                        <p class="text-secondary small">Documento imprimible para autoridades.</p>
+                        <a asp-controller="Export" asp-action="ReporteImprimible" target="_blank" class="ra-btn ra-btn-outline w-100">Generar PDF</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-predicciones" role="tabpanel">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-brain fs-1 mb-3" style="color: var(--ra-primary);"></i>
+                        <h5 class="fw-semibold">Predicciones de Deserción</h5>
+                        <p class="text-secondary small">Análisis heurístico + IA para todo el alumnado.</p>
+                        <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver Predicciones</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-shield-check fs-1 mb-3" style="color: var(--ra-accent);"></i>
+                        <h5 class="fw-semibold">Integridad de Datos</h5>
+                        <p class="text-secondary small">Verificación automática de consistencia.</p>
+                        <a asp-controller="Admin" asp-action="IntegridadDatos" class="ra-btn ra-btn-outline w-100">Verificar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-exportes" role="tabpanel">
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-people fs-1 mb-3" style="color: var(--ra-primary);"></i>
+                        <h5 class="fw-semibold">Alumnos (CSV)</h5>
+                        <p class="text-secondary small">Exportación completa del catálogo de alumnos.</p>
+                        <a asp-controller="Export" asp-action="AlumnosCSV" class="ra-btn ra-btn-primary w-100">Descargar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-send-check fs-1 mb-3" style="color: var(--ra-accent);"></i>
+                        <h5 class="fw-semibold">Postulaciones (CSV)</h5>
+                        <p class="text-secondary small">Todas las postulaciones registradas.</p>
+                        <a asp-controller="Export" asp-action="PostulacionesCSV" class="ra-btn ra-btn-outline w-100">Descargar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="ra-card h-100 text-center">
+                    <div class="ra-card-body">
+                        <i class="bi bi-exclamation-triangle fs-1 mb-3" style="color: var(--ra-danger);"></i>
+                        <h5 class="fw-semibold">Alumnos en Riesgo (CSV)</h5>
+                        <p class="text-secondary small">Solo estudiantes con riesgo académico.</p>
+                        <a asp-controller="Export" asp-action="AlumnosEnRiesgoCSV" class="ra-btn ra-btn-outline w-100">Descargar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

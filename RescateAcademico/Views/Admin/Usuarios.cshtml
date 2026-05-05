@@ -5,20 +5,25 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: #6c1d45;"><i class="bi bi-people"></i> Gestión de Usuarios</h2>
-    <a asp-controller="Account" asp-action="Register" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">
-        <i class="bi bi-person-plus"></i> Nuevo Usuario
-    </a>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-shield-lock"></i> Gestión de Usuarios</h1>
+        <p class="text-secondary small mb-0">Cuentas, roles y estado de acceso al sistema.</p>
+    </div>
+    <div class="col-auto">
+        <a asp-action="CrearCuenta" class="ra-btn ra-btn-primary">
+            <i class="bi bi-person-plus"></i> Crear Cuenta
+        </a>
+    </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table table-hover" id="tablaUsuarios">
-                    <thead style="background-color: #6c1d45; color: white;">
+                <table class="table ra-table" id="tablaUsuarios">
+                    <thead>
                         <tr>
                             <th>Email</th>
                             <th>Estado</th>
@@ -34,21 +39,21 @@
                                 <td>
                                     @if (item.IsActive)
                                     {
-                                        <span class="badge bg-success">Activo</span>
+                                        <span class="ra-badge ra-badge-success">Activo</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-danger">Inactivo</span>
+                                        <span class="ra-badge ra-badge-danger">Inactivo</span>
                                     }
                                 </td>
                                 <td>
                                     @if (item.EmailConfirmed)
                                     {
-                                        <i class="bi bi-check-circle text-success"></i>
+                                        <i class="bi bi-check-circle ra-text-success"></i>
                                     }
                                     else
                                     {
-                                        <i class="bi bi-x-circle text-danger"></i>
+                                        <i class="bi bi-x-circle ra-text-danger"></i>
                                     }
                                 </td>
                                 <td>
@@ -58,21 +63,21 @@
                                     }
                                     @if (isLocked)
                                     {
-                                        <form asp-action="DesbloquearUsuario" method="post" style="display:inline;">
+                                        <form asp-action="DesbloquearUsuario" method="post" class="m-0" style="display:inline;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Desbloquear">
-                                                <i class="bi bi-unlock"></i> Desbloquear
+                                            <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Desbloquear">
+                                                <i class="bi bi-unlock ra-text-success"></i> Desbloquear
                                             </button>
                                         </form>
                                     }
                                     else
                                     {
-                                        <form asp-action="BloquearUsuario" method="post" style="display:inline;">
+                                        <form asp-action="BloquearUsuario" method="post" class="m-0" style="display:inline;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Bloquear" onclick="return confirm('¿Bloquear a este usuario por 20 minutos?')">
-                                                <i class="bi bi-lock"></i> Bloquear
+                                            <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Bloquear" onclick="return confirm('¿Bloquear a este usuario por 20 minutos?')">
+                                                <i class="bi bi-lock ra-text-danger"></i> Bloquear
                                             </button>
                                         </form>
                                     }
@@ -85,9 +90,9 @@
         }
         else
         {
-            <div class="text-center py-5">
-                <i class="bi bi-people fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay usuarios registrados.</p>
+            <div class="ra-empty">
+                <i class="bi bi-people"></i>
+                <p>No hay usuarios registrados.</p>
             </div>
         }
     </div>

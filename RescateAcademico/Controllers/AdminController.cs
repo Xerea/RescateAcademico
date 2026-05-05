@@ -39,6 +39,11 @@ namespace RescateAcademico.Controllers
             return View(stats);
         }
 
+        public IActionResult Gestion()
+        {
+            return View();
+        }
+
         public async Task<IActionResult> Usuarios()
         {
             var usuarios = await _context.Users.ToListAsync();

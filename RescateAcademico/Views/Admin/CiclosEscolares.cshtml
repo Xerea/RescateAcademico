@@ -4,23 +4,31 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: #6c1d45;"><i class="bi bi-calendar-event"></i> Ciclos Escolares</h2>
-    <a asp-action="CrearCiclo" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Nuevo Ciclo
-    </a>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-calendar-event"></i> Ciclos Escolares</h1>
+        <p class="text-secondary small mb-0">Períodos académicos activos e históricos.</p>
+    </div>
+    <div class="col-auto">
+        <a asp-action="CrearCiclo" class="ra-btn ra-btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Ciclo
+        </a>
+    </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success">@TempData["Success"]</div>
+            <div class="ra-alert ra-alert-success mb-3" role="alert">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <div>@TempData["Success"]</div>
+            </div>
         }
 
         <div class="table-responsive">
-            <table class="table table-hover">
-                <thead style="background-color: #6c1d45; color: white;">
+            <table class="table ra-table" id="tablaCiclos">
+                <thead>
                     <tr>
                         <th>Nombre</th>
                         <th>Período</th>
@@ -37,7 +45,7 @@
                                 <strong>@item.Nombre</strong>
                                 @if (item.EsActual)
                                 {
-                                    <span class="badge bg-success ms-2">Actual</span>
+                                    <span class="ra-badge ra-badge-success ms-2">Actual</span>
                                 }
                             </td>
                             <td>@item.Periodo</td>
@@ -46,11 +54,11 @@
                             <td>
                                 @if (item.EstaActivo)
                                 {
-                                    <span class="badge bg-success">Activo</span>
+                                    <span class="ra-badge ra-badge-success">Activo</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">Inactivo</span>
+                                    <span class="ra-badge ra-badge-neutral">Inactivo</span>
                                 }
                             </td>
                         </tr>
@@ -60,3 +68,16 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaCiclos').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+                },
+                pageLength: 25
+            });
+        });
+    </script>
+}
