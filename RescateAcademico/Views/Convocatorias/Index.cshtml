@@ -1,25 +1,25 @@
 @model IEnumerable<RescateAcademico.Models.Convocatoria>
 @{
-    ViewData["Title"] = "Catálogo de Convocatorias";
+    ViewData["Title"] = "Convocatorias Disponibles";
     Layout = "_Layout";
 }
 
-<div class="row mb-4">
+<div class="row mb-4 align-items-end">
     <div class="col">
-        <h2 style="color: var(--ra-accent);"><i class="bi bi-megaphone"></i> Convocatorias Disponibles</h2>
-        <p class="text-muted">Explora y postúlate a proyectos de servicio social, investigación o apoyo académico.</p>
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-megaphone ra-text-accent me-2"></i>Convocatorias Disponibles</h1>
+        <p class="text-secondary small mb-0">Explora y postúlate a proyectos de servicio social, investigación o apoyo académico.</p>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
+<div class="ra-card mb-4">
+    <div class="ra-card-body">
         <form method="get">
-            <div class="row g-3">
+            <div class="row g-2 align-items-end">
                 <div class="col-md-4">
-                    <input type="text" name="busqueda" class="form-control" placeholder="Buscar por título..." />
+                    <input type="text" name="busqueda" class="ra-input" placeholder="Buscar por título..." />
                 </div>
                 <div class="col-md-3">
-                    <select name="tipo" class="form-select">
+                    <select name="tipo" class="ra-select">
                         <option value="">Todos los tipos</option>
                         <option value="ServicioSocial">Servicio Social</option>
                         <option value="Investigacion">Investigación</option>
@@ -28,10 +28,10 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" name="area" class="form-control" placeholder="Área..." />
+                    <input type="text" name="area" class="ra-input" placeholder="Área..." />
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="submit" class="ra-btn ra-btn-primary w-100">
                         <i class="bi bi-search"></i> Filtrar
                     </button>
                 </div>
@@ -42,86 +42,67 @@
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="ra-alert ra-alert-success mb-4" role="alert">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div>@TempData["Success"]</div>
     </div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="ra-alert ra-alert-danger mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div>@TempData["Error"]</div>
     </div>
 }
 
-<div class="row">
+<div class="row g-3">
     @if (Model.Any())
     {
         @foreach (var item in Model)
         {
             var diasRestantes = (item.FechaCierre - DateTime.Now).Days;
-            <div class="col-md-4 mb-4">
-                <div class="card border-0 shadow-sm h-100 @(diasRestantes <= 7 ? "border-warning" : "")">
-                    <div class="card-header" style="background-color: #6c1d45; color: white;">
-                        <span class="badge bg-light text-dark">@item.Tipo</span>
+            <div class="col-md-6 col-lg-4">
+                <div class="ra-card h-100 @(diasRestantes <= 7 && diasRestantes > 0 ? "ra-card-warning" : "")">
+                    <div class="ra-card-header d-flex justify-content-between align-items-center flex-wrap gap-1">
+                        <span class="ra-badge ra-badge-neutral">@item.Tipo</span>
                         @if (diasRestantes <= 7 && diasRestantes > 0)
                         {
-                            <span class="badge bg-warning text-dark ms-2">¡Cierra pronto!</span>
+                            <span class="ra-badge ra-badge-warning">Cierra pronto</span>
                         }
                         else if (diasRestantes <= 0)
                         {
-                            <span class="badge bg-danger ms-2">Cerrada</span>
+                            <span class="ra-badge ra-badge-danger">Cerrada</span>
                         }
-                        <h5 class="mt-2 mb-0">@item.Titulo</h5>
                     </div>
-                    <div class="card-body">
-                        <p class="card-text">@item.Descripcion</p>
-                        <hr />
-                        <p class="mb-1">
-                            <i class="bi bi-calendar-event"></i>
-                            <strong>Cierre:</strong> @item.FechaCierre.ToString("dd/MM/yyyy")
-                            @if (diasRestantes > 0)
+                    <div class="ra-card-body">
+                        <h5 class="fw-bold mb-2">@item.Titulo</h5>
+                        <p class="text-secondary small mb-3">@item.Descripcion</p>
+                        <div class="d-flex flex-column gap-1 text-secondary small">
+                            <div><i class="bi bi-calendar-event me-1"></i><strong>Cierre:</strong> @item.FechaCierre.ToString("dd/MM/yyyy") @(diasRestantes > 0 ? $"({diasRestantes} días)" : "")</div>
+                            <div><i class="bi bi-people me-1"></i><strong>Cupo:</strong> @item.PostulacionesActuales / @item.CupoMaximo</div>
+                            @if (item.PromedioMinimo.HasValue)
                             {
-                                <span class="text-muted">(@diasRestantes días)</span>
+                                <div><i class="bi bi-star me-1"></i><strong>Promedio mínimo:</strong> @item.PromedioMinimo.Value.ToString("F1")</div>
                             }
-                        </p>
-                        <p class="mb-1">
-                            <i class="bi bi-people"></i>
-                            <strong>Cupo:</strong> @item.PostulacionesActuales / @item.CupoMaximo
-                        </p>
-                        @if (item.PromedioMinimo.HasValue)
-                        {
-                            <p class="mb-1">
-                                <i class="bi bi-star"></i>
-                                <strong>Promedio mínimo:</strong> @item.PromedioMinimo.Value.ToString("F1")
-                            </p>
-                        }
-                        @if (!string.IsNullOrEmpty(item.Requisitos))
-                        {
-                            <p class="mb-1">
-                                <i class="bi bi-card-checklist"></i>
-                                <small>@item.Requisitos</small>
-                            </p>
-                        }
+                        </div>
                     </div>
-                    <div class="card-footer bg-white">
+                    <div class="ra-card-footer">
                         @if (diasRestantes > 0 && item.PostulacionesActuales < item.CupoMaximo)
                         {
-                            <a asp-controller="Postulaciones" asp-action="Postularse" asp-route-convocatoriaId="@item.Id" class="btn btn-primary w-100">
+                            <a asp-controller="Postulaciones" asp-action="Postularse" asp-route-convocatoriaId="@item.Id" class="ra-btn ra-btn-primary w-100">
                                 <i class="bi bi-send"></i> Postularme
                             </a>
                         }
                         else if (diasRestantes <= 0)
                         {
-                            <button class="btn btn-secondary w-100" disabled>
+                            <button class="ra-btn ra-btn-outline w-100" disabled>
                                 <i class="bi bi-x-circle"></i> Convocatoria Cerrada
                             </button>
                         }
                         else if (item.PostulacionesActuales >= item.CupoMaximo)
                         {
-                            <button class="btn btn-secondary w-100" disabled>
-                                <i class="bi bi-x-circle"></i> Sin Cupo Disponible
+                            <button class="ra-btn ra-btn-outline w-100" disabled>
+                                <i class="bi bi-x-circle"></i> Sin Cupo
                             </button>
                         }
                     </div>
@@ -132,9 +113,9 @@
     else
     {
         <div class="col-12">
-            <div class="text-center py-5">
-                <i class="bi bi-inbox fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay convocatorias disponibles en este momento.</p>
+            <div class="ra-empty">
+                <i class="bi bi-inbox"></i>
+                <p>No hay convocatorias disponibles en este momento.</p>
             </div>
         </div>
     }

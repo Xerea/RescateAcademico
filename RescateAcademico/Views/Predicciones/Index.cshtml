@@ -4,61 +4,52 @@
     Layout = "_Layout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: var(--ra-accent);"><i class="bi bi-brain"></i> Predicción de Deserción Estudiantil</h2>
+<div class="row mb-4 align-items-end">
+    <div class="col">
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-brain ra-text-accent me-2"></i>Predicción de Deserción</h1>
+        <p class="text-secondary small mb-0">Modelo heurístico institucional basado en indicadores académicos.</p>
+    </div>
 </div>
 
-<div class="alert alert-info alert-dismissible fade show">
-    <i class="bi bi-info-circle"></i> Las predicciones se calculan con un modelo heurístico institucional basado en indicadores académicos (promedio, reprobadas, ausencias, recursamientos).
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="ra-alert ra-alert-info mb-4" role="alert">
+    <i class="bi bi-info-circle-fill fs-5"></i>
+    <div>Las predicciones se calculan con un modelo heurístico institucional basado en indicadores académicos (promedio, reprobadas, ausencias, recursamientos).</div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #dc3545 !important;">
-            <div class="card-body">
-                <i class="bi bi-exclamation-triangle-fill fs-2 text-danger mb-2"></i>
-                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Crítico")</h3>
-                <small class="text-muted">Riesgo Crítico (&gt;70%)</small>
-            </div>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-danger text-center">
+            <div class="ra-stat-label">Riesgo Crítico (&gt;70%)</div>
+            <div class="ra-stat-value">@Model.Count(m => m.Riesgo == "Crítico")</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #ffc107 !important;">
-            <div class="card-body">
-                <i class="bi bi-exclamation-circle-fill fs-2 text-warning mb-2"></i>
-                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Alto")</h3>
-                <small class="text-muted">Riesgo Alto (50-70%)</small>
-            </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-warning text-center">
+            <div class="ra-stat-label">Riesgo Alto (50-70%)</div>
+            <div class="ra-stat-value">@Model.Count(m => m.Riesgo == "Alto")</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #0dcaf0 !important;">
-            <div class="card-body">
-                <i class="bi bi-info-circle-fill fs-2 text-info mb-2"></i>
-                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Medio")</h3>
-                <small class="text-muted">Riesgo Medio (30-50%)</small>
-            </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-info text-center">
+            <div class="ra-stat-label">Riesgo Medio (30-50%)</div>
+            <div class="ra-stat-value">@Model.Count(m => m.Riesgo == "Medio")</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100" style="border-left: 4px solid #198754 !important;">
-            <div class="card-body">
-                <i class="bi bi-check-circle-fill fs-2 text-success mb-2"></i>
-                <h3 class="mb-0">@Model.Count(m => m.Riesgo == "Bajo")</h3>
-                <small class="text-muted">Riesgo Bajo (&lt;30%)</small>
-            </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-success text-center">
+            <div class="ra-stat-label">Riesgo Bajo (&lt;30%)</div>
+            <div class="ra-stat-value">@Model.Count(m => m.Riesgo == "Bajo")</div>
         </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
+<div class="ra-card">
+    <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table table-hover" id="tablaPredicciones">
-                    <thead style="background-color: #6c1d45; color: white;">
+                <table class="table ra-table" id="tablaPredicciones">
+                    <thead>
                         <tr>
                             <th>Boleta</th>
                             <th>Nombre</th>
@@ -77,21 +68,21 @@
                                 <td>@item.Nombre</td>
                                 <td>@item.Carrera</td>
                                 <td>
-                                    <span class="badge @(item.Promedio >= 8 ? "bg-success" : item.Promedio >= 6 ? "bg-warning" : "bg-danger")">
+                                    <span class="ra-badge @(item.Promedio >= 8 ? "ra-badge-success" : item.Promedio >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
                                         @item.Promedio.ToString("F2")
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar bg-@item.Color" role="progressbar" style="width: @(item.ProbabilidadDesercion * 100)%" aria-valuenow="@item.ProbabilidadDesercion" aria-valuemin="0" aria-valuemax="1">
+                                <td style="min-width: 140px;">
+                                    <div class="progress" style="height: 18px; background: var(--ra-border-subtle);">
+                                        <div class="progress-bar" role="progressbar" style="width: @(item.ProbabilidadDesercion * 100)%; background: var(--ra-@(item.Color));" aria-valuenow="@item.ProbabilidadDesercion" aria-valuemin="0" aria-valuemax="1">
                                             @((item.ProbabilidadDesercion * 100).ToString("F0"))%
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-@item.Color">@item.Riesgo</span></td>
+                                <td><span class="ra-badge ra-badge-@item.Color">@item.Riesgo</span></td>
                                 <td>
-                                    <a asp-action="Detalle" asp-route-matricula="@item.Matricula" class="btn btn-sm btn-outline-info" title="Ver detalle">
-                                        <i class="bi bi-eye"></i> Ver
+                                    <a asp-action="Detalle" asp-route-matricula="@item.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -102,9 +93,9 @@
         }
         else
         {
-            <div class="text-center py-5">
-                <i class="bi bi-brain fs-1 text-muted"></i>
-                <p class="text-muted mt-3">No hay predicciones disponibles.</p>
+            <div class="ra-empty">
+                <i class="bi bi-brain"></i>
+                <p>No hay predicciones disponibles.</p>
             </div>
         }
     </div>

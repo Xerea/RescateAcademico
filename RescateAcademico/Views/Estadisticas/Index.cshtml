@@ -4,114 +4,108 @@
     Layout = "_Layout";
 }
 
-<div class="row mb-4">
+<div class="row mb-4 align-items-end">
     <div class="col">
-        <h2 style="color: var(--ra-accent);"><i class="bi bi-bar-chart-line"></i> Tablero Estadístico</h2>
-        <p class="text-muted">Vista @(Model.Nivel == "Global" ? "Institucional" : "por Carrera")</p>
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-bar-chart-line ra-text-accent me-2"></i>Tablero Estadístico</h1>
+        <p class="text-secondary small mb-0">Vista @(Model.Nivel == "Global" ? "Institucional" : "por Carrera")</p>
     </div>
 </div>
 
-<form method="get" class="mb-4">
-    <div class="row g-3">
-        <div class="col-md-4">
-            <select name="nivel" class="form-select" onchange="this.form.submit()">
-                <option value="Global" selected="@(Model.Nivel == "Global" ? "selected" : null)">Global Institucional</option>
-                <option value="Carrera" selected="@(Model.Nivel == "Carrera" ? "selected" : null)">Por Carrera</option>
-            </select>
-        </div>
-        @if (Model.Nivel == "Carrera")
-        {
-            <div class="col-md-4">
-                <select name="carrera" class="form-select">
-                    <option value="">Seleccionar Carrera</option>
-                    @foreach (var carrera in Model.Carreras)
-                    {
-                        <option value="@carrera" selected="@(Model.CarreraSeleccionada == carrera ? "selected" : null)">@carrera</option>
-                    }
-                </select>
+<div class="ra-card mb-4">
+    <div class="ra-card-body">
+        <form method="get">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="ra-label">Nivel</label>
+                    <select name="nivel" class="ra-select" onchange="this.form.submit()">
+                        <option value="Global" selected="@(Model.Nivel == "Global" ? "selected" : null)">Global Institucional</option>
+                        <option value="Carrera" selected="@(Model.Nivel == "Carrera" ? "selected" : null)">Por Carrera</option>
+                    </select>
+                </div>
+                @if (Model.Nivel == "Carrera")
+                {
+                    <div class="col-md-4">
+                        <label class="ra-label">Carrera</label>
+                        <select name="carrera" class="ra-select">
+                            <option value="">Seleccionar Carrera</option>
+                            @foreach (var carrera in Model.Carreras)
+                            {
+                                <option value="@carrera" selected="@(Model.CarreraSeleccionada == carrera ? "selected" : null)">@carrera</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="ra-btn ra-btn-primary w-100">Filtrar</button>
+                    </div>
+                }
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-            </div>
-        }
+        </form>
     </div>
-</form>
+</div>
 
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <i class="bi bi-people-fill fs-1 mb-2" style="color: var(--ra-accent);"></i>
-                <h3>@Model.TotalAlumnos</h3>
-                <p class="text-muted mb-0">Total Alumnos</p>
-            </div>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-accent text-center">
+            <div class="ra-stat-label">Total Alumnos</div>
+            <div class="ra-stat-value">@Model.TotalAlumnos</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <i class="bi bi-person-check-fill fs-1 mb-2 text-success"></i>
-                <h3>@Model.AlumnosActivos</h3>
-                <p class="text-muted mb-0">Alumnos Activos</p>
-            </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-success text-center">
+            <div class="ra-stat-label">Alumnos Activos</div>
+            <div class="ra-stat-value">@Model.AlumnosActivos</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <i class="bi bi-graph-up-arrow fs-1 mb-2 text-primary"></i>
-                <h3>@Model.PromedioGeneral.ToString("F2")</h3>
-                <p class="text-muted mb-0">Promedio General</p>
-            </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-info text-center">
+            <div class="ra-stat-label">Promedio General</div>
+            <div class="ra-stat-value">@Model.PromedioGeneral.ToString("F2")</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <i class="bi bi-send-fill fs-1 mb-2 text-info"></i>
-                <h3>@Model.TotalPostulaciones</h3>
-                <p class="text-muted mb-0">Postulaciones</p>
-            </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-primary text-center">
+            <div class="ra-stat-label">Postulaciones</div>
+            <div class="ra-stat-value">@Model.TotalPostulaciones</div>
         </div>
     </div>
 </div>
 
-<div class="row mb-4">
+<div class="row g-3 mb-4">
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header" style="background-color: #6c1d45; color: white;">
-                <h5 class="mb-0"><i class="bi bi-traffic-light"></i> Distribución por Nivel de Riesgo</h5>
+        <div class="ra-card h-100">
+            <div class="ra-card-header">
+                <i class="bi bi-traffic-light"></i> Distribución por Nivel de Riesgo
             </div>
-            <div class="card-body">
+            <div class="ra-card-body">
                 <div class="mb-3">
                     <div class="d-flex justify-content-between mb-1">
-                        <span><i class="bi bi-check-circle-fill text-success"></i> Verde (Sin riesgo)</span>
-                        <strong>@Model.AlumnosEnRiesgoVerde</strong>
+                        <span class="small"><i class="bi bi-check-circle-fill ra-text-success me-1"></i>Verde (Sin riesgo)</span>
+                        <strong class="small">@Model.AlumnosEnRiesgoVerde</strong>
                     </div>
-                    <div class="progress" style="height: 25px;">
-                        <div class="progress-bar bg-success" style="width: @((double)Model.AlumnosEnRiesgoVerde / Math.Max(Model.TotalAlumnos, 1) * 100)%">
+                    <div class="progress" style="height: 20px; background: var(--ra-border-subtle);">
+                        <div class="progress-bar" style="width: @((double)Model.AlumnosEnRiesgoVerde / Math.Max(Model.TotalAlumnos, 1) * 100)%; background: var(--ra-success);">
                             @Math.Round((double)Model.AlumnosEnRiesgoVerde / Math.Max(Model.TotalAlumnos, 1) * 100, 0)%
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
                     <div class="d-flex justify-content-between mb-1">
-                        <span><i class="bi bi-exclamation-fill text-warning"></i> Amarillo (Atención)</span>
-                        <strong>@Model.AlumnosEnRiesgoAmarillo</strong>
+                        <span class="small"><i class="bi bi-exclamation-fill ra-text-warning me-1"></i>Amarillo (Atención)</span>
+                        <strong class="small">@Model.AlumnosEnRiesgoAmarillo</strong>
                     </div>
-                    <div class="progress" style="height: 25px;">
-                        <div class="progress-bar bg-warning" style="width: @((double)Model.AlumnosEnRiesgoAmarillo / Math.Max(Model.TotalAlumnos, 1) * 100)%">
+                    <div class="progress" style="height: 20px; background: var(--ra-border-subtle);">
+                        <div class="progress-bar" style="width: @((double)Model.AlumnosEnRiesgoAmarillo / Math.Max(Model.TotalAlumnos, 1) * 100)%; background: var(--ra-warning);">
                             @Math.Round((double)Model.AlumnosEnRiesgoAmarillo / Math.Max(Model.TotalAlumnos, 1) * 100, 0)%
                         </div>
                     </div>
                 </div>
                 <div>
                     <div class="d-flex justify-content-between mb-1">
-                        <span><i class="bi bi-exclamation-triangle-fill text-danger"></i> Rojo (Crítico)</span>
-                        <strong>@Model.AlumnosEnRiesgoRojo</strong>
+                        <span class="small"><i class="bi bi-exclamation-triangle-fill ra-text-danger me-1"></i>Rojo (Crítico)</span>
+                        <strong class="small">@Model.AlumnosEnRiesgoRojo</strong>
                     </div>
-                    <div class="progress" style="height: 25px;">
-                        <div class="progress-bar bg-danger" style="width: @((double)Model.AlumnosEnRiesgoRojo / Math.Max(Model.TotalAlumnos, 1) * 100)%">
+                    <div class="progress" style="height: 20px; background: var(--ra-border-subtle);">
+                        <div class="progress-bar" style="width: @((double)Model.AlumnosEnRiesgoRojo / Math.Max(Model.TotalAlumnos, 1) * 100)%; background: var(--ra-danger);">
                             @Math.Round((double)Model.AlumnosEnRiesgoRojo / Math.Max(Model.TotalAlumnos, 1) * 100, 0)%
                         </div>
                     </div>
@@ -121,28 +115,28 @@
     </div>
 
     <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header" style="background-color: #6c1d45; color: white;">
-                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Estado de Postulaciones</h5>
+        <div class="ra-card h-100">
+            <div class="ra-card-header">
+                <i class="bi bi-pie-chart"></i> Estado de Postulaciones
             </div>
-            <div class="card-body">
-                <div class="row text-center">
+            <div class="ra-card-body">
+                <div class="row text-center g-3">
                     <div class="col-4">
-                        <div class="p-3 rounded bg-success bg-opacity-10">
-                            <h3 class="text-success">@Model.PostulacionesAceptadas</h3>
-                            <small class="text-muted">Aceptadas</small>
+                        <div class="p-3 rounded-3" style="background: var(--ra-success-bg);">
+                            <h3 class="ra-text-success mb-0">@Model.PostulacionesAceptadas</h3>
+                            <small class="text-secondary">Aceptadas</small>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-3 rounded bg-warning bg-opacity-10">
-                            <h3 class="text-warning">@Model.PostulacionesPendientes</h3>
-                            <small class="text-muted">Pendientes</small>
+                        <div class="p-3 rounded-3" style="background: var(--ra-warning-bg);">
+                            <h3 class="ra-text-warning mb-0">@Model.PostulacionesPendientes</h3>
+                            <small class="text-secondary">Pendientes</small>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-3 rounded bg-danger bg-opacity-10">
-                            <h3 class="text-danger">@Model.PostulacionesRechazadas</h3>
-                            <small class="text-muted">Rechazadas</small>
+                        <div class="p-3 rounded-3" style="background: var(--ra-danger-bg);">
+                            <h3 class="ra-text-danger mb-0">@Model.PostulacionesRechazadas</h3>
+                            <small class="text-secondary">Rechazadas</small>
                         </div>
                     </div>
                 </div>
@@ -151,21 +145,19 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #6c1d45; color: white;">
-                <h5 class="mb-0"><i class="bi bi-download"></i> Generar Reporte</h5>
-            </div>
-            <div class="card-body">
-                <p>Descarga un reporte oficial con los datos filtrados actuales.</p>
-                <a asp-action="Reporte" class="btn btn-primary">
-                    <i class="bi bi-file-earmark-pdf"></i> Generar PDF
-                </a>
-                <a asp-action="PorCarrera" class="btn btn-outline-primary">
-                    <i class="bi bi-bar-chart"></i> Ver por Carrera
-                </a>
-            </div>
+<div class="ra-card">
+    <div class="ra-card-header">
+        <i class="bi bi-download"></i> Generar Reporte
+    </div>
+    <div class="ra-card-body">
+        <p class="text-secondary mb-3">Descarga un reporte oficial con los datos filtrados actuales.</p>
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-action="Reporte" class="ra-btn ra-btn-primary">
+                <i class="bi bi-file-earmark-pdf"></i> Generar PDF
+            </a>
+            <a asp-action="PorCarrera" class="ra-btn ra-btn-outline">
+                <i class="bi bi-bar-chart"></i> Ver por Carrera
+            </a>
         </div>
     </div>
 </div>
