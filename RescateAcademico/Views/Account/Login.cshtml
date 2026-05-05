@@ -9,98 +9,100 @@
     var alumnoPw = Configuration["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header text-center" style="background-color: #6c1d45; color: white;">
-                    <h3 class="font-weight-light my-4">Rescate Académico</h3>
-                    <h4 class="mb-0">Acceso al sistema</h4>
-                </div>
-                <div class="card-body">
-                    <form asp-controller="Account" asp-action="Login" method="post">
-                        @if (ViewData["ReturnUrl"] != null)
-                        {
-                            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-                        }
-                        
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 64px; height: 64px; background: var(--ra-primary-soft);">
+                <i class="bi bi-mortarboard-fill fs-2" style="color: var(--ra-primary);"></i>
+            </div>
+            <h1 class="fw-bold h3 mb-1">Rescate Académico</h1>
+            <p class="text-secondary small">Accede con tu correo institucional del IPN</p>
+        </div>
 
-                        <div class="form-floating mb-3">
-                            <input name="email" class="form-control" id="inputEmail" type="email" placeholder="correo@alumno.ipn.mx" required />
-                            <label for="inputEmail">Correo institucional</label>
-                        </div>
-                        <div class="form-floating mb-3 position-relative">
-                            <input name="password" class="form-control pe-5" id="inputPassword" type="password" placeholder="Contraseña" required />
-                            <label for="inputPassword">Contraseña</label>
-                            <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2" style="z-index: 10;" onclick="togglePassword()">
+        <div class="ra-card">
+            <div class="ra-card-body">
+                <form asp-controller="Account" asp-action="Login" method="post">
+                    @if (ViewData["ReturnUrl"] != null)
+                    {
+                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+                    }
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label for="inputEmail" class="ra-label">Correo institucional</label>
+                        <input name="email" class="ra-input" id="inputEmail" type="email" placeholder="correo@alumno.ipn.mx" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="inputPassword" class="ra-label">Contraseña</label>
+                        <div class="position-relative">
+                            <input name="password" class="ra-input pe-5" id="inputPassword" type="password" placeholder="••••••••" required />
+                            <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 p-1" style="color: var(--ra-text-muted); z-index: 10;" onclick="togglePassword()">
                                 <i class="bi bi-eye" id="togglePasswordIcon"></i>
                             </button>
                         </div>
-                        <div class="form-check mb-3">
-                            <input name="rememberMe" class="form-check-input" id="inputRememberPassword" type="checkbox" value="true" />
-                            <label class="form-check-label" for="inputRememberPassword">Recordar sesión en este equipo</label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input name="rememberMe" class="form-check-input" id="inputRemember" type="checkbox" value="true" />
+                            <label class="form-check-label small text-secondary" for="inputRemember">Recordarme</label>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
-                            <a class="small" asp-controller="Account" asp-action="ForgotPassword" style="color: #6c1d45;">¿Olvidaste tu contraseña?</a>
-                            <button type="submit" class="btn btn-primary" style="background-color: #6c1d45; border-color: #6c1d45;">Acceder</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small text-muted mb-2">Aviso: El acceso es validado según el sistema escolar central.</div>
-                    <div class="small text-muted">Las credenciales son gestionadas institucionalmente. Si no tienes cuenta, contacta a administración.</div>
-                </div>
+                        <a asp-controller="Account" asp-action="ForgotPassword" class="small" style="color: var(--ra-primary);">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <button type="submit" class="ra-btn ra-btn-primary w-100 ra-btn-lg mb-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Acceder
+                    </button>
+
+                    <div class="text-center">
+                        <span class="small text-secondary">¿No tienes cuenta? Contacta a <a href="#" style="color: var(--ra-primary);">administración</a></span>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="accordion" id="demoCredentialsAccordion">
-            <div class="accordion-item border-0 shadow-sm">
+        <div class="accordion mt-3" id="demoCredentialsAccordion">
+            <div class="accordion-item border-0 bg-transparent">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDemo" aria-expanded="false" aria-controls="collapseDemo" style="background-color: #f8f9fa; color: #6c1d45;">
-                        <i class="bi bi-info-circle-fill me-2"></i> Credenciales de demostración
+                    <button class="accordion-button collapsed bg-transparent shadow-none small text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDemo">
+                        <i class="bi bi-info-circle me-2"></i> Credenciales de demostración
                     </button>
                 </h2>
                 <div id="collapseDemo" class="accordion-collapse collapse" data-bs-parent="#demoCredentialsAccordion">
-                    <div class="accordion-body">
+                    <div class="accordion-body p-0 pt-2">
                         <div class="row g-2">
-                            <div class="col-md-6">
-                                <div class="card h-100 border-0 bg-light">
-                                    <div class="card-body p-2">
-                                        <small class="text-muted d-block fw-bold">Administrador</small>
-                                        <code class="small d-block">admin@ipn.mx</code>
-                                        <code class="small d-block">@adminPw</code>
-                                    </div>
+                            <div class="col-6">
+                                <div class="ra-card text-center py-2">
+                                    <small class="text-secondary d-block fw-semibold">Administrador</small>
+                                    <code class="small d-block">admin@ipn.mx</code>
+                                    <code class="small">@adminPw</code>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card h-100 border-0 bg-light">
-                                    <div class="card-body p-2">
-                                        <small class="text-muted d-block fw-bold">Autoridad Académica</small>
-                                        <code class="small d-block">autoridad@ipn.mx</code>
-                                        <code class="small d-block">@autoridadPw</code>
-                                    </div>
+                            <div class="col-6">
+                                <div class="ra-card text-center py-2">
+                                    <small class="text-secondary d-block fw-semibold">Autoridad</small>
+                                    <code class="small d-block">autoridad@ipn.mx</code>
+                                    <code class="small">@autoridadPw</code>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card h-100 border-0 bg-light">
-                                    <div class="card-body p-2">
-                                        <small class="text-muted d-block fw-bold">Profesor / Tutor</small>
-                                        <code class="small d-block">profesor1@ipn.mx</code>
-                                        <code class="small d-block">@tutorPw</code>
-                                    </div>
+                            <div class="col-6">
+                                <div class="ra-card text-center py-2">
+                                    <small class="text-secondary d-block fw-semibold">Profesor</small>
+                                    <code class="small d-block">profesor1@ipn.mx</code>
+                                    <code class="small">@tutorPw</code>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card h-100 border-0 bg-light">
-                                    <div class="card-body p-2">
-                                        <small class="text-muted d-block fw-bold">Alumno</small>
-                                        <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
-                                        <code class="small d-block">@alumnoPw</code>
+                            <div class="col-6">
+                                <div class="ra-card text-center py-2">
+                                    <small class="text-secondary d-block fw-semibold">Alumno</small>
+                                    <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
+                                    <code class="small">@alumnoPw</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,8 +126,3 @@
         }
     </script>
 }
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
