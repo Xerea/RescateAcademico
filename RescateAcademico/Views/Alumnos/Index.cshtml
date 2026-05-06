@@ -86,7 +86,7 @@
                                 @item.PromedioGlobal.ToString("F2")
                             </span>
                         </td>
-                        <td>
+                        <td data-order="@(item.RiesgoAcademico == "Rojo" ? 3 : item.RiesgoAcademico == "Amarillo" ? 2 : 1)">
                             <ra-semaforo riesgo="@item.RiesgoAcademico" size="sm"></ra-semaforo>
                         </td>
                         <td class="text-secondary small">@(item.FechaUltimaActualizacion?.ToString("dd/MM/yyyy") ?? "—")</td>
@@ -229,9 +229,20 @@
 
         async function loadQuickView(matricula) {
             const modalEl = document.getElementById('quickViewModal');
-            // Dispose existing instance to prevent duplicate backdrops
+            // Properly hide and dispose existing instance before creating new one
             const existing = bootstrap.Modal.getInstance(modalEl);
-            if (existing) existing.dispose();
+            if (existing) {
+                existing.hide();
+                await new Promise(function(resolve) {
+                    modalEl.addEventListener('hidden.bs.modal', function handler() {
+                        modalEl.removeEventListener('hidden.bs.modal', handler);
+                        existing.dispose();
+                        resolve();
+                    }, { once: true });
+                    // Fallback: force resolve after 500ms if event doesn't fire
+                    setTimeout(resolve, 500);
+                });
+            }
             const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
             modal.show();
 

@@ -40,14 +40,14 @@
                             <th>Semestre</th>
                             <th>Promedio</th>
                             <th>Riesgo</th>
-                            <th>Acciones</th>
+                            <th style="width: 1px;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var alumno in Model)
                         {
                             <tr>
-                                <td><strong>@alumno.Matricula</strong></td>
+                                <td class="ra-mono"><strong>@alumno.Matricula</strong></td>
                                 <td>@alumno.Nombre @alumno.Apellidos</td>
                                 <td>@(alumno.Grupo?.Clave ?? "—")</td>
                                 <td>@alumno.Carrera</td>
@@ -57,16 +57,16 @@
                                         @alumno.PromedioGlobal.ToString("F2")
                                     </span>
                                 </td>
-                                <td>
+                                <td data-order="@(alumno.RiesgoAcademico == "Rojo" ? 3 : alumno.RiesgoAcademico == "Amarillo" ? 2 : 1)">
                                     <ra-semaforo riesgo="@alumno.RiesgoAcademico" size="sm"></ra-semaforo>
                                 </td>
                                 <td>
-                                    <div class="d-flex gap-1">
-                                        <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" data-bs-toggle="modal" data-bs-target="#modalAlumno_@alumno.Matricula">
-                                            <i class="bi bi-eye"></i> Rápido
+                                    <div class="d-flex gap-1 flex-nowrap">
+                                        <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" onclick="loadQuickViewTutorado('@alumno.Matricula')" title="Vista rápida">
+                                            <i class="bi bi-eye"></i>
                                         </button>
-                                        <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@alumno.Matricula" class="ra-btn ra-btn-sm ra-btn-primary">
-                                            <i class="bi bi-graph-up"></i> Perfil
+                                        <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@alumno.Matricula" class="ra-btn ra-btn-sm ra-btn-primary" title="Perfil">
+                                            <i class="bi bi-graph-up"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -86,56 +86,144 @@
     </div>
 </div>
 
-@foreach (var alumno in Model)
-{
-    <div class="modal fade" id="modalAlumno_@alumno.Matricula" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content ra-modal-content">
-                <div class="modal-header border-bottom" style="border-color: var(--ra-border) !important;">
-                    <h5 class="modal-title fw-semibold"><i class="bi bi-person-badge ra-text-accent me-2"></i>@alumno.Nombre @alumno.Apellidos</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- Single Shared Quick View Modal -->
+<div class="modal fade" id="quickViewTutoradoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border: 1px solid var(--ra-border); border-radius: var(--ra-radius-lg); background: var(--ra-surface);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="qvtTitle"><i class="bi bi-person-badge me-2" style="color: var(--ra-primary);"></i>Cargando...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="qvtLoading" class="text-center py-5">
+                    <div class="spinner-border" role="status" style="color: var(--ra-primary);"><span class="visually-hidden">Cargando...</span></div>
+                    <p class="text-secondary mt-3">Cargando información del estudiante...</p>
                 </div>
-                <div class="modal-body">
+                <div id="qvtContent" style="display:none;">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <p class="mb-2"><span class="text-secondary small">Boleta:</span> <strong>@alumno.Matricula</strong></p>
-                            <p class="mb-2"><span class="text-secondary small">Grupo:</span> <strong>@(alumno.Grupo?.Clave ?? "—")</strong></p>
-                            <p class="mb-2"><span class="text-secondary small">Carrera:</span> <strong>@alumno.Carrera</strong></p>
-                            <p class="mb-0"><span class="text-secondary small">Semestre:</span> <strong>@alumno.SemestreActual</strong></p>
+                            <div class="ra-card h-100">
+                                <div class="ra-card-body">
+                                    <div class="mb-3"><small class="text-secondary d-block">Boleta</small><span class="fw-semibold ra-mono" id="qvtMatricula">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Carrera</small><span id="qvtCarrera">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Semestre</small><span id="qvtSemestre">—</span></div>
+                                    <div><small class="text-secondary d-block">Grupo</small><span id="qvtGrupo">—</span></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <p class="mb-2"><span class="text-secondary small">Promedio:</span> <span class="ra-badge @(alumno.PromedioGlobal >= 8 ? "ra-badge-success" : alumno.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">@alumno.PromedioGlobal.ToString("F2")</span></p>
-                            <p class="mb-2"><span class="text-secondary small">Riesgo:</span>
-                                <ra-semaforo riesgo="@alumno.RiesgoAcademico" size="sm"></ra-semaforo>
-                            </p>
-                            <p class="mb-2"><span class="text-secondary small">Materias Reprobadas:</span> <strong>@(alumno.MateriasReprobadas ?? 0)</strong></p>
-                            <p class="mb-0"><span class="text-secondary small">Ausencias:</span> <strong>@(alumno.Ausencias ?? 0)</strong></p>
+                            <div class="ra-card h-100">
+                                <div class="ra-card-body">
+                                    <div class="mb-3"><small class="text-secondary d-block">Promedio Global</small><span class="fw-bold fs-5" id="qvtPromedio">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Riesgo Académico</small><span id="qvtRiesgo">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Carga Académica</small><span id="qvtCarga">—</span></div>
+                                    <div><small class="text-secondary d-block">Última Actualización</small><span id="qvtActualizacion">—</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="row g-2">
+                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5" style="color: var(--ra-danger);" id="qvtReprobadas">0</div><small class="text-secondary">Reprobadas</small></div></div>
+                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5" style="color: var(--ra-warning);" id="qvtAusencias">0</div><small class="text-secondary">Ausencias</small></div></div>
+                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5" style="color: var(--ra-info);" id="qvtEts">0</div><small class="text-secondary">ETS</small></div></div>
+                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5 text-secondary" id="qvtRecursadas">0</div><small class="text-secondary">Recursadas</small></div></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top" style="border-color: var(--ra-border) !important;">
-                    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-primary">
-                        <i class="bi bi-plus-circle"></i> Agregar Intervención
-                    </a>
-                    <a asp-controller="Profesor" asp-action="HistorialAcademico" asp-route-boleta="@alumno.Matricula" class="ra-btn ra-btn-outline">
-                        <i class="bi bi-graph-up"></i> Ver Historial
-                    </a>
-                    <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
-                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <a id="qvtLinkDetalle" href="#" class="ra-btn ra-btn-primary ra-btn-sm"><i class="bi bi-eye"></i> Ver Perfil</a>
+                <a id="qvtLinkIntervencion" href="#" class="ra-btn ra-btn-accent ra-btn-sm"><i class="bi bi-plus-circle"></i> Intervención</a>
+                <button type="button" class="ra-btn ra-btn-ghost ra-btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
-}
+</div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
             $('#tablaEstudiantes').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
-                },
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
                 pageLength: 25
             });
         });
+
+        async function loadQuickViewTutorado(matricula) {
+            const modalEl = document.getElementById('quickViewTutoradoModal');
+            const existing = bootstrap.Modal.getInstance(modalEl);
+            if (existing) {
+                existing.hide();
+                await new Promise(function(resolve) {
+                    modalEl.addEventListener('hidden.bs.modal', function handler() {
+                        modalEl.removeEventListener('hidden.bs.modal', handler);
+                        existing.dispose();
+                        resolve();
+                    }, { once: true });
+                    setTimeout(resolve, 500);
+                });
+            }
+            const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+            modal.show();
+
+            document.getElementById('qvtLoading').style.display = 'block';
+            document.getElementById('qvtContent').style.display = 'none';
+            const qvtTitle = document.getElementById('qvtTitle');
+            qvtTitle.innerHTML = '';
+            const loadIcon = document.createElement('i');
+            loadIcon.className = 'bi bi-person-badge me-2';
+            loadIcon.style.color = 'var(--ra-primary)';
+            qvtTitle.appendChild(loadIcon);
+            qvtTitle.appendChild(document.createTextNode('Cargando...'));
+
+            try {
+                const response = await fetch('/Alumnos/QuickView?matricula=' + encodeURIComponent(matricula));
+                if (!response.ok) throw new Error('Error al cargar');
+                const data = await response.json();
+
+                const title = document.getElementById('qvtTitle');
+                title.innerHTML = '';
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-person-badge me-2';
+                icon.style.color = 'var(--ra-primary)';
+                title.appendChild(icon);
+                title.appendChild(document.createTextNode(data.nombre + ' ' + data.apellidos));
+
+                document.getElementById('qvtMatricula').textContent = data.matricula;
+                document.getElementById('qvtCarrera').textContent = data.carrera || '—';
+                document.getElementById('qvtSemestre').textContent = data.semestreActual;
+                document.getElementById('qvtGrupo').textContent = data.grupo || '—';
+
+                const promedioEl = document.getElementById('qvtPromedio');
+                promedioEl.textContent = data.promedioGlobal.toFixed(2);
+                promedioEl.style.color = data.promedioGlobal >= 8 ? 'var(--ra-success)' : data.promedioGlobal >= 6 ? 'var(--ra-warning)' : 'var(--ra-danger)';
+
+                const riesgoEl = document.getElementById('qvtRiesgo');
+                const riesgo = data.riesgoAcademico || 'Verde';
+                riesgoEl.innerHTML = '';
+                const sem = document.createElement('ra-semaforo');
+                sem.setAttribute('riesgo', riesgo);
+                sem.setAttribute('size', 'sm');
+                riesgoEl.appendChild(sem);
+
+                document.getElementById('qvtCarga').textContent = (data.cargaAcademicaActual || 0) + ' materias';
+                document.getElementById('qvtActualizacion').textContent = data.fechaUltimaActualizacion || '—';
+
+                document.getElementById('qvtReprobadas').textContent = data.materiasReprobadas || 0;
+                document.getElementById('qvtAusencias').textContent = data.ausencias || 0;
+                document.getElementById('qvtEts').textContent = data.etsPresentados || 0;
+                document.getElementById('qvtRecursadas').textContent = data.recursamientos || 0;
+
+                document.getElementById('qvtLinkDetalle').href = '/Profesor/HistorialAcademico?boleta=' + encodeURIComponent(data.matricula);
+                document.getElementById('qvtLinkIntervencion').href = '/Intervenciones/Crear?matricula=' + encodeURIComponent(data.matricula);
+
+                document.getElementById('qvtLoading').style.display = 'none';
+                document.getElementById('qvtContent').style.display = 'block';
+            } catch (err) {
+                const loadingEl = document.getElementById('qvtLoading');
+                loadingEl.innerHTML = '<p class="text-danger">No se pudo cargar la información. Intenta de nuevo.</p>';
+            }
+        }
     </script>
 }

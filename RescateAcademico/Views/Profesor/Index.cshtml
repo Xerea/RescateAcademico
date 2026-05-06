@@ -1,55 +1,20 @@
 @model RescateAcademico.Controllers.ProfesorDashboardViewModel
 @{
-    ViewData["Title"] = "Panel del Profesor";
+    ViewData["Title"] = "Mis Grupos";
     Layout = "_Layout";
+    var total = Model.TotalEstudiantes;
+    var pctVerde = total > 0 ? (Model.EnRiesgoVerde * 100.0 / total) : 0;
+    var pctAmarillo = total > 0 ? (Model.EnRiesgoAmarillo * 100.0 / total) : 0;
+    var pctRojo = total > 0 ? (Model.EnRiesgoRojo * 100.0 / total) : 0;
 }
 
 <div class="row mb-4 align-items-end">
     <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-person-workspace ra-text-accent me-2"></i>Panel del Profesor</h1>
+        <h1 class="fw-bold h3 mb-1"><i class="bi bi-person-workspace ra-text-accent me-2"></i>Mis Grupos</h1>
         <p class="text-secondary small mb-0">
             Bienvenido, <strong>@Model.ProfesorNombre</strong>.
             @(DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX")))
         </p>
-    </div>
-    <div class="col-auto">
-        <a asp-action="MisEstudiantes" class="ra-btn ra-btn-primary">
-            <i class="bi bi-people"></i> Ver Todos
-        </a>
-    </div>
-</div>
-
-<!-- Stats -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-4 col-lg">
-        <div class="ra-stat ra-stat-accent text-center">
-            <div class="ra-stat-label">Total Estudiantes</div>
-            <div class="ra-stat-value" data-countup="@Model.TotalEstudiantes">@Model.TotalEstudiantes</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg">
-        <div class="ra-stat ra-stat-success text-center">
-            <div class="ra-stat-label">Riesgo Verde</div>
-            <div class="ra-stat-value" data-countup="@Model.EnRiesgoVerde">@Model.EnRiesgoVerde</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg">
-        <div class="ra-stat ra-stat-warning text-center">
-            <div class="ra-stat-label">Riesgo Amarillo</div>
-            <div class="ra-stat-value" data-countup="@Model.EnRiesgoAmarillo">@Model.EnRiesgoAmarillo</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg">
-        <div class="ra-stat ra-stat-danger text-center">
-            <div class="ra-stat-label">Riesgo Rojo</div>
-            <div class="ra-stat-value" data-countup="@Model.EnRiesgoRojo">@Model.EnRiesgoRojo</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg">
-        <div class="ra-stat ra-stat-info text-center">
-            <div class="ra-stat-label">Promedio General</div>
-            <div class="ra-stat-value" data-countup="@Model.PromedioGeneral.ToString("F1")" data-countup-decimals="1">@Model.PromedioGeneral.ToString("F1")</div>
-        </div>
     </div>
 </div>
 
@@ -90,174 +55,136 @@
     </div>
 }
 
-<!-- Semaforo Grid -->
-<div class="ra-card mb-4">
-    <div class="ra-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <span><i class="bi bi-grid-3x3-gap"></i> Mis Estudiantes</span>
-        <div class="d-flex gap-1" role="group" aria-label="Filtro de riesgo">
-            <button type="button" class="ra-btn ra-btn-sm ra-btn-primary active" data-filter="todos" onclick="filterGrid(this,'todos')">Todos</button>
-            <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" data-filter="rojo" onclick="filterGrid(this,'rojo')">
-                <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:var(--ra-danger);box-shadow:0 0 6px var(--ra-danger);"></span> Rojo
-            </button>
-            <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" data-filter="amarillo" onclick="filterGrid(this,'amarillo')">
-                <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:var(--ra-warning);box-shadow:0 0 6px var(--ra-warning);"></span> Amarillo
-            </button>
-            <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" data-filter="verde" onclick="filterGrid(this,'verde')">
-                <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:var(--ra-success);box-shadow:0 0 6px var(--ra-success);"></span> Verde
-            </button>
-        </div>
-    </div>
-    <div class="ra-card-body">
-        <div class="row g-3" id="estudiantesGrid">
-            @foreach (var a in Model.Estudiantes)
-            {
-                <div class="col-6 col-md-4 col-lg-3 col-xl-2 estudiante-card" data-riesgo="@((a.RiesgoAcademico ?? "Verde").ToLowerInvariant())">
-                    <div class="ra-card h-100 text-center p-3" style="cursor:pointer;transition:transform 0.2s ease,box-shadow 0.2s ease;" onclick="location.href='@Url.Action("HistorialAcademico", new { boleta = a.Matricula })'">
-                        <div class="ra-avatar mx-auto mb-2" style="width:48px;height:48px;font-size:1.1rem;">
-                            @(a.Nombre?[0])@(a.Apellidos?[0])
-                        </div>
-                        <div class="ra-mono text-secondary small mb-1">@a.Matricula</div>
-                        <div class="fw-semibold small mb-2" style="line-height:1.3;">@a.Nombre @a.Apellidos</div>
-                        <ra-semaforo riesgo="@a.RiesgoAcademico" size="lg" tooltip="Promedio: @a.PromedioGlobal | Reprobadas: @a.MateriasReprobadas | Ausencias: @a.Ausencias"></ra-semaforo>
-                        <div class="mt-2">
-                            <span class="ra-badge @(a.PromedioGlobal >= 8 ? "ra-badge-success" : a.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
-                                @a.PromedioGlobal.ToString("F1")
-                            </span>
-                        </div>
+<!-- Risk Distribution Bar -->
+@if (total > 0)
+{
+    <div class="ra-card mb-4">
+        <div class="ra-card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <div class="ra-heading mb-1">Distribución de Riesgo</div>
+                    <div class="text-secondary small">@total estudiantes en total</div>
+                </div>
+                <div class="d-flex gap-3">
+                    <div class="text-center">
+                        <div class="fw-bold" style="color:var(--ra-success);">@Model.EnRiesgoVerde</div>
+                        <div class="ra-heading" style="font-size:0.65rem;">Verde</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold" style="color:var(--ra-warning);">@Model.EnRiesgoAmarillo</div>
+                        <div class="ra-heading" style="font-size:0.65rem;">Amarillo</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold" style="color:var(--ra-danger);">@Model.EnRiesgoRojo</div>
+                        <div class="ra-heading" style="font-size:0.65rem;">Rojo</div>
                     </div>
                 </div>
-            }
+            </div>
+            <div style="height:12px;background:var(--ra-border);border-radius:6px;overflow:hidden;display:flex;">
+                @if (pctVerde > 0)
+                {
+                    <div style="width:@pctVerde.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-success);transition:width 1s ease;"></div>
+                }
+                @if (pctAmarillo > 0)
+                {
+                    <div style="width:@pctAmarillo.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-warning);transition:width 1s ease;"></div>
+                }
+                @if (pctRojo > 0)
+                {
+                    <div style="width:@pctRojo.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-danger);transition:width 1s ease;"></div>
+                }
+            </div>
         </div>
     </div>
-</div>
+}
 
-<div class="row g-3 mb-4">
-    <div class="col-md-8">
-        <div class="ra-card h-100">
-            <div class="ra-card-header">
-                <i class="bi bi-grid-3x3-gap"></i> Mis Grupos
-            </div>
-            <div class="ra-card-body">
-                <div class="row g-3">
-                    @foreach (var g in Model.Grupos)
-                    {
-                        <div class="col-md-6">
-                            <a asp-action="MisEstudiantes" asp-route-grupo="@g.Clave" class="text-decoration-none">
-                                <div class="ra-card h-100" style="transition: var(--ra-transition);">
-                                    <div class="ra-card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 class="fw-bold mb-0 ra-text-accent">@g.Clave</h5>
-                                            <span class="ra-badge ra-badge-neutral">@g.Turno</span>
-                                        </div>
-                                        <p class="text-secondary small mb-2">@g.Carrera — @g.Semestre° Semestre</p>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-secondary small"><i class="bi bi-people me-1"></i>@g.TotalAlumnos estudiantes</span>
-                                            @if (g.EnRiesgo > 0)
-                                            {
-                                                <span class="ra-badge ra-badge-danger"><i class="bi bi-exclamation-triangle me-1"></i>@g.EnRiesgo en riesgo</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="ra-badge ra-badge-success"><i class="bi bi-check-circle me-1"></i>Sin riesgo</span>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
+<!-- Groups Grid -->
+<div class="mb-3">
+    <div class="ra-heading mb-3"><i class="bi bi-grid-3x3-gap me-1"></i> Selecciona un Grupo</div>
+    <div class="row g-3">
+        @foreach (var g in Model.Grupos)
+        {
+            <div class="col-md-6 col-lg-4">
+                <a asp-action="MisEstudiantes" asp-route-grupo="@g.Clave" class="text-decoration-none">
+                    <div class="ra-card h-100" style="transition: var(--ra-transition); cursor: pointer;">
+                        <div class="ra-card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h4 class="fw-bold mb-0 ra-text-accent" style="letter-spacing:-0.02em;">@g.Clave</h4>
+                                <span class="ra-badge ra-badge-neutral">@g.Turno</span>
+                            </div>
+                            <p class="text-secondary small mb-3">@g.Carrera — @g.Semestre° Semestre</p>
+
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-people text-secondary"></i>
+                                <span class="text-secondary small">@g.TotalAlumnos estudiantes</span>
+                            </div>
+
+                            <!-- Mini risk strip for this group -->
+                            @{
+                                var groupAlumnos = Model.Estudiantes.Where(a => a.Grupo?.Clave == g.Clave).ToList();
+                                var gv = groupAlumnos.Count(a => a.RiesgoAcademico == "Verde" || string.IsNullOrEmpty(a.RiesgoAcademico));
+                                var ga = groupAlumnos.Count(a => a.RiesgoAcademico == "Amarillo");
+                                var gr = groupAlumnos.Count(a => a.RiesgoAcademico == "Rojo");
+                            }
+                            <div class="d-flex gap-1 mb-3">
+                                @for (int i = 0; i < gr; i++)
+                                {
+                                    <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:var(--ra-danger);box-shadow:0 0 6px var(--ra-danger);"></span>
+                                }
+                                @for (int i = 0; i < ga; i++)
+                                {
+                                    <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:var(--ra-warning);box-shadow:0 0 6px var(--ra-warning);"></span>
+                                }
+                                @for (int i = 0; i < Math.Min(gv, 8); i++)
+                                {
+                                    <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:var(--ra-success);opacity:0.6;"></span>
+                                }
+                                @if (gv > 8)
+                                {
+                                    <span class="text-secondary small">+@(gv - 8)</span>
+                                }
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                @if (g.EnRiesgo > 0)
+                                {
+                                    <span class="ra-badge ra-badge-danger"><i class="bi bi-exclamation-triangle me-1"></i>@g.EnRiesgo en riesgo</span>
+                                }
+                                else
+                                {
+                                    <span class="ra-badge ra-badge-success"><i class="bi bi-check-circle me-1"></i>Sin riesgo</span>
+                                }
+                                <span class="ra-btn ra-btn-sm ra-btn-ghost" style="pointer-events:none;">Ver grupo <i class="bi bi-arrow-right"></i></span>
+                            </div>
                         </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="ra-card h-100">
-            <div class="ra-card-header">
-                <i class="bi bi-lightning"></i> Acciones Rápidas
-            </div>
-            <div class="ra-card-body d-flex flex-column gap-2">
-                <a asp-action="MisEstudiantes" class="ra-btn ra-btn-primary w-100">
-                    <i class="bi bi-people"></i> Todos mis estudiantes
-                </a>
-                <a asp-action="MateriasReprobadas" class="ra-btn ra-btn-outline w-100">
-                    <i class="bi bi-x-circle"></i> Materias reprobadas
-                </a>
-                <a asp-controller="Intervenciones" asp-action="Index" class="ra-btn ra-btn-outline w-100">
-                    <i class="bi bi-clipboard-pulse"></i> Ver intervenciones
-                </a>
-                <a asp-controller="PlanesMejora" asp-action="Index" class="ra-btn ra-btn-outline w-100">
-                    <i class="bi bi-journal-check"></i> Planes de mejora
+                    </div>
                 </a>
             </div>
-        </div>
+        }
     </div>
 </div>
 
+<!-- Quick Actions -->
 <div class="ra-card">
-    <div class="ra-card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-people"></i> Estudiantes Recientes</span>
-        <a asp-action="MisEstudiantes" class="ra-btn ra-btn-sm ra-btn-ghost">Ver todos <i class="bi bi-arrow-right"></i></a>
+    <div class="ra-card-header">
+        <i class="bi bi-lightning"></i> Acciones Rápidas
     </div>
-    <div class="ra-card-body p-0">
-        <div class="table-responsive">
-            <table class="table ra-table mb-0" id="tablaRecientes">
-                <thead>
-                    <tr>
-                        <th>Boleta</th>
-                        <th>Nombre</th>
-                        <th>Grupo</th>
-                        <th>Carrera</th>
-                        <th>Promedio</th>
-                        <th>Riesgo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var a in Model.Estudiantes)
-                    {
-                        <tr>
-                            <td class="ra-mono"><strong>@a.Matricula</strong></td>
-                            <td>@a.Nombre @a.Apellidos</td>
-                            <td>@(a.Grupo?.Clave ?? "—")</td>
-                            <td>@a.Carrera</td>
-                            <td>
-                                <span class="ra-badge @(a.PromedioGlobal >= 8 ? "ra-badge-success" : a.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
-                                    @a.PromedioGlobal.ToString("F2")
-                                </span>
-                            </td>
-                            <td>
-                                <ra-semaforo riesgo="@a.RiesgoAcademico" size="sm"></ra-semaforo>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <a asp-action="HistorialAcademico" asp-route-boleta="@a.Matricula" class="ra-btn ra-btn-sm ra-btn-primary" title="Perfil">
-                                        <i class="bi bi-graph-up"></i>
-                                    </a>
-                                    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@a.Matricula" class="ra-btn ra-btn-sm ra-btn-accent" title="Intervención">
-                                        <i class="bi bi-plus-circle"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+    <div class="ra-card-body d-flex flex-wrap gap-2">
+        <a asp-action="MateriasReprobadas" class="ra-btn ra-btn-outline">
+            <i class="bi bi-x-circle"></i> Materias Reprobadas
+        </a>
+        <a asp-controller="Intervenciones" asp-action="Index" class="ra-btn ra-btn-outline">
+            <i class="bi bi-clipboard-pulse"></i> Intervenciones
+        </a>
+        <a asp-controller="PlanesMejora" asp-action="Index" class="ra-btn ra-btn-outline">
+            <i class="bi bi-journal-check"></i> Planes de Mejora
+        </a>
     </div>
 </div>
-
-<a asp-controller="Intervenciones" asp-action="Crear" class="ra-fab" title="Nueva Intervención">
-    <i class="bi bi-plus-lg"></i>
-</a>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('#tablaRecientes').DataTable({
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
-                pageLength: 10, ordering: false, searching: false, lengthChange: false, info: false
-            });
-
             // Morning briefing toast
             var alertas = [];
             @if (Model.EnRiesgoRojo > 0) { <text>alertas.push('@Model.EnRiesgoRojo estudiantes en riesgo alto');</text> }
@@ -269,29 +196,5 @@
                 }, 1200);
             }
         });
-
-        function filterGrid(btn, filtro) {
-            document.querySelectorAll('[data-filter]').forEach(function(b) {
-                b.classList.remove('ra-btn-primary');
-                b.classList.add('ra-btn-outline');
-            });
-            btn.classList.remove('ra-btn-outline');
-            btn.classList.add('ra-btn-primary');
-
-            var cards = document.querySelectorAll('.estudiante-card');
-            cards.forEach(function(card) {
-                var riesgo = card.dataset.riesgo;
-                if (filtro === 'todos' || riesgo === filtro) {
-                    card.style.display = '';
-                    if (typeof gsap !== 'undefined') {
-                        gsap.fromTo(card, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
-                    } else {
-                        card.style.opacity = '1';
-                    }
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
     </script>
 }

@@ -186,6 +186,13 @@
         customElements.define('ra-semaforo', RaSemaforo);
     }
 
+    // --- Page content fade-in ---
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.ra-page-content').forEach(function(el) {
+            el.classList.add('loaded');
+        });
+    });
+
     // --- GSAP ScrollTrigger registration ---
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         gsap.registerPlugin(ScrollTrigger);

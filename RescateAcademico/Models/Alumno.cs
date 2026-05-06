@@ -41,6 +41,9 @@ namespace RescateAcademico.Models
 
         public string? Correo { get; set; }
 
+        public string? NombreTutorLegal { get; set; }
+        public string? TelefonoTutorLegal { get; set; }
+
         [ForeignKey("Usuario")]
         public string? UserId { get; set; }
         public ApplicationUser? Usuario { get; set; }

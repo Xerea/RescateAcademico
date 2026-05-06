@@ -365,6 +365,8 @@ namespace RescateAcademico.Seeders
                 CargaAcademicaActual = 7,
                 Estatus = "Activo",
                 Correo = demoEmail,
+                NombreTutorLegal = "María Elena García",
+                TelefonoTutorLegal = "5512345678",
                 UserId = demoUser.Id,
                 GrupoId = demoGrupo.Id,
                 FechaUltimaActualizacion = DateTime.Now.AddDays(-5)
@@ -404,6 +406,8 @@ namespace RescateAcademico.Seeders
                         CargaAcademicaActual = _rng.Next(5, 10),
                         Estatus = "Activo",
                         Correo = email,
+                        NombreTutorLegal = NombresTutorLegal[_rng.Next(NombresTutorLegal.Length)],
+                        TelefonoTutorLegal = $"55{_rng.Next(10000000, 99999999)}",
                         UserId = user.Id,
                         GrupoId = grupo.Id,
                         FechaUltimaActualizacion = DateTime.Now.AddDays(-_rng.Next(1, 30))
@@ -418,6 +422,12 @@ namespace RescateAcademico.Seeders
             }
             return alumnos;
         }
+
+        private static readonly string[] NombresTutorLegal = new[] {
+            "María Elena García","Juan Carlos López","Ana Patricia Martínez","Pedro Antonio Hernández","Laura Isabel González",
+            "José Luis Pérez","Carmen Rosa Sánchez","Francisco Javier Ramírez","Guadalupe Teresa Flores","Miguel Ángel Torres",
+            "Dolores Carmen Rivera","Roberto Carlos Ruiz","Alicia Margarita Díaz","Ricardo Andrés Moreno","Patricia Elena Jiménez"
+        };
 
         private static (decimal Promedio, int Reprobadas, int Ausencias, int ParcialesBajos, int ETSpresentados, int Recursamientos) GenerarPerfilAcademico()
         {

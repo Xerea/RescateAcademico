@@ -51,7 +51,7 @@ namespace RescateAcademico.Controllers
                     TotalAlumnos = g.Alumnos.Count,
                     EnRiesgo = g.Alumnos.Count(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                 }).ToList(),
-                Estudiantes = alumnos.OrderBy(a => a.Apellidos).Take(20).ToList()
+                Estudiantes = alumnos.OrderBy(a => a.Apellidos).ToList()
             };
 
             return View(vm);
@@ -68,14 +68,19 @@ namespace RescateAcademico.Controllers
                 .Include(g => g.Alumnos)
                 .ToListAsync();
 
+            // Enforce group-first hierarchy: redirect to Index if no group selected
+            if (string.IsNullOrEmpty(grupo) || grupo == "Todos")
+            {
+                return RedirectToAction("Index");
+            }
+
             var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
             var query = _context.Alumnos.Where(a => alumnosIds.Contains(a.Matricula)).AsQueryable();
 
             if (!string.IsNullOrEmpty(riesgo) && riesgo != "Todos")
                 query = query.Where(a => a.RiesgoAcademico == riesgo);
 
-            if (!string.IsNullOrEmpty(grupo) && grupo != "Todos")
-                query = query.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
+            query = query.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
 
             if (!string.IsNullOrEmpty(busqueda))
                 query = query.Where(a => a.Matricula.Contains(busqueda) || a.Nombre.Contains(busqueda) || a.Apellidos.Contains(busqueda));

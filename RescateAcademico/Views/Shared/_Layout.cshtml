@@ -56,7 +56,7 @@
                         @if (User.IsInRole("Tutor"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(cc == "Alumnos" ? "active" : "")" asp-controller="Alumnos" asp-action="MisTutorados">
+                                <a class="nav-link @(cc == "Profesor" ? "active" : "")" asp-controller="Profesor" asp-action="Index">
                                     <i class="bi bi-people"></i> Mis Estudiantes
                                 </a>
                             </li>
@@ -123,7 +123,7 @@
                     </ol>
                 </nav>
             }
-            <div class="ra-fade-in">
+            <div class="ra-page-content">
                 @RenderBody()
             </div>
         </div>

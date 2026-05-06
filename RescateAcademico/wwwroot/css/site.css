@@ -661,14 +661,14 @@ a:hover { color: var(--ra-primary-hover); }
 }
 
 /* ============================================
-   ANIMATIONS
+   PAGE CONTENT FADE (transition-based, no compositor issues)
    ============================================ */
-@keyframes raFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+.ra-page-content {
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.ra-fade-in {
-  animation: raFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.ra-page-content.loaded {
+  opacity: 1;
 }
 
 /* ============================================
