@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
 
 namespace RescateAcademico.Controllers
 {
@@ -10,20 +11,21 @@ namespace RescateAcademico.Controllers
     public class IntervencionesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StudentAccessService _studentAccessService;
 
-        public IntervencionesController(ApplicationDbContext context)
+        public IntervencionesController(ApplicationDbContext context, StudentAccessService studentAccessService)
         {
             _context = context;
+            _studentAccessService = studentAccessService;
         }
 
         public async Task<IActionResult> Index()
         {
             var query = _context.IntervencionesTutoria.Include(i => i.Alumno).AsQueryable();
 
-            if (!User.IsInRole("Autoridad"))
+            if (User.IsInRole("Tutor"))
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+                var tutor = await _studentAccessService.GetCurrentTutorAsync();
                 if (tutor == null) return NotFound();
                 query = query.Where(i => i.TutorId == tutor.Id);
             }
@@ -37,15 +39,10 @@ namespace RescateAcademico.Controllers
             var query = _context.IntervencionesTutoria.Include(i => i.Alumno).AsQueryable();
             query = query.Where(i => i.AlumnoMatricula == matricula);
 
-            if (!User.IsInRole("Autoridad"))
+            if (User.IsInRole("Tutor"))
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
-
-                var asignacion = await _context.AsignacionesTutor
-                    .FirstOrDefaultAsync(a => a.AlumnoMatricula == matricula && a.TutorId == tutor!.Id && a.EstaActiva);
-
-                if (asignacion == null)
+                var tutor = await _studentAccessService.GetCurrentTutorAsync();
+                if (tutor == null || !await _studentAccessService.CanAccessAlumnoAsync(matricula))
                 {
                     TempData["Error"] = "No tienes acceso a este alumno.";
                     return RedirectToAction("MisTutorados", "Alumnos");
@@ -62,13 +59,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> Crear(string matricula)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
-
-            var asignacion = await _context.AsignacionesTutor
-                .FirstOrDefaultAsync(a => a.AlumnoMatricula == matricula && a.TutorId == tutor!.Id && a.EstaActiva);
-
-            if (asignacion == null)
+            if (!await _studentAccessService.CanAccessAlumnoAsync(matricula))
             {
                 TempData["Error"] = "No tienes acceso a este alumno.";
                 return RedirectToAction("MisTutorados", "Alumnos");
@@ -84,10 +75,10 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> Crear([Bind("AlumnoMatricula,Tipo,Descripcion,Resultado,RequiereSeguimiento,FechaSeguimiento,NotasSeguimiento")] IntervencionTutoria intervencion)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+            var tutor = await _studentAccessService.GetCurrentTutorAsync();
 
             if (tutor == null) return NotFound();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(intervencion.AlumnoMatricula)) return Forbid();
 
             intervencion.TutorId = tutor.Id;
             intervencion.Fecha = DateTime.Now;
@@ -102,8 +93,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> Seguimiento(int id)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+            var tutor = await _studentAccessService.GetCurrentTutorAsync();
 
             var intervencion = await _context.IntervencionesTutoria
                 .FirstOrDefaultAsync(i => i.Id == id && i.TutorId == tutor!.Id);
@@ -118,8 +108,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> Seguimiento(int id, DateTime fechaSeguimiento, string notas)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+            var tutor = await _studentAccessService.GetCurrentTutorAsync();
 
             var intervencion = await _context.IntervencionesTutoria
                 .FirstOrDefaultAsync(i => i.Id == id && i.TutorId == tutor!.Id);

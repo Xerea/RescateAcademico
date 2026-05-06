@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
 
 namespace RescateAcademico.Controllers
 {
@@ -10,10 +11,12 @@ namespace RescateAcademico.Controllers
     public class ProfesorController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StudentAccessService _studentAccessService;
 
-        public ProfesorController(ApplicationDbContext context)
+        public ProfesorController(ApplicationDbContext context, StudentAccessService studentAccessService)
         {
             _context = context;
+            _studentAccessService = studentAccessService;
         }
 
         public async Task<IActionResult> Index()
@@ -107,16 +110,7 @@ namespace RescateAcademico.Controllers
 
             if (User.IsInRole("Tutor"))
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var profesor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
-                if (profesor == null) return Forbid();
-
-                var grupos = await _context.Grupos
-                    .Where(g => g.ProfesorId == profesor.Id)
-                    .Include(g => g.Alumnos)
-                    .ToListAsync();
-                var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
-                if (!alumnosIds.Contains(boleta)) return Forbid();
+                if (!await _studentAccessService.CanAccessAlumnoAsync(boleta)) return Forbid();
             }
 
             var historial = alumno.Calificaciones
@@ -165,6 +159,7 @@ namespace RescateAcademico.Controllers
             var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
             var califReprobadas = await _context.Calificaciones
                 .Where(c => !c.Aprobada && alumnosIds.Contains(c.AlumnoMatricula))
+                .Where(c => string.IsNullOrEmpty(grupo) || grupo == "Todos" || (c.Alumno != null && c.Alumno.Grupo != null && c.Alumno.Grupo.Clave == grupo))
                 .Include(c => c.Alumno)
                 .Include(c => c.Materia)
                 .OrderBy(c => c.Alumno!.Apellidos)

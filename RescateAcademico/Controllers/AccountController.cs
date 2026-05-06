@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using RescateAcademico.Data;
 using RescateAcademico.Models;
 using System.ComponentModel.DataAnnotations;
 
@@ -12,11 +14,13 @@ namespace RescateAcademico.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _context = context;
         }
 
         [HttpGet]
@@ -106,6 +110,17 @@ namespace RescateAcademico.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
+            if (string.IsNullOrWhiteSpace(model.Matricula))
+            {
+                ModelState.AddModelError(nameof(model.Matricula), "La boleta es obligatoria.");
+                return View(model);
+            }
+
+            if (await _context.Alumnos.AnyAsync(a => a.Matricula == model.Matricula))
+            {
+                ModelState.AddModelError(nameof(model.Matricula), "Ya existe un alumno con esta boleta.");
+                return View(model);
+            }
 
             var isInstitucional = model.Email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase) || model.Email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase);
             var user = new ApplicationUser
@@ -120,6 +135,20 @@ namespace RescateAcademico.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "Alumno");
+                _context.Alumnos.Add(new Alumno
+                {
+                    Matricula = model.Matricula,
+                    Nombre = model.Nombre,
+                    Apellidos = model.Apellidos,
+                    Carrera = model.Carrera,
+                    SemestreActual = model.SemestreActual,
+                    Correo = model.Email,
+                    UserId = user.Id,
+                    PromedioGlobal = 0,
+                    Estatus = "Activo"
+                });
+                await _context.SaveChangesAsync();
+
                 if (user.PendienteVerificacion)
                 {
                     TempData["Success"] = "Cuenta creada correctamente. Tu cuenta está pendiente de validación institucional. Contacta a tu coordinador académico.";
@@ -272,9 +301,16 @@ namespace RescateAcademico.Controllers
         [Compare("Password")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
+        [Required]
         public string Matricula { get; set; } = string.Empty;
+
+        [Required]
         public string Nombre { get; set; } = string.Empty;
+
+        [Required]
         public string Apellidos { get; set; } = string.Empty;
+
+        [Required]
         public string Carrera { get; set; } = string.Empty;
         public int SemestreActual { get; set; } = 1;
     }

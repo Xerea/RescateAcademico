@@ -7,15 +7,22 @@ namespace RescateAcademico.Services
     public class AlertasService
     {
         private readonly ApplicationDbContext _context;
+        private readonly RiskEvaluationService _riskEvaluationService;
+        private readonly NotificationService? _notificationService;
+
+        public AlertasService(ApplicationDbContext context, RiskEvaluationService riskEvaluationService, NotificationService notificationService)
+        {
+            _context = context;
+            _riskEvaluationService = riskEvaluationService;
+            _notificationService = notificationService;
+        }
 
         public AlertasService(ApplicationDbContext context)
         {
             _context = context;
+            _riskEvaluationService = new RiskEvaluationService();
         }
 
-        /// <summary>
-        /// Evalúa el riesgo académico de un alumno y genera alertas/notificaciones si cambia.
-        /// </summary>
         public async Task<string> EvaluarYAlertarAsync(string alumnoMatricula)
         {
             var alumno = await _context.Alumnos
@@ -25,7 +32,7 @@ namespace RescateAcademico.Services
             if (alumno == null) return "Alumno no encontrado";
 
             var riesgoAnterior = alumno.RiesgoAcademico;
-            var riesgoNuevo = CalcularRiesgo(alumno);
+            var riesgoNuevo = _riskEvaluationService.CalcularRiesgo(alumno);
 
             if (riesgoNuevo != riesgoAnterior)
             {
@@ -33,21 +40,16 @@ namespace RescateAcademico.Services
                 alumno.FechaUltimaActualizacion = DateTime.Now;
                 _context.Alumnos.Update(alumno);
 
-                // Notificar al alumno
                 if (!string.IsNullOrEmpty(alumno.UserId))
                 {
-                    var notifAlumno = new Notificacion
-                    {
-                        UserId = alumno.UserId,
-                        Titulo = $"Alerta de Riesgo Académico: {riesgoNuevo}",
-                        Mensaje = GenerarMensajeRiesgo(alumno, riesgoNuevo, riesgoAnterior),
-                        Tipo = riesgoNuevo == "Rojo" ? "Error" : riesgoNuevo == "Amarillo" ? "Advertencia" : "Exito",
-                        Enlace = "/PerfilAcademico"
-                    };
-                    _context.Notificaciones.Add(notifAlumno);
+                    AddNotification(
+                        alumno.UserId,
+                        $"Alerta de Riesgo Academico: {riesgoNuevo}",
+                        GenerarMensajeRiesgo(alumno, riesgoNuevo, riesgoAnterior),
+                        riesgoNuevo == "Rojo" ? "Error" : riesgoNuevo == "Amarillo" ? "Advertencia" : "Exito",
+                        "/PerfilAcademico");
                 }
 
-                // Notificar a tutores asignados
                 var tutores = await _context.AsignacionesTutor
                     .Where(at => at.AlumnoMatricula == alumnoMatricula && at.EstaActiva)
                     .Include(at => at.Tutor)
@@ -58,35 +60,36 @@ namespace RescateAcademico.Services
                 {
                     if (!string.IsNullOrEmpty(tutor?.UserId))
                     {
-                        var notifTutor = new Notificacion
-                        {
-                            UserId = tutor.UserId,
-                            Titulo = $"Cambio de Riesgo: {alumno.Nombre} {alumno.Apellidos}",
-                            Mensaje = $"El alumno {alumno.Nombre} {alumno.Apellidos} ({alumno.Matricula}) cambió de '{riesgoAnterior ?? "Sin clasificar"}' a '{riesgoNuevo}'.",
-                            Tipo = riesgoNuevo == "Rojo" ? "Error" : riesgoNuevo == "Amarillo" ? "Advertencia" : "Informacion",
-                            Enlace = $"/Intervenciones/PorAlumno?matricula={alumno.Matricula}"
-                        };
-                        _context.Notificaciones.Add(notifTutor);
+                        AddNotification(
+                            tutor.UserId,
+                            $"Cambio de Riesgo: {alumno.Nombre} {alumno.Apellidos}",
+                            $"El alumno {alumno.Nombre} {alumno.Apellidos} ({alumno.Matricula}) cambio de '{riesgoAnterior ?? "Sin clasificar"}' a '{riesgoNuevo}'.",
+                            riesgoNuevo == "Rojo" ? "Error" : riesgoNuevo == "Amarillo" ? "Advertencia" : "Informacion",
+                            $"/Intervenciones/PorAlumno?matricula={alumno.Matricula}");
                     }
                 }
 
-                // Notificar a administradores
-                var admins = await _context.UserRoles
-                    .Where(ur => ur.RoleId == _context.Roles.First(r => r.Name == "Administrador").Id)
-                    .Select(ur => ur.UserId)
-                    .ToListAsync();
+                var adminRoleId = await _context.Roles
+                    .Where(r => r.Name == "Administrador")
+                    .Select(r => r.Id)
+                    .FirstOrDefaultAsync();
 
-                foreach (var adminId in admins)
+                if (!string.IsNullOrEmpty(adminRoleId))
                 {
-                    var notifAdmin = new Notificacion
+                    var admins = await _context.UserRoles
+                        .Where(ur => ur.RoleId == adminRoleId)
+                        .Select(ur => ur.UserId)
+                        .ToListAsync();
+
+                    foreach (var adminId in admins)
                     {
-                        UserId = adminId,
-                        Titulo = $"Alerta Institucional: Alumno en {riesgoNuevo}",
-                        Mensaje = $"{alumno.Nombre} {alumno.Apellidos} ({alumno.Matricula}, {alumno.Carrera}) cambió a riesgo {riesgoNuevo}.",
-                        Tipo = riesgoNuevo == "Rojo" ? "Error" : "Advertencia",
-                        Enlace = $"/Alumnos/Detalles/{alumno.Matricula}"
-                    };
-                    _context.Notificaciones.Add(notifAdmin);
+                        AddNotification(
+                            adminId,
+                            $"Alerta Institucional: Alumno en {riesgoNuevo}",
+                            $"{alumno.Nombre} {alumno.Apellidos} ({alumno.Matricula}, {alumno.Carrera}) cambio a riesgo {riesgoNuevo}.",
+                            riesgoNuevo == "Rojo" ? "Error" : "Advertencia",
+                            $"/Alumnos/Detalles/{alumno.Matricula}");
+                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -96,9 +99,6 @@ namespace RescateAcademico.Services
             return $"Riesgo sin cambios: {riesgoNuevo}";
         }
 
-        /// <summary>
-        /// Evalúa todos los alumnos y genera alertas. Retorna resumen.
-        /// </summary>
         public async Task<(int evaluados, int cambios, List<string> detalles)> EvaluarTodosAsync()
         {
             var alumnos = await _context.Alumnos.ToListAsync();
@@ -120,28 +120,13 @@ namespace RescateAcademico.Services
 
         public static string CalcularRiesgo(Alumno alumno)
         {
-            var promedio = alumno.PromedioGlobal;
-            var reprobadas = alumno.MateriasReprobadas ?? 0;
-            var ausencias = alumno.Ausencias ?? 0;
-            var parcialesBajos = alumno.ParcialesBajos ?? 0;
-            var ets = alumno.EtsPresentados ?? 0;
-            var recursamientos = alumno.Recursamientos ?? 0;
-
-            // Riesgo Rojo
-            if (promedio < 6.0m || reprobadas >= 2 || ausencias > 5 || parcialesBajos >= 2 || ets >= 2 || recursamientos >= 2)
-                return "Rojo";
-
-            // Riesgo Amarillo
-            if (promedio < 7.5m || reprobadas == 1 || ausencias > 3 || parcialesBajos == 1 || ets == 1 || recursamientos == 1)
-                return "Amarillo";
-
-            return "Verde";
+            return new RiskEvaluationService().CalcularRiesgo(alumno);
         }
 
         private static string GenerarMensajeRiesgo(Alumno alumno, string riesgoNuevo, string? riesgoAnterior)
         {
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"Tu nivel de riesgo académico cambió de '{riesgoAnterior ?? "Sin clasificar"}' a '{riesgoNuevo}'.");
+            sb.AppendLine($"Tu nivel de riesgo academico cambio de '{riesgoAnterior ?? "Sin clasificar"}' a '{riesgoNuevo}'.");
             sb.AppendLine();
             sb.AppendLine($"Promedio global: {alumno.PromedioGlobal:F2}");
             sb.AppendLine($"Materias reprobadas: {alumno.MateriasReprobadas ?? 0}");
@@ -151,15 +136,33 @@ namespace RescateAcademico.Services
             if (riesgoNuevo == "Rojo")
             {
                 sb.AppendLine();
-                sb.AppendLine("Se recomienda contactar inmediatamente a tu tutor académico o al Departamento de Apoyo Estudiantil.");
+                sb.AppendLine("Se recomienda contactar inmediatamente a tu tutor academico o al Departamento de Apoyo Estudiantil.");
             }
             else if (riesgoNuevo == "Amarillo")
             {
                 sb.AppendLine();
-                sb.AppendLine("Se recomienda revisar tu plan de estudios y considerar asesorías académicas.");
+                sb.AppendLine("Se recomienda revisar tu plan de estudios y considerar asesorias academicas.");
             }
 
             return sb.ToString();
+        }
+
+        private void AddNotification(string userId, string titulo, string mensaje, string tipo, string? enlace = null)
+        {
+            if (_notificationService != null)
+            {
+                _notificationService.Add(userId, titulo, mensaje, tipo, enlace);
+                return;
+            }
+
+            _context.Notificaciones.Add(new Notificacion
+            {
+                UserId = userId,
+                Titulo = titulo,
+                Mensaje = mensaje,
+                Tipo = tipo,
+                Enlace = enlace
+            });
         }
     }
 }

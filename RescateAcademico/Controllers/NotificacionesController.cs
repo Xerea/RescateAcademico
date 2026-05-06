@@ -45,7 +45,7 @@ namespace RescateAcademico.Controllers
                 notificacion.Leida = true;
                 await _context.SaveChangesAsync();
 
-                if (!string.IsNullOrEmpty(notificacion.Enlace))
+                if (!string.IsNullOrEmpty(notificacion.Enlace) && Url.IsLocalUrl(notificacion.Enlace))
                     return Redirect(notificacion.Enlace);
             }
 

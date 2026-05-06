@@ -12,16 +12,22 @@ namespace RescateAcademico.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly DesercionPredictionService _predictionService;
+        private readonly StudentAccessService _studentAccessService;
 
-        public PrediccionesController(ApplicationDbContext context, DesercionPredictionService predictionService)
+        public PrediccionesController(
+            ApplicationDbContext context,
+            DesercionPredictionService predictionService,
+            StudentAccessService studentAccessService)
         {
             _context = context;
             _predictionService = predictionService;
+            _studentAccessService = studentAccessService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var predicciones = await _predictionService.PredecirTodosAsync();
+            var matriculas = await _studentAccessService.GetVisibleMatriculasAsync();
+            var predicciones = await _predictionService.PredecirAsync(matriculas);
             return View(predicciones);
         }
 
@@ -29,6 +35,7 @@ namespace RescateAcademico.Controllers
         {
             var alumno = await _context.Alumnos.FindAsync(matricula);
             if (alumno == null) return NotFound();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(matricula)) return Forbid();
 
             var prediccion = _predictionService.Predecir(alumno);
 
@@ -50,6 +57,7 @@ namespace RescateAcademico.Controllers
         {
             var alumno = await _context.Alumnos.FindAsync(matricula);
             if (alumno == null) return NotFound();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(matricula)) return Forbid();
 
             var analisis = await _predictionService.GenerarAnalisisIAAsync(alumno);
 

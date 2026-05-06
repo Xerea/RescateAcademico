@@ -92,6 +92,15 @@
                             @Model.NivelRiesgoPredictivo
                         </span>
                     </p>
+                    @if (Model.EsTutor || User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
+                    {
+                        <form asp-action="GuardarAnalisisInteligente" method="post" class="mt-3">
+                            <input type="hidden" name="matricula" value="@Model.Alumno.Matricula" />
+                            <button type="submit" class="ra-btn ra-btn-outline w-100">
+                                <i class="bi bi-save"></i> Guardar análisis
+                            </button>
+                        </form>
+                    }
                 </div>
             </div>
         </div>
