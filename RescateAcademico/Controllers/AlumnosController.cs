@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
 
 namespace RescateAcademico.Controllers
 {
@@ -10,16 +11,18 @@ namespace RescateAcademico.Controllers
     public class AlumnosController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StudentAccessService _studentAccessService;
 
-        public AlumnosController(ApplicationDbContext context)
+        public AlumnosController(ApplicationDbContext context, StudentAccessService studentAccessService)
         {
             _context = context;
+            _studentAccessService = studentAccessService;
         }
 
         [Authorize(Roles = "Administrador,Tutor,Autoridad")]
         public async Task<IActionResult> Index(string? busqueda, string? filtroRiesgo, string? carrera, int? semestre)
         {
-            var query = _context.Alumnos.AsQueryable();
+            var query = _studentAccessService.ApplyVisibleStudents(_context.Alumnos.AsQueryable());
 
             if (!string.IsNullOrEmpty(busqueda))
             {
@@ -48,8 +51,9 @@ namespace RescateAcademico.Controllers
             ViewBag.FiltroRiesgo = filtroRiesgo;
             ViewBag.FiltroCarrera = carrera;
             ViewBag.FiltroSemestre = semestre;
-            ViewBag.Carreras = await _context.Alumnos.Select(a => a.Carrera).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c).ToListAsync();
-            ViewBag.Semestres = await _context.Alumnos.Select(a => a.SemestreActual).Distinct().OrderBy(s => s).ToListAsync();
+            var visibleForFilters = _studentAccessService.ApplyVisibleStudents(_context.Alumnos.AsQueryable());
+            ViewBag.Carreras = await visibleForFilters.Select(a => a.Carrera).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c).ToListAsync();
+            ViewBag.Semestres = await visibleForFilters.Select(a => a.SemestreActual).Distinct().OrderBy(s => s).ToListAsync();
 
             var alumnos = await query.OrderBy(a => a.Apellidos).ToListAsync();
             return View(alumnos);
@@ -69,7 +73,7 @@ namespace RescateAcademico.Controllers
 
             if (alumno == null) return NotFound();
 
-            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(id))
+            if (!await _studentAccessService.CanAccessAlumnoAsync(id))
                 return Forbid();
 
             return View(alumno);
@@ -83,8 +87,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> MisTutorados(string? grupo)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
+            var tutor = await _studentAccessService.GetCurrentTutorAsync();
 
             if (tutor == null) return NotFound();
 
@@ -108,7 +111,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Tutor")]
         public async Task<IActionResult> DetallesTutorado(string matricula)
         {
-            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(matricula))
+            if (!await _studentAccessService.CanAccessAlumnoAsync(matricula))
                 return Forbid();
             return RedirectToAction("Detalles", new { id = matricula });
         }
@@ -125,7 +128,7 @@ namespace RescateAcademico.Controllers
 
             if (alumno == null) return NotFound();
 
-            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(matricula))
+            if (!await _studentAccessService.CanAccessAlumnoAsync(matricula))
                 return Forbid();
 
             var intervenciones = await _context.IntervencionesTutoria
@@ -156,7 +159,7 @@ namespace RescateAcademico.Controllers
 
             if (alumno == null) return NotFound();
 
-            if (User.IsInRole("Tutor") && !await EsAlumnoDeTutorAsync(matricula))
+            if (!await _studentAccessService.CanAccessAlumnoAsync(matricula))
                 return Forbid();
 
             return Json(new
@@ -178,19 +181,5 @@ namespace RescateAcademico.Controllers
             });
         }
 
-        private async Task<bool> EsAlumnoDeTutorAsync(string matricula)
-        {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var tutor = await _context.Tutores.FirstOrDefaultAsync(t => t.UserId == userId);
-            if (tutor == null) return false;
-
-            var grupos = await _context.Grupos
-                .Where(g => g.ProfesorId == tutor.Id)
-                .Include(g => g.Alumnos)
-                .ToListAsync();
-
-            var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
-            return alumnosIds.Contains(matricula);
-        }
     }
 }

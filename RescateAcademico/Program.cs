@@ -118,6 +118,13 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = cookieSecurePolicy;
 });
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CurrentUserContext>();
+builder.Services.AddScoped<StudentAccessService>();
+builder.Services.AddScoped<RiskEvaluationService>();
+builder.Services.AddScoped<ConvocatoriaEligibilityService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<AlertasService>();
 builder.Services.AddHttpClient<DesercionPredictionService>();
 builder.Services.AddScoped<DesercionPredictionService>();
@@ -187,11 +194,11 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()");
     context.Response.Headers.Append("Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net; " +
-        "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net; " +
+        "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net cdnjs.cloudflare.com; " +
+        "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net fonts.googleapis.com; " +
         "img-src 'self' data:; " +
-        "font-src 'self' cdn.jsdelivr.net; " +
-        "connect-src 'self'; " +
+        "font-src 'self' cdn.jsdelivr.net fonts.gstatic.com; " +
+        "connect-src 'self' cdn.datatables.net; " +
         "frame-ancestors 'none'; " +
         "base-uri 'self'; " +
         "form-action 'self';");
@@ -249,7 +256,7 @@ using (var scope = app.Services.CreateScope())
         if (alumnosSinRiesgo.Count > 0)
         {
             logger.LogInformation("Found {Count} students without RiesgoAcademico. Re-evaluating...", alumnosSinRiesgo.Count);
-            var alertas = new RescateAcademico.Services.AlertasService(context);
+            var alertas = services.GetRequiredService<AlertasService>();
             int fixedCount = 0;
             foreach (var alumno in alumnosSinRiesgo)
             {

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
+using RescateAcademico.Services;
 using System.Text;
 
 namespace RescateAcademico.Controllers
@@ -10,16 +11,18 @@ namespace RescateAcademico.Controllers
     public class ExportController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StudentAccessService _studentAccessService;
 
-        public ExportController(ApplicationDbContext context)
+        public ExportController(ApplicationDbContext context, StudentAccessService studentAccessService)
         {
             _context = context;
+            _studentAccessService = studentAccessService;
         }
 
         [HttpGet]
         public async Task<IActionResult> AlumnosCSV()
         {
-            var alumnos = await _context.Alumnos
+            var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
                 .OrderBy(a => a.Apellidos)
                 .ThenBy(a => a.Nombre)
                 .ToListAsync();
@@ -39,9 +42,11 @@ namespace RescateAcademico.Controllers
         [HttpGet]
         public async Task<IActionResult> PostulacionesCSV()
         {
+            var matriculasVisibles = await _studentAccessService.GetVisibleMatriculasAsync();
             var postulaciones = await _context.Postulaciones
                 .Include(p => p.Alumno)
                 .Include(p => p.Proyecto)
+                .Where(p => matriculasVisibles.Contains(p.AlumnoId))
                 .OrderByDescending(p => p.FechaSolicitud)
                 .ToListAsync();
 
@@ -62,7 +67,7 @@ namespace RescateAcademico.Controllers
         [HttpGet]
         public async Task<IActionResult> AlumnosEnRiesgoCSV()
         {
-            var alumnos = await _context.Alumnos
+            var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
                 .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                 .OrderByDescending(a => (double)a.PromedioGlobal)
                 .ToListAsync();
@@ -82,13 +87,13 @@ namespace RescateAcademico.Controllers
         [HttpGet]
         public async Task<IActionResult> ReporteImprimible()
         {
-            var alumnos = await _context.Alumnos
+            var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
                 .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                 .OrderBy(a => a.RiesgoAcademico)
                 .ThenByDescending(a => (double)a.PromedioGlobal)
                 .ToListAsync();
 
-            var totalAlumnos = await _context.Alumnos.CountAsync();
+            var totalAlumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos).CountAsync();
             var enRojo = alumnos.Count(a => a.RiesgoAcademico == "Rojo");
             var enAmarillo = alumnos.Count(a => a.RiesgoAcademico == "Amarillo");
 
@@ -103,6 +108,10 @@ namespace RescateAcademico.Controllers
         private static string Escape(string? value)
         {
             if (string.IsNullOrEmpty(value)) return "";
+            if ("=+-@".Contains(value[0]))
+            {
+                value = "'" + value;
+            }
             if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
             {
                 return "\"" + value.Replace("\"", "\"\"") + "\"";

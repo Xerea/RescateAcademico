@@ -60,9 +60,26 @@
             var icons = { success: 'bi-check-circle-fill', danger: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill' };
             var toast = document.createElement('div');
             toast.className = 'ra-toast ra-toast-' + type;
-            toast.innerHTML = '<i class="bi ' + (icons[type] || icons.info) + ' ra-toast-icon"></i>' +
-                '<div style="flex:1;line-height:1.4;">' + (message || '') + '</div>' +
-                '<button type="button" class="ra-toast-close" aria-label="Cerrar"><i class="bi bi-x"></i></button>';
+
+            var icon = document.createElement('i');
+            icon.className = 'bi ' + (icons[type] || icons.info) + ' ra-toast-icon';
+
+            var body = document.createElement('div');
+            body.style.flex = '1';
+            body.style.lineHeight = '1.4';
+            body.textContent = message || '';
+
+            var close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'ra-toast-close';
+            close.setAttribute('aria-label', 'Cerrar');
+            var closeIcon = document.createElement('i');
+            closeIcon.className = 'bi bi-x';
+            close.appendChild(closeIcon);
+
+            toast.appendChild(icon);
+            toast.appendChild(body);
+            toast.appendChild(close);
 
             toast.querySelector('.ra-toast-close').addEventListener('click', function() { RaToast.dismiss(toast); });
             this.container.appendChild(toast);
@@ -175,11 +192,22 @@
 
             var sizeClass = size ? ' ra-semaforo-' + size : '';
             this.className = 'ra-semaforo' + sizeClass;
-            this.innerHTML =
-                '<span class="ra-semaforo-dot verde ' + verdeActive + '"></span>' +
-                '<span class="ra-semaforo-dot amarillo ' + amarilloActive + '"></span>' +
-                '<span class="ra-semaforo-dot rojo ' + rojoActive + '"></span>' +
-                (tooltip ? '<span class="ra-semaforo-tooltip">' + tooltip + '</span>' : '');
+            this.replaceChildren();
+            [
+                ['verde', verdeActive],
+                ['amarillo', amarilloActive],
+                ['rojo', rojoActive]
+            ].forEach(function(item) {
+                var dot = document.createElement('span');
+                dot.className = 'ra-semaforo-dot ' + item[0] + ' ' + item[1];
+                this.appendChild(dot);
+            }, this);
+            if (tooltip) {
+                var tooltipEl = document.createElement('span');
+                tooltipEl.className = 'ra-semaforo-tooltip';
+                tooltipEl.textContent = tooltip;
+                this.appendChild(tooltipEl);
+            }
         }
     }
     if (!customElements.get('ra-semaforo')) {

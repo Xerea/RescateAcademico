@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
 using System.ComponentModel.DataAnnotations;
 
 namespace RescateAcademico.Controllers
@@ -11,10 +12,17 @@ namespace RescateAcademico.Controllers
     public class PlanesMejoraController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StudentAccessService _studentAccessService;
+        private readonly NotificationService _notificationService;
 
-        public PlanesMejoraController(ApplicationDbContext context)
+        public PlanesMejoraController(
+            ApplicationDbContext context,
+            StudentAccessService studentAccessService,
+            NotificationService notificationService)
         {
             _context = context;
+            _studentAccessService = studentAccessService;
+            _notificationService = notificationService;
         }
 
         public async Task<IActionResult> Index(string? matricula)
@@ -26,6 +34,9 @@ namespace RescateAcademico.Controllers
 
             if (!string.IsNullOrEmpty(matricula))
                 query = query.Where(p => p.AlumnoMatricula == matricula);
+
+            var matriculasVisibles = await _studentAccessService.GetVisibleMatriculasAsync();
+            query = query.Where(p => matriculasVisibles.Contains(p.AlumnoMatricula));
 
             var planes = await query.OrderByDescending(p => p.FechaCreacion).ToListAsync();
             ViewBag.MatriculaFiltro = matricula;
@@ -40,13 +51,14 @@ namespace RescateAcademico.Controllers
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (plan == null) return NotFound();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
             return View(plan);
         }
 
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(string? matricula)
         {
-            ViewBag.Alumnos = await _context.Alumnos
+            ViewBag.Alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
                 .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                 .OrderBy(a => a.Apellidos)
                 .ToListAsync();
@@ -68,13 +80,15 @@ namespace RescateAcademico.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Alumnos = await _context.Alumnos
+                ViewBag.Alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
                     .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                     .OrderBy(a => a.Apellidos)
                     .ToListAsync();
                 ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
                 return View(model);
             }
+
+            if (!await _studentAccessService.CanAccessAlumnoAsync(model.AlumnoMatricula)) return Forbid();
 
             var plan = new PlanMejora
             {
@@ -94,14 +108,12 @@ namespace RescateAcademico.Controllers
             var alumno = await _context.Alumnos.FindAsync(model.AlumnoMatricula);
             if (alumno != null && !string.IsNullOrEmpty(alumno.UserId))
             {
-                _context.Notificaciones.Add(new Notificacion
-                {
-                    UserId = alumno.UserId,
-                    Titulo = "Nuevo Plan de Mejora Asignado",
-                    Mensaje = "Se ha creado un plan de mejora personalizado para ti. Revisa las recomendaciones y metas establecidas.",
-                    Tipo = "Informacion",
-                    Enlace = $"/PlanesMejora/Detalles/{plan.Id}"
-                });
+                _notificationService.Add(
+                    alumno.UserId,
+                    "Nuevo Plan de Mejora Asignado",
+                    "Se ha creado un plan de mejora personalizado para ti. Revisa las recomendaciones y metas establecidas.",
+                    "Informacion",
+                    $"/PlanesMejora/Detalles/{plan.Id}");
                 await _context.SaveChangesAsync();
             }
 
@@ -114,6 +126,7 @@ namespace RescateAcademico.Controllers
         {
             var plan = await _context.PlanesMejora.FindAsync(id);
             if (plan == null) return NotFound();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
 
             ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
 
@@ -145,6 +158,7 @@ namespace RescateAcademico.Controllers
 
             var plan = await _context.PlanesMejora.FindAsync(model.Id);
             if (plan == null) return NotFound();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
 
             plan.TutorId = model.TutorId;
             plan.Recomendaciones = model.Recomendaciones;
@@ -168,6 +182,7 @@ namespace RescateAcademico.Controllers
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (plan == null) return NotFound();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
             return View(plan);
         }
     }

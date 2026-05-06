@@ -13,24 +13,27 @@ namespace RescateAcademico.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<DesercionPredictionService> _logger;
         private readonly HttpClient _httpClient;
+        private readonly RiskEvaluationService _riskEvaluationService;
 
         public DesercionPredictionService(
             ApplicationDbContext context,
             IConfiguration configuration,
             ILogger<DesercionPredictionService> logger,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            RiskEvaluationService riskEvaluationService)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
             _httpClient = httpClient;
+            _riskEvaluationService = riskEvaluationService;
         }
 
         public bool IsAvailable => true; // Heuristics are always available
 
         public DesercionOutput Predecir(Alumno alumno)
         {
-            var prob = CalcularHeuristica(alumno);
+            var prob = _riskEvaluationService.CalcularProbabilidadDesercion(alumno);
             return new DesercionOutput
             {
                 Prediccion = prob > 0.5m,
@@ -42,6 +45,20 @@ namespace RescateAcademico.Services
         public async Task<List<PrediccionAlumnoViewModel>> PredecirTodosAsync()
         {
             var alumnos = await _context.Alumnos.ToListAsync();
+            return PredecirAlumnos(alumnos);
+        }
+
+        public async Task<List<PrediccionAlumnoViewModel>> PredecirAsync(IEnumerable<string> matriculas)
+        {
+            var ids = matriculas.ToList();
+            var alumnos = await _context.Alumnos
+                .Where(a => ids.Contains(a.Matricula))
+                .ToListAsync();
+            return PredecirAlumnos(alumnos);
+        }
+
+        private List<PrediccionAlumnoViewModel> PredecirAlumnos(IEnumerable<Alumno> alumnos)
+        {
             var resultados = new List<PrediccionAlumnoViewModel>();
 
             foreach (var alumno in alumnos)
@@ -196,17 +213,6 @@ namespace RescateAcademico.Services
             return resultado;
         }
 
-        private static decimal CalcularHeuristica(Alumno a)
-        {
-            double score = 0;
-            score += Math.Max(0, (7.0 - (double)a.PromedioGlobal) * 0.15);
-            score += (a.MateriasReprobadas ?? 0) * 0.12;
-            score += (a.Ausencias ?? 0) * 0.04;
-            score += (a.ParcialesBajos ?? 0) * 0.08;
-            score += (a.EtsPresentados ?? 0) * 0.06;
-            score += (a.Recursamientos ?? 0) * 0.07;
-            return Math.Min(0.99m, Math.Round((decimal)score, 2));
-        }
     }
 
     public class DesercionOutput
