@@ -63,6 +63,10 @@ namespace RescateAcademico.Controllers
                 {
                     return Redirect(returnUrl);
                 }
+                if (user != null && await _userManager.IsInRoleAsync(user, "Tutor"))
+                {
+                    return RedirectToAction("Index", "Profesor");
+                }
                 return RedirectToAction("Index", "Dashboard");
             }
 

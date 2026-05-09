@@ -12,11 +12,13 @@ namespace RescateAcademico.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly StudentAccessService _studentAccessService;
+        private readonly RiskEvaluationService _riskEvaluationService;
 
-        public ProfesorController(ApplicationDbContext context, StudentAccessService studentAccessService)
+        public ProfesorController(ApplicationDbContext context, StudentAccessService studentAccessService, RiskEvaluationService riskEvaluationService)
         {
             _context = context;
             _studentAccessService = studentAccessService;
+            _riskEvaluationService = riskEvaluationService;
         }
 
         public async Task<IActionResult> Index()
@@ -56,6 +58,18 @@ namespace RescateAcademico.Controllers
                 }).ToList(),
                 Estudiantes = alumnos.OrderBy(a => a.Apellidos).ToList()
             };
+
+            int predAlta = 0, predMedia = 0, predBaja = 0;
+            foreach (var a in alumnos)
+            {
+                var prob = _riskEvaluationService.CalcularProbabilidadDesercion(a);
+                if (prob >= 0.55m) predAlta++;
+                else if (prob >= 0.35m) predMedia++;
+                else predBaja++;
+            }
+            vm.PrediccionesAltas = predAlta;
+            vm.PrediccionesMedias = predMedia;
+            vm.PrediccionesBajas = predBaja;
 
             return View(vm);
         }
@@ -142,6 +156,11 @@ namespace RescateAcademico.Controllers
             ViewBag.Dictamenes = alumno.Dictamenes.OrderByDescending(d => d.FechaEmision).ToList();
             ViewBag.Cosecovi = alumno.ReportesCosecovi.OrderByDescending(r => r.FechaReporte).ToList();
 
+            ViewBag.ProbabilidadDesercion = _riskEvaluationService.CalcularProbabilidadDesercion(alumno);
+            ViewBag.NivelPredictivo = _riskEvaluationService.CalcularNivelPredictivo(ViewBag.ProbabilidadDesercion);
+            ViewBag.FactoresRiesgo = _riskEvaluationService.ObtenerFactoresRiesgo(alumno);
+            ViewBag.Sugerencias = _riskEvaluationService.GenerarSugerencias(alumno);
+
             return View(historial);
         }
 
@@ -180,6 +199,9 @@ namespace RescateAcademico.Controllers
         public int IntervencionesPendientes { get; set; }
         public int PlanesActivos { get; set; }
         public double PromedioGeneral { get; set; }
+        public int PrediccionesAltas { get; set; }
+        public int PrediccionesMedias { get; set; }
+        public int PrediccionesBajas { get; set; }
         public List<GrupoResumen> Grupos { get; set; } = new();
         public List<Alumno> Estudiantes { get; set; } = new();
     }
