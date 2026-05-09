@@ -38,9 +38,14 @@
     <div class="ra-card mb-4">
         <div class="ra-card-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-brain ra-text-primary me-2"></i>Predicción de Deserción</span>
-            <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
-                <i class="bi bi-eye"></i> Análisis completo
-            </a>
+            <div class="d-flex gap-2">
+                <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-sm ra-btn-primary">
+                    <i class="bi bi-journal-plus"></i> Crear Plan
+                </a>
+                <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
+                    <i class="bi bi-eye"></i> Análisis completo
+                </a>
+            </div>
         </div>
         <div class="ra-card-body">
             <div class="row g-3 text-center">
