@@ -14,15 +14,18 @@ namespace RescateAcademico.Controllers
         private readonly ApplicationDbContext _context;
         private readonly StudentAccessService _studentAccessService;
         private readonly NotificationService _notificationService;
+        private readonly RiskEvaluationService _riskEvaluationService;
 
         public PlanesMejoraController(
             ApplicationDbContext context,
             StudentAccessService studentAccessService,
-            NotificationService notificationService)
+            NotificationService notificationService,
+            RiskEvaluationService riskEvaluationService)
         {
             _context = context;
             _studentAccessService = studentAccessService;
             _notificationService = notificationService;
+            _riskEvaluationService = riskEvaluationService;
         }
 
         public async Task<IActionResult> Index(string? matricula)
@@ -58,17 +61,47 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(string? matricula)
         {
-            ViewBag.Alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
+            var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
                 .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
-                .OrderBy(a => a.Apellidos)
+                .OrderByDescending(a => a.RiesgoAcademico == "Rojo")
+                .ThenBy(a => a.Apellidos)
                 .ToListAsync();
 
-            ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+            ViewBag.Alumnos = alumnos;
 
             var model = new PlanMejoraViewModel
             {
                 AlumnoMatricula = matricula ?? ""
             };
+
+            if (User.IsInRole("Administrador"))
+            {
+                ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+            }
+            else
+            {
+                var tutor = await _studentAccessService.GetCurrentTutorAsync();
+                if (tutor != null)
+                {
+                    model.TutorId = tutor.Id;
+                }
+                ViewBag.TutorNombre = tutor?.Nombre + " " + tutor?.Apellidos;
+            }
+
+            if (!string.IsNullOrEmpty(matricula))
+            {
+                var alumnoSeleccionado = await _context.Alumnos
+                    .Include(a => a.Calificaciones).ThenInclude(c => c.Materia)
+                    .FirstOrDefaultAsync(a => a.Matricula == matricula);
+
+                if (alumnoSeleccionado != null)
+                {
+                    ViewBag.AlumnoSeleccionado = alumnoSeleccionado;
+                    ViewBag.SugerenciasPrecargadas = _riskEvaluationService.GenerarSugerencias(alumnoSeleccionado);
+                    ViewBag.FactoresRiesgo = _riskEvaluationService.ObtenerFactoresRiesgo(alumnoSeleccionado);
+                    model.Recomendaciones = string.Join(". ", _riskEvaluationService.GenerarSugerencias(alumnoSeleccionado));
+                }
+            }
 
             return View(model);
         }
@@ -78,13 +111,32 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(PlanMejoraViewModel model)
         {
+            if (!User.IsInRole("Administrador"))
+            {
+                var tutor = await _studentAccessService.GetCurrentTutorAsync();
+                if (tutor != null)
+                {
+                    model.TutorId = tutor.Id;
+                }
+            }
+
             if (!ModelState.IsValid)
             {
-                ViewBag.Alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
+                var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
                     .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
-                    .OrderBy(a => a.Apellidos)
+                    .OrderByDescending(a => a.RiesgoAcademico == "Rojo")
+                    .ThenBy(a => a.Apellidos)
                     .ToListAsync();
-                ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+                ViewBag.Alumnos = alumnos;
+                if (User.IsInRole("Administrador"))
+                {
+                    ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+                }
+                else
+                {
+                    var currentTutor = await _studentAccessService.GetCurrentTutorAsync();
+                    ViewBag.TutorNombre = currentTutor?.Nombre + " " + currentTutor?.Apellidos;
+                }
                 return View(model);
             }
 
@@ -124,11 +176,24 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Editar(int id)
         {
-            var plan = await _context.PlanesMejora.FindAsync(id);
+            var plan = await _context.PlanesMejora
+                .Include(p => p.Alumno)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (plan == null) return NotFound();
             if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
 
-            ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+            if (User.IsInRole("Administrador"))
+            {
+                ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+            }
+            else
+            {
+                var tutor = await _studentAccessService.GetCurrentTutorAsync();
+                ViewBag.TutorNombre = tutor?.Nombre + " " + tutor?.Apellidos;
+            }
+
+            ViewBag.AlumnoSeleccionado = plan.Alumno;
 
             var model = new PlanMejoraViewModel
             {
@@ -152,7 +217,8 @@ namespace RescateAcademico.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+                if (User.IsInRole("Administrador"))
+                    ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
                 return View(model);
             }
 
@@ -160,12 +226,12 @@ namespace RescateAcademico.Controllers
             if (plan == null) return NotFound();
             if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
 
-            plan.TutorId = model.TutorId;
+            plan.TutorId = User.IsInRole("Administrador") ? model.TutorId : plan.TutorId;
             plan.Recomendaciones = model.Recomendaciones;
             plan.Metas = model.Metas;
             plan.AccionesTomadas = model.AccionesTomadas;
             plan.FechaCierre = model.FechaCierre;
-            plan.Estado = model.Estado;
+            plan.Estado = User.IsInRole("Administrador") ? model.Estado : plan.Estado;
 
             _context.PlanesMejora.Update(plan);
             await _context.SaveChangesAsync();

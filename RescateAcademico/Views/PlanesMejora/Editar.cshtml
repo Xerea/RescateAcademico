@@ -3,70 +3,118 @@
     ViewData["Title"] = "Editar Plan de Mejora";
     Layout = "_Layout";
     var tutores = ViewBag.Tutores as List<RescateAcademico.Models.Tutor> ?? new List<RescateAcademico.Models.Tutor>();
+    var tutorNombre = ViewBag.TutorNombre as string;
+    var alumnoSeleccionado = ViewBag.AlumnoSeleccionado as RescateAcademico.Models.Alumno;
+    var esAdmin = User.IsInRole("Administrador");
 }
 
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6 mx-auto">
-        <div class="ra-card">
-            <div class="ra-card-header text-center">
-                <h3 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Plan de Mejora</h3>
+    <div class="col-md-9 col-lg-8">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <a asp-controller="Profesor" asp-action="Index" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Mis Grupos</a>
+        </div>
+
+        <h1 class="fw-bold h3 mb-4"><i class="bi bi-pencil-square ra-text-accent me-2"></i>Editar Plan de Mejora</h1>
+
+        @if (alumnoSeleccionado != null)
+        {
+            <div class="ra-card mb-4">
+                <div class="ra-card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="fw-semibold mb-1">@alumnoSeleccionado.Nombre @alumnoSeleccionado.Apellidos</h5>
+                            <p class="text-secondary small mb-0">@alumnoSeleccionado.Carrera &mdash; @alumnoSeleccionado.SemestreActual° Semestre</p>
+                        </div>
+                        <ra-semaforo riesgo="@alumnoSeleccionado.RiesgoAcademico" size="sm"></ra-semaforo>
+                    </div>
+                </div>
             </div>
+        }
+
+        <div class="ra-card">
             <div class="ra-card-body">
                 <form asp-action="Editar" method="post">
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="AlumnoMatricula" />
 
-                    <div class="mb-3">
-                        <label class="ra-label fw-bold">Alumno</label>
-                        <input class="ra-input" value="@Model.AlumnoMatricula" disabled />
+                    <div class="mb-4">
+                        <label class="ra-label">Alumno</label>
+                        <input class="ra-input" value="@Model.AlumnoMatricula" disabled style="background:var(--ra-border-subtle);" />
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="TutorId" class="ra-label fw-bold">Profesor Asignado</label>
-                        <select asp-for="TutorId" class="ra-select">
-                            <option value="">-- Selecciona un Profesor --</option>
-                            @foreach (var prof in tutores)
-                            {
-                                <option value="@prof.Id">@prof.Nombre @prof.Apellidos - @prof.Especialidad</option>
-                            }
-                        </select>
+                    @if (esAdmin)
+                    {
+                        <div class="mb-4">
+                            <label asp-for="TutorId" class="ra-label">Profesor Asignado</label>
+                            <select asp-for="TutorId" class="ra-select">
+                                <option value="">-- Selecciona un Profesor --</option>
+                                @foreach (var prof in tutores)
+                                {
+                                    <option value="@prof.Id">@prof.Nombre @prof.Apellidos — @prof.Especialidad</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="TutorId" />
+                        <div class="mb-4">
+                            <label class="ra-label">Profesor Asignado</label>
+                            <div class="ra-input d-flex align-items-center gap-2" style="background:var(--ra-border-subtle);">
+                                <i class="bi bi-person-check text-secondary"></i>
+                                <span class="fw-medium">@(tutorNombre ?? "Tú")</span>
+                            </div>
+                        </div>
+                    }
+
+                    @if (esAdmin)
+                    {
+                        <div class="mb-4">
+                            <label asp-for="Estado" class="ra-label">Estado</label>
+                            <select asp-for="Estado" class="ra-select">
+                                <option value="Activo">Activo</option>
+                                <option value="Cumplido">Cumplido</option>
+                                <option value="Vencido">Vencido</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="Estado" />
+                        <div class="mb-4">
+                            <label class="ra-label">Estado</label>
+                            <span class="ra-badge @(Model.Estado == "Activo" ? "ra-badge-success" : Model.Estado == "Cumplido" ? "ra-badge-info" : Model.Estado == "Vencido" ? "ra-badge-warning" : "ra-badge-neutral")">
+                                @Model.Estado
+                            </span>
+                        </div>
+                    }
+
+                    <div class="mb-4">
+                        <label asp-for="Recomendaciones" class="ra-label">Recomendaciones</label>
+                        <textarea asp-for="Recomendaciones" class="ra-input" rows="5" placeholder="Recomendaciones para el estudiante..."></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Estado" class="ra-label fw-bold">Estado</label>
-                        <select asp-for="Estado" class="ra-select">
-                            <option value="Activo">Activo</option>
-                            <option value="Cumplido">Cumplido</option>
-                            <option value="Vencido">Vencido</option>
-                            <option value="Cancelado">Cancelado</option>
-                        </select>
+                    <div class="mb-4">
+                        <label asp-for="Metas" class="ra-label">Metas</label>
+                        <textarea asp-for="Metas" class="ra-input" rows="3" placeholder="Metas del plan de mejora..."></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Recomendaciones" class="ra-label fw-bold">Recomendaciones</label>
-                        <textarea asp-for="Recomendaciones" class="ra-input" rows="4"></textarea>
+                    <div class="mb-4">
+                        <label asp-for="AccionesTomadas" class="ra-label">Acciones Tomadas</label>
+                        <textarea asp-for="AccionesTomadas" class="ra-input" rows="3" placeholder="Acciones realizadas hasta el momento..."></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Metas" class="ra-label fw-bold">Metas</label>
-                        <textarea asp-for="Metas" class="ra-input" rows="3"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="AccionesTomadas" class="ra-label fw-bold">Acciones Tomadas</label>
-                        <textarea asp-for="AccionesTomadas" class="ra-input" rows="3"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="FechaCierre" class="ra-label fw-bold">Fecha de Cierre Estimada</label>
+                    <div class="mb-4">
+                        <label asp-for="FechaCierre" class="ra-label">Fecha de Cierre Estimada</label>
                         <input asp-for="FechaCierre" type="date" class="ra-input" />
                     </div>
 
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex gap-2">
                         <a asp-action="Detalles" asp-route-id="@Model.Id" class="ra-btn ra-btn-ghost">
                             <i class="bi bi-arrow-left"></i> Cancelar
                         </a>
-                        <button type="submit" class="ra-btn ra-btn-primary">
+                        <button type="submit" class="ra-btn ra-btn-primary flex-fill">
                             <i class="bi bi-check-circle"></i> Guardar Cambios
                         </button>
                     </div>
