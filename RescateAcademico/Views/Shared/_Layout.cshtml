@@ -17,7 +17,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm ra-navbar">
             <div class="container-fluid px-4 px-lg-5">
-                <a class="navbar-brand ra-navbar-brand" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                <a class="navbar-brand ra-navbar-brand" asp-area="" asp-controller="@(User.IsInRole("Tutor") ? "Profesor" : "Dashboard")" asp-action="Index">
                     <i class="bi bi-mortarboard-fill"></i>
                     <span>Rescate Académico</span>
                 </a>
@@ -32,8 +32,8 @@
                             bool isDash = cc == "Dashboard" && ca == "Index";
                         }
 
-                        @* ALL authenticated users see Dashboard *@
-                        @if (User.Identity?.IsAuthenticated == true)
+                        @* ALL authenticated NON-Tutor users see Dashboard *@
+                        @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Tutor"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link @(isDash ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
@@ -52,20 +52,7 @@
                             </li>
                         }
 
-                        @* Tutor: Mis Estudiantes + Intervenciones *@
-                        @if (User.IsInRole("Tutor"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link @(cc == "Profesor" ? "active" : "")" asp-controller="Profesor" asp-action="Index">
-                                    <i class="bi bi-people"></i> Mis Estudiantes
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link @(cc == "Intervenciones" ? "active" : "")" asp-controller="Intervenciones" asp-action="Index">
-                                    <i class="bi bi-clipboard-pulse"></i> Intervenciones
-                                </a>
-                            </li>
-                        }
+
 
                         @* Autoridad: Alumnos + Reportes *@
                         @if (User.IsInRole("Autoridad"))
@@ -112,13 +99,20 @@
         <div class="container-fluid px-4 px-lg-5">
             @{
                 var isHome = cc == "Home" && ca == "Index";
-                var isPanel = cc == "Dashboard" && ca == "Index";
+                var isPanel = (cc == "Dashboard" && ca == "Index") || (cc == "Profesor" && ca == "Index");
             }
             @if (!isHome && !isPanel)
             {
                 <nav aria-label="breadcrumb" class="ra-breadcrumb mt-3">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2"></i> Panel</a></li>
+                        @if (User.IsInRole("Tutor"))
+                        {
+                            <li class="breadcrumb-item"><a asp-controller="Profesor" asp-action="Index"><i class="bi bi-person-workspace"></i> Mis Grupos</a></li>
+                        }
+                        else
+                        {
+                            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2"></i> Panel</a></li>
+                        }
                         <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
                     </ol>
                 </nav>

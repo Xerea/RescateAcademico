@@ -23,7 +23,7 @@
     var sugerencias = new List<(string Texto, string Accion, string Link, string Tipo)>();
     if (Model.EnRiesgoRojo >= 3)
     {
-        sugerencias.Add(("Tienes " + Model.EnRiesgoRojo + " estudiantes en riesgo alto. Considera una tutoría grupal.", "Programar", "#", "warning"));
+        sugerencias.Add(("Tienes " + Model.EnRiesgoRojo + " estudiantes en riesgo alto. Considera un plan de mejora grupal.", "Planificar", Url.Action("Crear", "PlanesMejora")!, "warning"));
     }
     var ultimaSemana = DateTime.Now.AddDays(-7);
     var recientesRiesgo = Model.Estudiantes.Where(e => e.FechaUltimaActualizacion >= ultimaSemana && e.RiesgoAcademico == "Rojo").Take(1).ToList();
@@ -93,6 +93,47 @@
                 {
                     <div style="width:@pctRojo.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-danger);transition:width 1s ease;"></div>
                 }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Prediction Glance -->
+@{
+    var totalPred = Model.PrediccionesAltas + Model.PrediccionesMedias + Model.PrediccionesBajas;
+}
+@if (totalPred > 0)
+{
+    <div class="ra-card mb-4">
+        <div class="ra-card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="ra-heading mb-1"><i class="bi bi-brain me-1"></i> Predicciones de Deserción</div>
+                    <div class="text-secondary small">Análisis heurístico de tus @totalPred estudiantes</div>
+                </div>
+                <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-sm ra-btn-outline">
+                    <i class="bi bi-eye"></i> Ver todas
+                </a>
+            </div>
+            <div class="row g-3 mt-2">
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background: var(--ra-danger-bg);">
+                        <div class="fw-bold fs-5" style="color: var(--ra-danger);">@Model.PrediccionesAltas</div>
+                        <div class="text-secondary" style="font-size:0.6875rem;">Alta / Crítica</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background: var(--ra-warning-bg);">
+                        <div class="fw-bold fs-5" style="color: var(--ra-warning);">@Model.PrediccionesMedias</div>
+                        <div class="text-secondary" style="font-size:0.6875rem;">Media</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center p-2 rounded-3" style="background: var(--ra-success-bg);">
+                        <div class="fw-bold fs-5" style="color: var(--ra-success);">@Model.PrediccionesBajas</div>
+                        <div class="text-secondary" style="font-size:0.6875rem;">Baja</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -179,6 +220,9 @@
         <a asp-controller="PlanesMejora" asp-action="Index" class="ra-btn ra-btn-outline">
             <i class="bi bi-journal-check"></i> Planes de Mejora
         </a>
+        <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary">
+            <i class="bi bi-brain"></i> Predicciones
+        </a>
     </div>
 </div>
 
@@ -192,7 +236,7 @@
             @if (Model.PlanesActivos > 0) { <text>alertas.push('@Model.PlanesActivos planes de mejora activos');</text> }
             if (alertas.length > 0) {
                 setTimeout(function() {
-                    RaToast.show('<strong>Resumen del día</strong><br>' + alertas.join('<br>'), 'info', 8000);
+                    RaToast.show('Resumen del día:\n' + alertas.join('\n'), 'info', 8000);
                 }, 1200);
             }
         });
