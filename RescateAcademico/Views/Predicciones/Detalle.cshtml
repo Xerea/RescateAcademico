@@ -55,10 +55,19 @@
                 <span><i class="bi bi-stars"></i> Análisis con Inteligencia Artificial</span>
                 <div class="d-flex gap-1">
                     <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="copiarAnalisis()" title="Copiar"><i class="bi bi-copy"></i></button>
-                    <form asp-action="AnalisisIA" method="post" class="m-0 d-inline">
-                        <input type="hidden" name="matricula" value="@alumno.Matricula" />
-                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline"><i class="bi bi-arrow-repeat"></i> Re-analizar</button>
-                    </form>
+                    @if (ViewBag.OpenAIConfigurado as bool? == true)
+                    {
+                        <form asp-action="AnalisisIA" method="post" class="m-0 d-inline">
+                            <input type="hidden" name="matricula" value="@alumno.Matricula" />
+                            <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline"><i class="bi bi-arrow-repeat"></i> Re-analizar</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" disabled title="API key no configurada" style="opacity:0.4;cursor:not-allowed;">
+                            <i class="bi bi-arrow-repeat"></i> Re-analizar
+                        </button>
+                    }
                 </div>
             </div>
             <div class="ra-card-body">
