@@ -872,14 +872,7 @@ namespace RescateAcademico.Seeders
 
         private static decimal CalcularProbabilidadDesercion(Alumno a)
         {
-            double score = 0;
-            score += Math.Max(0, (7.0 - (double)a.PromedioGlobal) * 0.15);
-            score += (a.MateriasReprobadas ?? 0) * 0.12;
-            score += (a.Ausencias ?? 0) * 0.04;
-            score += (a.ParcialesBajos ?? 0) * 0.08;
-            score += (a.EtsPresentados ?? 0) * 0.06;
-            score += (a.Recursamientos ?? 0) * 0.07;
-            return Math.Min(0.99m, Math.Round((decimal)score, 2));
+            return new RescateAcademico.Services.RiskEvaluationService().CalcularProbabilidadDesercion(a);
         }
 
         private static string ElegirConPesos(string[] opciones, double[] pesos)

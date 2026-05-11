@@ -111,6 +111,7 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("register")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
@@ -139,6 +140,16 @@ namespace RescateAcademico.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "Alumno");
+                var riesgo = new RescateAcademico.Services.RiskEvaluationService().CalcularRiesgo(new Alumno
+                {
+                    Matricula = model.Matricula,
+                    PromedioGlobal = 0,
+                    MateriasReprobadas = 0,
+                    Ausencias = 0,
+                    ParcialesBajos = 0,
+                    EtsPresentados = 0,
+                    Recursamientos = 0
+                });
                 _context.Alumnos.Add(new Alumno
                 {
                     Matricula = model.Matricula,
@@ -149,7 +160,8 @@ namespace RescateAcademico.Controllers
                     Correo = model.Email,
                     UserId = user.Id,
                     PromedioGlobal = 0,
-                    Estatus = "Activo"
+                    Estatus = "Activo",
+                    RiesgoAcademico = riesgo
                 });
                 await _context.SaveChangesAsync();
 
