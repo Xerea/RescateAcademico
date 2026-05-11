@@ -108,11 +108,12 @@ namespace RescateAcademico.Controllers
         private static string Escape(string? value)
         {
             if (string.IsNullOrEmpty(value)) return "";
-            if ("=+-@".Contains(value[0]))
+            var trimmed = value.TrimStart();
+            if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0]))
             {
                 value = "'" + value;
             }
-            if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
+            if (value.Contains(",") || value.Contains("\"") || value.Contains("\n") || value.Contains("\r") || value.Contains("\t"))
             {
                 return "\"" + value.Replace("\"", "\"\"") + "\"";
             }

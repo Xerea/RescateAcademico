@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Filters;
@@ -13,15 +14,18 @@ namespace RescateAcademico.Controllers
         private readonly ApplicationDbContext _context;
         private readonly DesercionPredictionService _predictionService;
         private readonly StudentAccessService _studentAccessService;
+        private readonly IConfiguration _configuration;
 
         public PrediccionesController(
             ApplicationDbContext context,
             DesercionPredictionService predictionService,
-            StudentAccessService studentAccessService)
+            StudentAccessService studentAccessService,
+            IConfiguration configuration)
         {
             _context = context;
             _predictionService = predictionService;
             _studentAccessService = studentAccessService;
+            _configuration = configuration;
         }
 
         public async Task<IActionResult> Index()
@@ -46,12 +50,14 @@ namespace RescateAcademico.Controllers
 
             ViewBag.Alumno = alumno;
             ViewBag.Historial = historial;
+            ViewBag.OpenAIConfigurado = !string.IsNullOrEmpty(_configuration["OPENAI_API_KEY"]);
 
             return View(prediccion);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("openai")]
         [AuditLog(Accion = "Análisis IA", Tabla = "Predicciones")]
         public async Task<IActionResult> AnalisisIA(string matricula)
         {

@@ -50,10 +50,10 @@ namespace RescateAcademico.Services
                         "/PerfilAcademico");
                 }
 
-                var tutores = await _context.AsignacionesTutor
-                    .Where(at => at.AlumnoMatricula == alumnoMatricula && at.EstaActiva)
-                    .Include(at => at.Tutor)
-                    .Select(at => at.Tutor)
+                var tutores = await _context.Grupos
+                    .Where(g => g.Alumnos.Any(a => a.Matricula == alumnoMatricula) && g.Profesor != null)
+                    .Select(g => g.Profesor!)
+                    .Distinct()
                     .ToListAsync();
 
                 foreach (var tutor in tutores)

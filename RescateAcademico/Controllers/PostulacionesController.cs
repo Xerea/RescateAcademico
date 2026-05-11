@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Filters;
@@ -81,6 +82,7 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(10 * 1024 * 1024)]
+        [EnableRateLimiting("postulation")]
         public async Task<IActionResult> Postularse(int convocatoriaId, IFormFile? documento)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
