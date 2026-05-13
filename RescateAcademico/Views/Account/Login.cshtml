@@ -10,6 +10,7 @@
 }
 
 <canvas id="loginParticles" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+<script src="https://www.google.com/recaptcha/api.js?render=@Configuration["RECAPTCHA_SITE_KEY"]" defer></script>
 
 <div class="row justify-content-center align-items-center position-relative" style="min-height: 80vh; z-index: 1;">
     <div class="col-md-5 col-lg-4">
@@ -21,13 +22,14 @@
             <p class="text-secondary small">Accede con tu correo institucional del IPN</p>
         </div>
 
-        <div class="ra-card" style="backdrop-filter: blur(12px); background: rgba(var(--ra-surface-rgb, 255,255,255), 0.85);">
+        <div class="ra-card" style="backdrop-filter: blur(12px); background: rgba(var(--ra-surface-rgb), 0.85);">
             <div class="ra-card-body">
-                <form asp-controller="Account" asp-action="Login" method="post">
+                <form asp-controller="Account" asp-action="Login" method="post" id="loginForm">
                     @if (ViewData["ReturnUrl"] != null)
                     {
                         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
                     }
+                    <input type="hidden" name="recaptchaToken" id="recaptchaToken" />
 
                     <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
@@ -186,5 +188,20 @@
             }
             animate();
         })();
+
+        // reCAPTCHA v3 — generate token on submit
+        var siteKey = '@Configuration["RECAPTCHA_SITE_KEY"]';
+        if (siteKey) {
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var form = this;
+                grecaptcha.ready(function() {
+                    grecaptcha.execute(siteKey, { action: 'login' }).then(function(token) {
+                        document.getElementById('recaptchaToken').value = token;
+                        form.submit();
+                    });
+                });
+            });
+        }
     </script>
 }
