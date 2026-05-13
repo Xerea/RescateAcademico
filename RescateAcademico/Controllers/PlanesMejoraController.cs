@@ -5,6 +5,7 @@ using RescateAcademico.Data;
 using RescateAcademico.Models;
 using RescateAcademico.Services;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace RescateAcademico.Controllers
 {
@@ -61,17 +62,36 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(string? matricula)
         {
-            var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
-                .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
-                .OrderByDescending(a => a.RiesgoAcademico == "Rojo")
-                .ThenBy(a => a.Apellidos)
-                .ToListAsync();
+            if (string.IsNullOrEmpty(matricula))
+            {
+                TempData["Info"] = "Selecciona un alumno para crear un plan de mejora.";
+                return RedirectToAction("Index", "Profesor");
+            }
 
-            ViewBag.Alumnos = alumnos;
+            var alumno = await _context.Alumnos
+                .Include(a => a.Calificaciones).ThenInclude(c => c.Materia)
+                .FirstOrDefaultAsync(a => a.Matricula == matricula);
+
+            if (alumno == null || !await _studentAccessService.CanAccessAlumnoAsync(matricula))
+            {
+                TempData["Error"] = "Alumno no encontrado o no tienes acceso.";
+                return RedirectToAction("Index", "Profesor");
+            }
+
+            var sugerencias = _riskEvaluationService.GenerarSugerencias(alumno);
+            var factores = _riskEvaluationService.ObtenerFactoresRiesgo(alumno);
 
             var model = new PlanMejoraViewModel
             {
-                AlumnoMatricula = matricula ?? ""
+                AlumnoMatricula = matricula,
+                Recomendaciones = BuildPlanSummary(alumno, sugerencias, factores),
+                FechaCierre = DateTime.Now.AddDays(30),
+                NotificarAlumno = true,
+                AsesoriaAcademica = factores.Any(f => f.Contains("Promedio") || f.Contains("Materias")),
+                ControlAusencias = factores.Any(f => f.Contains("Ausencias")),
+                RegularizacionETS = factores.Any(f => f.Contains("Recursamientos")),
+                TutoriaPersonalizada = factores.Any(f => f.Contains("Recursamientos")),
+                ApoyoPsicologico = false
             };
 
             if (User.IsInRole("Administrador"))
@@ -81,29 +101,53 @@ namespace RescateAcademico.Controllers
             else
             {
                 var tutor = await _studentAccessService.GetCurrentTutorAsync();
-                if (tutor != null)
-                {
-                    model.TutorId = tutor.Id;
-                }
+                if (tutor != null) model.TutorId = tutor.Id;
                 ViewBag.TutorNombre = tutor?.Nombre + " " + tutor?.Apellidos;
             }
 
-            if (!string.IsNullOrEmpty(matricula))
-            {
-                var alumnoSeleccionado = await _context.Alumnos
-                    .Include(a => a.Calificaciones).ThenInclude(c => c.Materia)
-                    .FirstOrDefaultAsync(a => a.Matricula == matricula);
-
-                if (alumnoSeleccionado != null)
-                {
-                    ViewBag.AlumnoSeleccionado = alumnoSeleccionado;
-                    ViewBag.SugerenciasPrecargadas = _riskEvaluationService.GenerarSugerencias(alumnoSeleccionado);
-                    ViewBag.FactoresRiesgo = _riskEvaluationService.ObtenerFactoresRiesgo(alumnoSeleccionado);
-                    model.Recomendaciones = string.Join(". ", _riskEvaluationService.GenerarSugerencias(alumnoSeleccionado));
-                }
-            }
+            ViewBag.AlumnoSeleccionado = alumno;
+            ViewBag.FactoresRiesgo = factores;
 
             return View(model);
+        }
+
+        private async Task ReloadCrearViewBag(string matricula)
+        {
+            var alumno = await _context.Alumnos
+                .Include(a => a.Calificaciones).ThenInclude(c => c.Materia)
+                .FirstOrDefaultAsync(a => a.Matricula == matricula);
+            ViewBag.AlumnoSeleccionado = alumno;
+            if (alumno != null)
+                ViewBag.FactoresRiesgo = _riskEvaluationService.ObtenerFactoresRiesgo(alumno);
+
+            if (User.IsInRole("Administrador"))
+                ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
+            else
+            {
+                var tutor = await _studentAccessService.GetCurrentTutorAsync();
+                ViewBag.TutorNombre = tutor?.Nombre + " " + tutor?.Apellidos;
+            }
+        }
+
+        private static string BuildPlanSummary(Alumno alumno, List<string> sugerencias, List<string> factores)
+        {
+            var sb = new StringBuilder();
+            var nombre = $"{alumno.Nombre} {alumno.Apellidos}";
+            sb.AppendLine($"Plan de mejora academica para {nombre}, {alumno.Carrera} (Semestre {alumno.SemestreActual}).");
+            sb.AppendLine();
+            if (alumno.PromedioGlobal < 6m)
+                sb.AppendLine($"Presenta promedio critico de {alumno.PromedioGlobal:F2}. Se requiere intervencion inmediata.");
+            else if (alumno.PromedioGlobal < 7m)
+                sb.AppendLine($"Promedio actual de {alumno.PromedioGlobal:F2}, por debajo del minimo recomendado.");
+            if (alumno.MateriasReprobadas > 0)
+                sb.AppendLine($"Acumula {alumno.MateriasReprobadas} materia(s) reprobada(s).");
+            if (alumno.Ausencias > 0)
+                sb.AppendLine($"Registro de {alumno.Ausencias} inasistencia(s).");
+            sb.AppendLine();
+            sb.AppendLine("Estrategia sugerida:");
+            foreach (var s in sugerencias.Take(3))
+                sb.AppendLine($"- {s}");
+            return sb.ToString().Trim();
         }
 
         [HttpPost]
@@ -114,33 +158,31 @@ namespace RescateAcademico.Controllers
             if (!User.IsInRole("Administrador"))
             {
                 var tutor = await _studentAccessService.GetCurrentTutorAsync();
-                if (tutor != null)
-                {
-                    model.TutorId = tutor.Id;
-                }
+                if (tutor != null) model.TutorId = tutor.Id;
             }
 
             if (!ModelState.IsValid)
             {
-                var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos)
-                    .Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
-                    .OrderByDescending(a => a.RiesgoAcademico == "Rojo")
-                    .ThenBy(a => a.Apellidos)
-                    .ToListAsync();
-                ViewBag.Alumnos = alumnos;
-                if (User.IsInRole("Administrador"))
-                {
-                    ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
-                }
-                else
-                {
-                    var currentTutor = await _studentAccessService.GetCurrentTutorAsync();
-                    ViewBag.TutorNombre = currentTutor?.Nombre + " " + currentTutor?.Apellidos;
-                }
+                await ReloadCrearViewBag(model.AlumnoMatricula);
                 return View(model);
             }
 
             if (!await _studentAccessService.CanAccessAlumnoAsync(model.AlumnoMatricula)) return Forbid();
+
+            if (!model.EsPersonalizado)
+            {
+                var types = new List<string>();
+                if (model.AsesoriaAcademica) types.Add("Asesoria academica");
+                if (model.ControlAusencias) types.Add("Control de ausencias");
+                if (model.RegularizacionETS) types.Add("Regularizacion ETS");
+                if (model.ApoyoPsicologico) types.Add("Apoyo psicologico");
+                if (model.TutoriaPersonalizada) types.Add("Tutoria personalizada");
+
+                model.Metas = model.Recomendaciones;
+                model.AccionesTomadas = types.Count > 0
+                    ? $"Intervenciones programadas: {string.Join(", ", types)}. Fecha de inicio: {DateTime.Now:dd/MM/yyyy}."
+                    : $"Plan generado automaticamente. Inicio: {DateTime.Now:dd/MM/yyyy}.";
+            }
 
             var plan = new PlanMejora
             {
@@ -271,5 +313,13 @@ namespace RescateAcademico.Controllers
         public DateTime? FechaCierre { get; set; }
 
         public string Estado { get; set; } = "Activo";
+
+        public bool AsesoriaAcademica { get; set; }
+        public bool ControlAusencias { get; set; }
+        public bool RegularizacionETS { get; set; }
+        public bool ApoyoPsicologico { get; set; }
+        public bool TutoriaPersonalizada { get; set; }
+        public bool EsPersonalizado { get; set; }
+        public bool NotificarAlumno { get; set; } = true;
     }
 }
