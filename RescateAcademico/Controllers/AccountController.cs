@@ -15,12 +15,14 @@ namespace RescateAcademico.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IConfiguration configuration)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -33,9 +35,15 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("login")]
-        public async Task<IActionResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
+        public async Task<IActionResult> Login(string email, string password, bool rememberMe, string? returnUrl = null, string? recaptchaToken = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+
+            if (!await VerifyRecaptchaAsync(recaptchaToken))
+            {
+                ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Por favor intenta de nuevo.");
+                return View();
+            }
 
             if (string.IsNullOrWhiteSpace(email) || (!email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) && !email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase)))
             {
@@ -292,6 +300,36 @@ namespace RescateAcademico.Controllers
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        private async Task<bool> VerifyRecaptchaAsync(string? token)
+        {
+            var secretKey = _configuration["RECAPTCHA_SECRET_KEY"];
+            if (string.IsNullOrEmpty(secretKey))
+                return true; // reCAPTCHA not configured — allow login (development)
+
+            if (string.IsNullOrEmpty(token))
+                return false;
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                var content = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("secret", secretKey),
+                    new KeyValuePair<string, string>("response", token)
+                });
+                var response = await httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var success = doc.RootElement.GetProperty("success").GetBoolean();
+                var score = doc.RootElement.TryGetProperty("score", out var scoreEl) ? scoreEl.GetDouble() : 0;
+                return success && score >= 0.5;
+            }
+            catch
+            {
+                return true; // Fail open — don't block users if verification service is down
+            }
         }
 
     }
