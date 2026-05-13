@@ -56,6 +56,12 @@ namespace RescateAcademico.Controllers
 
             if (plan == null) return NotFound();
             if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
+
+            ViewBag.Intervenciones = await _context.IntervencionesTutoria
+                .Where(i => i.PlanMejoraId == plan.Id)
+                .OrderByDescending(i => i.Fecha)
+                .ToListAsync();
+
             return View(plan);
         }
 

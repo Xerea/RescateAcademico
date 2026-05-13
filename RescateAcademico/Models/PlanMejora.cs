@@ -27,5 +27,7 @@ namespace RescateAcademico.Models
 
         public int? TutorId { get; set; }
         public Tutor? Tutor { get; set; }
+
+        public ICollection<IntervencionTutoria> Intervenciones { get; set; } = new List<IntervencionTutoria>();
     }
 }

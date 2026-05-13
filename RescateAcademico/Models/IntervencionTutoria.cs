@@ -31,5 +31,8 @@ namespace RescateAcademico.Models
         public DateTime? FechaSeguimiento { get; set; }
 
         public string? NotasSeguimiento { get; set; }
+
+        public int? PlanMejoraId { get; set; }
+        public PlanMejora? PlanMejora { get; set; }
     }
 }

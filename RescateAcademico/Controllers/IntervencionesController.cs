@@ -57,7 +57,7 @@ namespace RescateAcademico.Controllers
         }
 
         [Authorize(Roles = "Tutor")]
-        public async Task<IActionResult> Crear(string matricula)
+        public async Task<IActionResult> Crear(string matricula, int? planMejoraId = null)
         {
             if (!await _studentAccessService.CanAccessAlumnoAsync(matricula))
             {
@@ -67,13 +67,23 @@ namespace RescateAcademico.Controllers
 
             ViewBag.Matricula = matricula;
             ViewBag.Alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == matricula);
+
+            if (planMejoraId.HasValue)
+            {
+                var plan = await _context.PlanesMejora
+                    .Include(p => p.Alumno)
+                    .FirstOrDefaultAsync(p => p.Id == planMejoraId.Value && p.AlumnoMatricula == matricula);
+                ViewBag.PlanMejora = plan;
+                ViewBag.PlanMejoraId = planMejoraId;
+            }
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Tutor")]
-        public async Task<IActionResult> Crear([Bind("AlumnoMatricula,Tipo,Descripcion,Resultado,RequiereSeguimiento,FechaSeguimiento,NotasSeguimiento")] IntervencionTutoria intervencion)
+        public async Task<IActionResult> Crear([Bind("AlumnoMatricula,Tipo,Descripcion,Resultado,RequiereSeguimiento,FechaSeguimiento,NotasSeguimiento,PlanMejoraId")] IntervencionTutoria intervencion)
         {
             var tutor = await _studentAccessService.GetCurrentTutorAsync();
 
@@ -87,6 +97,10 @@ namespace RescateAcademico.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Intervención registrada exitosamente.";
+            if (intervencion.PlanMejoraId.HasValue)
+            {
+                return RedirectToAction("Detalles", "PlanesMejora", new { id = intervencion.PlanMejoraId.Value });
+            }
             return RedirectToAction("PorAlumno", new { matricula = intervencion.AlumnoMatricula });
         }
 

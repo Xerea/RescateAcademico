@@ -2,53 +2,131 @@
 @{
     ViewData["Title"] = "Detalles del Plan de Mejora";
     Layout = "_Layout";
+    var intervenciones = ViewBag.Intervenciones as List<RescateAcademico.Models.IntervencionTutoria> ?? new List<RescateAcademico.Models.IntervencionTutoria>();
 }
 
-<div class="row mb-4 align-items-end">
+<div class="row mb-3 align-items-end">
     <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-journal-check ra-text-accent me-2"></i>Detalles del Plan</h1>
-        <p class="text-secondary small mb-0">Plan #@Model.Id — <span class="ra-badge @(Model.Estado == "Activo" ? "ra-badge-primary" : Model.Estado == "Cumplido" ? "ra-badge-success" : Model.Estado == "Vencido" ? "ra-badge-danger" : "ra-badge-neutral")">@Model.Estado</span></p>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Index" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Todos los planes</a>
+        </div>
+        <h1 class="fw-bold h3 mb-1">Plan de Mejora</h1>
+        <p class="text-secondary small mb-0">Creado el @Model.FechaCreacion.ToString("dd/MM/yyyy")</p>
+    </div>
+    <div class="col-auto">
+        <span class="ra-badge @(Model.Estado == "Activo" ? "ra-badge-success" : Model.Estado == "Cumplido" ? "ra-badge-info" : Model.Estado == "Vencido" ? "ra-badge-warning" : "ra-badge-neutral") fs-6">
+            @Model.Estado
+        </span>
     </div>
 </div>
 
-<div class="ra-card mb-4">
-    <div class="ra-card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-3 text-secondary small">Alumno</dt>
-            <dd class="col-sm-9 fw-medium">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos (@Model.AlumnoMatricula)</dd>
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="ra-card mb-3">
+            <div class="ra-card-body">
+                <div class="d-flex align-items-start justify-content-between mb-2">
+                    <div>
+                        <h5 class="fw-semibold mb-0">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos</h5>
+                        <p class="text-secondary small mb-0">@Model.AlumnoMatricula</p>
+                    </div>
+                    <ra-semaforo riesgo="@Model.Alumno?.RiesgoAcademico" size="sm"></ra-semaforo>
+                </div>
+                <dl class="row mb-0" style="font-size:0.8125rem;">
+                    <dt class="col-sm-5 text-secondary">Carrera</dt>
+                    <dd class="col-sm-7">@Model.Alumno?.Carrera</dd>
+                    <dt class="col-sm-5 text-secondary">Profesor asignado</dt>
+                    <dd class="col-sm-7">@Model.Tutor?.Nombre @Model.Tutor?.Apellidos</dd>
+                    <dt class="col-sm-5 text-secondary">Fecha de cierre</dt>
+                    <dd class="col-sm-7">@(Model.FechaCierre?.ToString("dd/MM/yyyy") ?? "Sin fecha")</dd>
+                </dl>
+            </div>
+        </div>
 
-            <dt class="col-sm-3 text-secondary small">Profesor</dt>
-            <dd class="col-sm-9">@Model.Tutor?.Nombre @Model.Tutor?.Apellidos</dd>
+        <div class="ra-card mb-3">
+            <div class="ra-card-header">
+                Objetivos medibles
+            </div>
+            <div class="ra-card-body" style="font-size:0.875rem;white-space:pre-wrap;">
+                @(Model.Metas ?? "No definidos.")
+            </div>
+        </div>
 
-            <dt class="col-sm-3 text-secondary small">Fecha de Creación</dt>
-            <dd class="col-sm-9">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</dd>
-
-            <dt class="col-sm-3 text-secondary small">Fecha de Cierre</dt>
-            <dd class="col-sm-9">@(Model.FechaCierre?.ToString("dd/MM/yyyy") ?? "No definida")</dd>
-
-            <dt class="col-sm-3 text-secondary small">Recomendaciones</dt>
-            <dd class="col-sm-9">@(Model.Recomendaciones ?? "N/A")</dd>
-
-            <dt class="col-sm-3 text-secondary small">Metas</dt>
-            <dd class="col-sm-9">@(Model.Metas ?? "N/A")</dd>
-
-            <dt class="col-sm-3 text-secondary small">Acciones Tomadas</dt>
-            <dd class="col-sm-9 mb-0">@(Model.AccionesTomadas ?? "N/A")</dd>
-        </dl>
+        <div class="d-flex flex-wrap gap-2">
+            @if (!User.IsInRole("Autoridad"))
+            {
+                <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            }
+            <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="ra-btn ra-btn-outline">
+                <i class="bi bi-clock-history"></i> Seguimiento
+            </a>
+        </div>
     </div>
-</div>
 
-<div class="d-flex flex-wrap gap-2">
-    @if (!User.IsInRole("Autoridad"))
-    {
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-primary">
-            <i class="bi bi-pencil"></i> Editar
-        </a>
-    }
-    <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="ra-btn ra-btn-outline">
-        <i class="bi bi-clock-history"></i> Seguimiento
-    </a>
-    <a asp-action="Index" class="ra-btn ra-btn-ghost">
-        <i class="bi bi-arrow-left"></i> Volver
-    </a>
+    <div class="col-lg-7">
+        <div class="ra-card mb-3">
+            <div class="ra-card-header">
+                Plan de accion
+            </div>
+            <div class="ra-card-body" style="font-size:0.875rem;line-height:1.7;white-space:pre-wrap;">
+                @(Model.Recomendaciones ?? "Sin plan definido.")
+            </div>
+        </div>
+
+        <div class="ra-card mb-3">
+            <div class="ra-card-header">
+                Acciones realizadas
+            </div>
+            <div class="ra-card-body" style="font-size:0.875rem;white-space:pre-wrap;">
+                @(Model.AccionesTomadas ?? "Sin acciones registradas.")
+            </div>
+        </div>
+
+        <div class="ra-card">
+            <div class="ra-card-header d-flex justify-content-between align-items-center">
+                <span>Intervenciones (@intervenciones.Count)</span>
+                @if (!User.IsInRole("Autoridad"))
+                {
+                    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@Model.AlumnoMatricula" asp-route-planMejoraId="@Model.Id" class="ra-btn ra-btn-sm ra-btn-primary">
+                        <i class="bi bi-plus-circle"></i> Nueva
+                    </a>
+                }
+            </div>
+            <div class="ra-card-body p-0">
+                @if (intervenciones.Any())
+                {
+                    <div style="max-height:400px;overflow-y:auto;">
+                        @foreach (var i in intervenciones)
+                        {
+                            <div class="p-3" style="border-bottom:1px solid var(--ra-border-subtle);">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <span class="fw-semibold" style="font-size:0.875rem;">
+                                        <span class="ra-badge ra-badge-neutral me-1" style="font-size:0.6875rem;">@i.Tipo</span>
+                                        @i.Fecha.ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                </div>
+                                <p class="mb-1" style="font-size:0.8125rem;">@i.Descripcion</p>
+                                @if (!string.IsNullOrEmpty(i.Resultado))
+                                {
+                                    <p class="text-secondary mb-0" style="font-size:0.75rem;">Resultado: @i.Resultado</p>
+                                }
+                                @if (i.RequiereSeguimiento)
+                                {
+                                    <span class="ra-badge ra-badge-warning mt-1" style="font-size:0.6875rem;">Requiere seguimiento</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="ra-empty py-4">
+                        <i class="bi bi-clipboard-pulse"></i>
+                        <p>No hay intervenciones vinculadas a este plan.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>

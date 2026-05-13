@@ -71,6 +71,11 @@ namespace RescateAcademico.Controllers
             vm.PrediccionesMedias = predMedia;
             vm.PrediccionesBajas = predBaja;
 
+            vm.ExistingPlanMatriculas = await _context.PlanesMejora
+                .Where(p => alumnosIds.Contains(p.AlumnoMatricula) && p.Estado == "Activo")
+                .Select(p => p.AlumnoMatricula)
+                .ToListAsync();
+
             return View(vm);
         }
 
@@ -203,6 +208,7 @@ namespace RescateAcademico.Controllers
         public int PrediccionesMedias { get; set; }
         public int PrediccionesBajas { get; set; }
         public List<GrupoResumen> Grupos { get; set; } = new();
+        public List<string> ExistingPlanMatriculas { get; set; } = new();
         public List<Alumno> Estudiantes { get; set; } = new();
     }
 

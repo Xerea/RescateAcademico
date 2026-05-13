@@ -1,34 +1,72 @@
 @model RescateAcademico.Models.IntervencionTutoria
 @{
-    ViewData["Title"] = "Nueva Intervención";
+    ViewData["Title"] = "Nueva Intervencion";
     Layout = "_Layout";
     var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
+    var planMejora = ViewBag.PlanMejora as RescateAcademico.Models.PlanMejora;
+    var planMejoraId = ViewBag.PlanMejoraId as int?;
+    var tipoSugerido = "Acercamiento";
+    if (planMejora != null && !string.IsNullOrEmpty(planMejora.AccionesTomadas))
+    {
+        if (planMejora.AccionesTomadas.Contains("Asesoria")) tipoSugerido = "Tutoria";
+        else if (planMejora.AccionesTomadas.Contains("Psicologico")) tipoSugerido = "Canalizacion";
+    }
 }
 
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+    <div class="col-md-8 col-lg-7">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            @if (planMejoraId.HasValue)
+            {
+                <a asp-controller="PlanesMejora" asp-action="Detalles" asp-route-id="@planMejoraId.Value" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Volver al plan</a>
+            }
+            else
+            {
+                <a asp-action="PorAlumno" asp-route-matricula="@ViewBag.Matricula" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Volver</a>
+            }
+        </div>
+
+        <h2 class="fw-bold h4 mb-3">Nueva Intervencion</h2>
+
+        @if (planMejora != null)
+        {
+            <div class="ra-card ra-card-primary mb-3">
+                <div class="ra-card-body d-flex align-items-start gap-3">
+                    <i class="bi bi-journal-check fs-4" style="color:var(--ra-primary);"></i>
+                    <div>
+                        <div class="fw-semibold">Vinculada al Plan #@planMejora.Id</div>
+                        <div class="text-secondary small">@planMejora.Alumno?.Nombre @planMejora.Alumno?.Apellidos &mdash; @planMejora.Estado</div>
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="ra-card">
             <div class="ra-card-header">
-                <i class="bi bi-plus-circle"></i> Nueva Intervención: @alumno?.Nombre @alumno?.Apellidos
+                <span>Intervencion para @alumno?.Nombre @alumno?.Apellidos</span>
             </div>
             <div class="ra-card-body">
                 <form asp-action="Crear" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="AlumnoMatricula" value="@ViewBag.Matricula" />
+                    @if (planMejoraId.HasValue)
+                    {
+                        <input type="hidden" asp-for="PlanMejoraId" value="@planMejoraId.Value" />
+                    }
 
                     <div class="mb-3">
-                        <label class="ra-label">Tipo de Intervención *</label>
+                        <label class="ra-label">Tipo de Intervencion *</label>
                         <select asp-for="Tipo" class="ra-select" required>
-                            <option value="Acercamiento">Acercamiento</option>
-                            <option value="Tutoria">Profesoría</option>
-                            <option value="Canalizacion">Canalización</option>
+                            <option value="Acercamiento" selected="@(tipoSugerido == "Acercamiento" ? "selected" : null)">Acercamiento</option>
+                            <option value="Tutoria" selected="@(tipoSugerido == "Tutoria" ? "selected" : null)">Tutoria</option>
+                            <option value="Canalizacion" selected="@(tipoSugerido == "Canalizacion" ? "selected" : null)">Canalizacion</option>
                             <option value="Otro">Otro</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="ra-label">Descripción *</label>
-                        <textarea asp-for="Descripcion" class="ra-input" rows="4" placeholder="Describe la intervención realizada..." required></textarea>
+                        <label class="ra-label">Descripcion *</label>
+                        <textarea asp-for="Descripcion" class="ra-input" rows="4" placeholder="Describe la intervencion realizada..." required></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -36,18 +74,27 @@
                         <textarea asp-for="Resultado" class="ra-input" rows="3" placeholder="Resultados obtenidos..."></textarea>
                     </div>
 
-                    <div class="mb-4 form-check">
+                    <div class="mb-3 form-check">
                         <input asp-for="RequiereSeguimiento" class="form-check-input" />
                         <label class="form-check-label" style="color: var(--ra-text-secondary);">Requiere seguimiento</label>
                     </div>
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="ra-btn ra-btn-primary flex-fill">
-                            <i class="bi bi-save"></i> Guardar Intervención
+                            <i class="bi bi-save"></i> Guardar Intervencion
                         </button>
-                        <a asp-action="PorAlumno" asp-route-matricula="@ViewBag.Matricula" class="ra-btn ra-btn-ghost">
-                            Cancelar
-                        </a>
+                        @if (planMejoraId.HasValue)
+                        {
+                            <a asp-controller="PlanesMejora" asp-action="Detalles" asp-route-id="@planMejoraId.Value" class="ra-btn ra-btn-ghost">
+                                Cancelar
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-action="PorAlumno" asp-route-matricula="@ViewBag.Matricula" class="ra-btn ra-btn-ghost">
+                                Cancelar
+                            </a>
+                        }
                     </div>
                 </form>
             </div>
