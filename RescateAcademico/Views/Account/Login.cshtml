@@ -32,6 +32,7 @@
                     {
                         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
                     }
+                    <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response" />
 
                     <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
@@ -197,5 +198,13 @@
             }
             animate();
         })();
+
+        // reCAPTCHA v2 — sync widget token to hidden input before submit
+        document.forms[0].addEventListener('submit', function() {
+            var widgetResp = document.querySelector('.g-recaptcha textarea[name="g-recaptcha-response"]');
+            if (widgetResp) {
+                document.getElementById('g-recaptcha-response').value = widgetResp.value;
+            }
+        });
     </script>
 }

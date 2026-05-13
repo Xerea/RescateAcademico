@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Primitives;
 
 namespace RescateAcademico.Controllers
 {
@@ -16,13 +17,15 @@ namespace RescateAcademico.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IConfiguration configuration)
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IConfiguration configuration, ILogger<AccountController> logger)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -39,7 +42,8 @@ namespace RescateAcademico.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
-            var recaptchaResponse = Request.Form["g-recaptcha-response"].FirstOrDefault();
+            Request.Form.TryGetValue("g-recaptcha-response", out StringValues recaptchaValues);
+            var recaptchaResponse = recaptchaValues.ToString();
             if (!await VerifyRecaptchaAsync(recaptchaResponse))
             {
                 ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Por favor intenta de nuevo.");
@@ -307,10 +311,16 @@ namespace RescateAcademico.Controllers
         {
             var secretKey = _configuration["RECAPTCHA_SECRET_KEY"];
             if (string.IsNullOrEmpty(secretKey))
-                return true; // reCAPTCHA not configured — allow login (development)
+            {
+                _logger.LogInformation("reCAPTCHA: No secret key configured — allowing login");
+                return true;
+            }
 
             if (string.IsNullOrEmpty(token))
+            {
+                _logger.LogWarning("reCAPTCHA: Empty token received from form");
                 return false;
+            }
 
             try
             {
@@ -322,9 +332,18 @@ namespace RescateAcademico.Controllers
                 });
                 var response = await httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
                 var json = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("reCAPTCHA Google response: {Response}", json);
+
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var success = doc.RootElement.GetProperty("success").GetBoolean();
-                if (!success) return false;
+                if (!success)
+                {
+                    var errors = doc.RootElement.TryGetProperty("error-codes", out var errEl)
+                        ? string.Join(", ", errEl.EnumerateArray().Select(e => e.GetString()))
+                        : "unknown";
+                    _logger.LogWarning("reCAPTCHA verification failed: {Errors}", errors);
+                    return false;
+                }
 
                 var hasScore = doc.RootElement.TryGetProperty("score", out var scoreEl);
                 return !hasScore || scoreEl.GetDouble() >= 0.5;
