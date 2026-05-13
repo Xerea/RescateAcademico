@@ -218,11 +218,12 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()");
     context.Response.Headers.Append("Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net cdnjs.cloudflare.com; " +
-        "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net fonts.googleapis.com; " +
-        "img-src 'self' data:; " +
-        "font-src 'self' cdn.jsdelivr.net fonts.gstatic.com; " +
+        "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net cdnjs.cloudflare.com www.google.com www.gstatic.com; " +
+        "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net fonts.googleapis.com www.gstatic.com; " +
+        "img-src 'self' data: www.gstatic.com; " +
+        "font-src 'self' cdn.jsdelivr.net fonts.gstatic.com www.gstatic.com; " +
         "connect-src 'self' cdn.datatables.net; " +
+        "frame-src 'self' www.google.com; " +
         "frame-ancestors 'none'; " +
         "base-uri 'self'; " +
         "form-action 'self';");
