@@ -12,7 +12,7 @@
 <canvas id="loginParticles" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
 @if (!string.IsNullOrEmpty(Configuration["RECAPTCHA_SITE_KEY"]))
 {
-    <script src="https://www.google.com/recaptcha/api.js?hl=es" defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["RECAPTCHA_SITE_KEY"]"></script>
 }
 
 <div class="row justify-content-center align-items-center position-relative" style="min-height: 80vh; z-index: 1;">
@@ -58,13 +58,6 @@
                         </div>
                         <a asp-controller="Account" asp-action="ForgotPassword" class="small" style="color: var(--ra-primary);">¿Olvidaste tu contraseña?</a>
                     </div>
-
-                    @if (!string.IsNullOrEmpty(Configuration["RECAPTCHA_SITE_KEY"]))
-                    {
-                        <div class="mb-3 d-flex justify-content-center">
-                            <div class="g-recaptcha" data-sitekey="@Configuration["RECAPTCHA_SITE_KEY"]" data-theme="light"></div>
-                        </div>
-                    }
 
                     <button type="submit" class="ra-btn ra-btn-primary w-100 ra-btn-lg mb-3">
                         <i class="bi bi-box-arrow-in-right"></i> Acceder
@@ -199,12 +192,19 @@
             animate();
         })();
 
-        // reCAPTCHA v2 — sync widget token to hidden input before submit
-        document.forms[0].addEventListener('submit', function() {
-            var widgetResp = document.querySelector('.g-recaptcha textarea[name="g-recaptcha-response"]');
-            if (widgetResp) {
-                document.getElementById('g-recaptcha-response').value = widgetResp.value;
-            }
-        });
+        // reCAPTCHA v3 — generate token on submit
+        var siteKey = '@Configuration["RECAPTCHA_SITE_KEY"]';
+        if (siteKey) {
+            document.forms[0].addEventListener('submit', function(e) {
+                e.preventDefault();
+                var form = this;
+                grecaptcha.ready(function() {
+                    grecaptcha.execute(siteKey, { action: 'login' }).then(function(token) {
+                        document.getElementById('g-recaptcha-response').value = token;
+                        form.submit();
+                    });
+                });
+            });
+        }
     </script>
 }
