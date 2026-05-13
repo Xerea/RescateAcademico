@@ -1,14 +1,24 @@
 @{
     ViewData["Title"] = "Gestión";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Gestión",
+        Subtitle = "Usuarios, académico, operaciones y sistema en un solo lugar.",
+        Icon = "bi-sliders",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1">Gestión</h1>
-        <p class="text-secondary small mb-0">Administración de usuarios, académico y operaciones.</p>
+<partial name="_PageHeader" model="header" />
+
+@if (TempData["Success"] != null)
+{
+    <div class="ra-alert ra-alert-success mb-3" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <div>@TempData["Success"]</div>
     </div>
-</div>
+}
 
 <div class="ra-tabs" role="tablist">
     <button class="ra-tab active" data-bs-toggle="tab" data-bs-target="#tab-usuarios" role="tab" aria-selected="true">
@@ -35,7 +45,7 @@
                         <i class="bi bi-shield-lock fs-1 mb-3" style="color: var(--ra-primary);"></i>
                         <h5 class="fw-semibold">Usuarios</h5>
                         <p class="text-secondary small">Cuentas, roles y estado de acceso.</p>
-                        <a asp-action="Usuarios" class="ra-btn ra-btn-primary w-100">Administrar</a>
+                        <a asp-action="Usuarios" class="ra-btn ra-btn-primary w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -45,7 +55,7 @@
                         <i class="bi bi-person-lines-fill fs-1 mb-3" style="color: var(--ra-accent);"></i>
                         <h5 class="fw-semibold">Alumnos</h5>
                         <p class="text-secondary small">Registro completo del alumnado.</p>
-                        <a asp-action="Alumnos" class="ra-btn ra-btn-outline w-100">Ver Alumnos</a>
+                        <a asp-action="Alumnos" class="ra-btn ra-btn-outline w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -54,16 +64,20 @@
                     <div class="ra-card-body">
                         <i class="bi bi-person-badge fs-1 mb-3" style="color: var(--ra-info);"></i>
                         <h5 class="fw-semibold">Profesores</h5>
-                        <p class="text-secondary small">Plantilla docente y especialidades.</p>
-                        <a asp-action="Tutores" class="ra-btn ra-btn-outline w-100">Ver Profesores</a>
+                        <p class="text-secondary small">Plantilla docente y grupos asignados.</p>
+                        <a asp-controller="Autoridad" asp-action="Profesores" class="ra-btn ra-btn-outline w-100">Ver</a>
                     </div>
                 </div>
             </div>
             <div class="col-12">
                 <div class="ra-card">
                     <div class="ra-card-body d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                        <span class="text-secondary small"><i class="bi bi-plus-circle me-1"></i> ¿Necesitas crear una nueva cuenta?</span>
-                        <a asp-action="CrearCuenta" class="ra-btn ra-btn-primary ra-btn-sm"><i class="bi bi-person-plus"></i> Crear Cuenta</a>
+                        <span class="text-secondary small">
+                            <i class="bi bi-plus-circle me-1"></i> ¿Necesitas crear una nueva cuenta?
+                        </span>
+                        <a asp-action="CrearCuenta" class="ra-btn ra-btn-primary ra-btn-sm">
+                            <i class="bi bi-person-plus"></i> Crear cuenta
+                        </a>
                     </div>
                 </div>
             </div>
@@ -79,7 +93,7 @@
                         <i class="bi bi-mortarboard fs-1 mb-3" style="color: var(--ra-primary);"></i>
                         <h5 class="fw-semibold">Carreras</h5>
                         <p class="text-secondary small">Programas académicos del CECyT 13.</p>
-                        <a asp-action="Carreras" class="ra-btn ra-btn-primary w-100">Gestionar</a>
+                        <a asp-action="Carreras" class="ra-btn ra-btn-primary w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -87,9 +101,9 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-calendar-event fs-1 mb-3" style="color: var(--ra-accent);"></i>
-                        <h5 class="fw-semibold">Ciclos Escolares</h5>
+                        <h5 class="fw-semibold">Ciclos escolares</h5>
                         <p class="text-secondary small">Períodos académicos activos.</p>
-                        <a asp-action="CiclosEscolares" class="ra-btn ra-btn-outline w-100">Gestionar</a>
+                        <a asp-action="CiclosEscolares" class="ra-btn ra-btn-outline w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -97,9 +111,9 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-journal-check fs-1 mb-3" style="color: var(--ra-info);"></i>
-                        <h5 class="fw-semibold">Planes de Mejora</h5>
+                        <h5 class="fw-semibold">Planes de mejora</h5>
                         <p class="text-secondary small">Seguimiento académico personalizado.</p>
-                        <a asp-controller="PlanesMejora" asp-action="Index" class="ra-btn ra-btn-outline w-100">Ver Planes</a>
+                        <a asp-controller="PlanesMejora" asp-action="Index" class="ra-btn ra-btn-outline w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -115,7 +129,7 @@
                         <i class="bi bi-folder-plus fs-1 mb-3" style="color: var(--ra-primary);"></i>
                         <h5 class="fw-semibold">Proyectos</h5>
                         <p class="text-secondary small">Catálogo de proyectos académicos.</p>
-                        <a asp-controller="Proyectos" asp-action="Index" class="ra-btn ra-btn-primary w-100">Gestionar</a>
+                        <a asp-controller="Proyectos" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -125,7 +139,7 @@
                         <i class="bi bi-megaphone fs-1 mb-3" style="color: var(--ra-accent);"></i>
                         <h5 class="fw-semibold">Convocatorias</h5>
                         <p class="text-secondary small">Publicación y cierre de convocatorias.</p>
-                        <a asp-controller="Convocatorias" asp-action="Todas" class="ra-btn ra-btn-outline w-100">Gestionar</a>
+                        <a asp-controller="Convocatorias" asp-action="Todas" class="ra-btn ra-btn-outline w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -151,7 +165,7 @@
                         <i class="bi bi-clock-history fs-1 mb-3" style="color: var(--ra-primary);"></i>
                         <h5 class="fw-semibold">Bitácora</h5>
                         <p class="text-secondary small">Historial de acciones del sistema.</p>
-                        <a asp-controller="Bitacora" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver Bitácora</a>
+                        <a asp-controller="Bitacora" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -159,8 +173,8 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-shield-check fs-1 mb-3" style="color: var(--ra-accent);"></i>
-                        <h5 class="fw-semibold">Integridad</h5>
-                        <p class="text-secondary small">Diagnóstico de consistencia de datos.</p>
+                        <h5 class="fw-semibold">Integridad de datos</h5>
+                        <p class="text-secondary small">Diagnóstico de consistencia.</p>
                         <a asp-action="IntegridadDatos" class="ra-btn ra-btn-outline w-100">Verificar</a>
                     </div>
                 </div>
@@ -168,13 +182,13 @@
             <div class="col-md-4">
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
-                        <i class="bi bi-exclamation-triangle fs-1 mb-3" style="color: var(--ra-warning);"></i>
-                        <h5 class="fw-semibold">Evaluar Riesgos</h5>
-                        <p class="text-secondary small">Ejecutar evaluación masiva del alumnado.</p>
+                        <i class="bi bi-lightning-charge fs-1 mb-3" style="color: var(--ra-warning);"></i>
+                        <h5 class="fw-semibold">Evaluar riesgos</h5>
+                        <p class="text-secondary small">Evaluación masiva del alumnado.</p>
                         <form asp-action="EvaluarRiesgos" method="post" class="m-0">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="ra-btn ra-btn-accent w-100" onclick="return confirm('¿Ejecutar evaluación masiva de riesgo?')">
-                                <i class="bi bi-lightning"></i> Ejecutar Ahora
+                                <i class="bi bi-lightning"></i> Ejecutar
                             </button>
                         </form>
                     </div>

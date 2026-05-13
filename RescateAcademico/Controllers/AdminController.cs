@@ -24,19 +24,11 @@ namespace RescateAcademico.Controllers
             _alertasService = alertasService;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var stats = new DashboardStats
-            {
-                TotalAlumnos = await _context.Alumnos.CountAsync(),
-                TotalProyectos = await _context.Proyectos.CountAsync(),
-                TotalConvocatorias = await _context.Convocatorias.Where(c => c.EstaActiva).CountAsync(),
-                TotalPostulaciones = await _context.Postulaciones.CountAsync(),
-                PostulacionesPendientes = await _context.Postulaciones.Where(p => p.Estado == "En Revisión").CountAsync(),
-                AlumnosEnRiesgo = await _context.Alumnos.Where(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo").CountAsync(),
-                TotalTutores = await _context.Tutores.CountAsync()
-            };
-            return View(stats);
+            // Admin landing now routes to the global Dashboard,
+            // where role-specific stats are rendered.
+            return RedirectToAction("Index", "Dashboard");
         }
 
         public IActionResult Gestion()
@@ -120,31 +112,6 @@ namespace RescateAcademico.Controllers
                 TempData["Success"] = "Alumno eliminado";
             }
             return RedirectToAction("Alumnos");
-        }
-
-        public async Task<IActionResult> Tutores()
-        {
-            var tutores = await _context.Tutores.Include(t => t.Usuario).ToListAsync();
-            return View(tutores);
-        }
-
-        public IActionResult CrearTutor()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CrearTutor([Bind("Nombre,Apellidos,Email,Telefono,NumeroEmpleado,Especialidad,EstaActivo")] Tutor tutor)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Tutores.Add(tutor);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Tutor creado exitosamente";
-                return RedirectToAction("Tutores");
-            }
-            return View(tutor);
         }
 
         public async Task<IActionResult> CiclosEscolares()

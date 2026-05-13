@@ -226,3 +226,283 @@
         gsap.registerPlugin(ScrollTrigger);
     }
 })();
+
+
+// ============================================
+// Alumno Quick View — shared modal loader
+// Used by Views/Shared/_AlumnoQuickView.cshtml.
+// Supply role links via RaQuickView.config.
+// ============================================
+(function () {
+    'use strict';
+
+    function fmt(v) { return (v === undefined || v === null || v === '') ? '—' : v; }
+    function colorByPromedio(p) {
+        if (p >= 8) return 'var(--ra-success)';
+        if (p >= 6) return 'var(--ra-warning)';
+        return 'var(--ra-danger)';
+    }
+
+    window.RaQuickView = {
+        /**
+         * Configure which action buttons appear. Pass URL templates where
+         * {matricula} is substituted. Any key omitted hides that button.
+         * Call once per page, e.g.:
+         *   RaQuickView.configure({
+         *       profile: '/Profesor/HistorialAcademico?boleta={matricula}',
+         *       intervencion: '/Intervenciones/Crear?matricula={matricula}'
+         *   });
+         */
+        _cfg: {},
+        configure: function (cfg) { this._cfg = Object.assign({}, cfg || {}); },
+
+        open: async function (matricula) {
+            var modalEl = document.getElementById('raQuickViewModal');
+            if (!modalEl) { console.warn('[RaQuickView] modal partial not included'); return; }
+
+            // Show modal first for perceived speed
+            var existing = bootstrap.Modal.getInstance(modalEl);
+            if (existing) existing.hide();
+            var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+            modal.show();
+
+            modalEl.querySelector('#raQvLoading').style.display = 'block';
+            modalEl.querySelector('#raQvContent').style.display = 'none';
+            modalEl.querySelector('#raQvError').style.display = 'none';
+            var titleSpan = modalEl.querySelector('#raQvTitle span');
+            if (titleSpan) titleSpan.textContent = 'Cargando...';
+
+            try {
+                var response = await fetch('/Alumnos/QuickView?matricula=' + encodeURIComponent(matricula), { credentials: 'same-origin' });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                var data = await response.json();
+
+                if (titleSpan) titleSpan.textContent = (data.nombre || '') + ' ' + (data.apellidos || '');
+
+                var fields = {
+                    matricula: data.matricula,
+                    carrera: fmt(data.carrera),
+                    semestre: fmt(data.semestreActual),
+                    grupo: fmt(data.grupo),
+                    carga: (data.cargaAcademicaActual || 0) + ' materias',
+                    actualizacion: fmt(data.fechaUltimaActualizacion),
+                    reprobadas: data.materiasReprobadas || 0,
+                    ausencias: data.ausencias || 0,
+                    ets: data.etsPresentados || 0,
+                    recursadas: data.recursamientos || 0
+                };
+                Object.keys(fields).forEach(function (key) {
+                    var el = modalEl.querySelector('[data-qv="' + key + '"]');
+                    if (el) el.textContent = fields[key];
+                });
+
+                var promedio = typeof data.promedioGlobal === 'number' ? data.promedioGlobal : parseFloat(data.promedioGlobal) || 0;
+                var promedioEl = modalEl.querySelector('[data-qv="promedio"]');
+                if (promedioEl) {
+                    promedioEl.textContent = promedio.toFixed(2);
+                    promedioEl.style.color = colorByPromedio(promedio);
+                }
+
+                var riesgoEl = modalEl.querySelector('[data-qv="riesgo"]');
+                if (riesgoEl) {
+                    riesgoEl.replaceChildren();
+                    var sem = document.createElement('ra-semaforo');
+                    sem.setAttribute('riesgo', data.riesgoAcademico || 'Verde');
+                    sem.setAttribute('size', 'sm');
+                    riesgoEl.appendChild(sem);
+                }
+
+                var cfg = this._cfg || {};
+                ['profile', 'detalle', 'timeline', 'intervencion'].forEach(function (key) {
+                    var link = modalEl.querySelector('[data-qv-link="' + key + '"]');
+                    if (!link) return;
+                    if (cfg[key]) {
+                        link.href = cfg[key].replace('{matricula}', encodeURIComponent(matricula));
+                        link.style.display = '';
+                    } else {
+                        link.style.display = 'none';
+                    }
+                });
+
+                modalEl.querySelector('#raQvLoading').style.display = 'none';
+                modalEl.querySelector('#raQvContent').style.display = 'block';
+            } catch (err) {
+                console.error('[RaQuickView]', err);
+                modalEl.querySelector('#raQvLoading').style.display = 'none';
+                modalEl.querySelector('#raQvError').style.display = '';
+            }
+        }
+    };
+})();
+
+// ============================================
+// Global Search (Ctrl/Cmd + K)
+// Backend: /Home/GlobalSearch?q=...
+// Returns [{ label, meta, url, icon, group }]
+// Also supports purely client-side items added via RaSearch.register(...).
+// ============================================
+(function () {
+    'use strict';
+
+    var staticItems = [];
+    var debounceTimer = null;
+    var lastQuery = '';
+    var activeIndex = 0;
+
+    window.RaSearch = {
+        register: function (items) {
+            if (!Array.isArray(items)) return;
+            staticItems = staticItems.concat(items);
+        },
+        open: function () {
+            var bd = document.getElementById('raSearchBackdrop');
+            if (!bd) return;
+            bd.classList.add('active');
+            var input = bd.querySelector('.ra-search-input');
+            if (input) { input.value = ''; input.focus(); }
+            renderResults('');
+        },
+        close: function () {
+            var bd = document.getElementById('raSearchBackdrop');
+            if (bd) bd.classList.remove('active');
+        }
+    };
+
+    function renderResults(query) {
+        var bd = document.getElementById('raSearchBackdrop');
+        if (!bd) return;
+        var container = bd.querySelector('.ra-search-results');
+        if (!container) return;
+        activeIndex = 0;
+        var q = (query || '').trim().toLowerCase();
+
+        var local = staticItems.filter(function (it) {
+            if (!q) return true;
+            return (it.label || '').toLowerCase().indexOf(q) !== -1 ||
+                   (it.meta || '').toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 8);
+
+        container.replaceChildren();
+        renderGroup(container, 'Navegación', local);
+
+        if (q.length >= 2) {
+            fetch('/Home/GlobalSearch?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .then(function (results) {
+                    if (q !== lastQuery) return; // stale
+                    var byGroup = {};
+                    (results || []).forEach(function (it) {
+                        var g = it.group || 'Resultados';
+                        (byGroup[g] = byGroup[g] || []).push(it);
+                    });
+                    Object.keys(byGroup).forEach(function (g) {
+                        renderGroup(container, g, byGroup[g]);
+                    });
+                    if (!local.length && !(results || []).length) {
+                        renderEmpty(container);
+                    }
+                    updateActive();
+                })
+                .catch(function () { /* silent */ });
+        } else if (!local.length) {
+            renderEmpty(container);
+        }
+        updateActive();
+    }
+
+    function renderGroup(parent, label, items) {
+        if (!items || !items.length) return;
+        var lbl = document.createElement('div');
+        lbl.className = 'ra-search-group-label';
+        lbl.textContent = label;
+        parent.appendChild(lbl);
+        items.forEach(function (it) {
+            var a = document.createElement('a');
+            a.className = 'ra-search-item';
+            a.href = it.url;
+            if (it.icon) {
+                var ic = document.createElement('i');
+                ic.className = 'bi ' + it.icon;
+                a.appendChild(ic);
+            }
+            var txt = document.createElement('span');
+            txt.style.flex = '1';
+            txt.textContent = it.label || '';
+            a.appendChild(txt);
+            if (it.meta) {
+                var m = document.createElement('span');
+                m.className = 'ra-search-item-meta';
+                m.textContent = it.meta;
+                a.appendChild(m);
+            }
+            parent.appendChild(a);
+        });
+    }
+
+    function renderEmpty(parent) {
+        var empty = document.createElement('div');
+        empty.className = 'ra-search-empty';
+        empty.textContent = 'Sin resultados';
+        parent.appendChild(empty);
+    }
+
+    function updateActive() {
+        var bd = document.getElementById('raSearchBackdrop');
+        if (!bd) return;
+        var items = bd.querySelectorAll('.ra-search-item');
+        items.forEach(function (it, idx) {
+            it.classList.toggle('active', idx === activeIndex);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var trigger = document.getElementById('raSearchTrigger');
+        if (trigger) trigger.addEventListener('click', function () { RaSearch.open(); });
+
+        var bd = document.getElementById('raSearchBackdrop');
+        if (!bd) return;
+        var input = bd.querySelector('.ra-search-input');
+
+        bd.addEventListener('click', function (e) {
+            if (e.target === bd) RaSearch.close();
+        });
+
+        if (input) {
+            input.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                lastQuery = input.value.trim().toLowerCase();
+                debounceTimer = setTimeout(function () { renderResults(input.value); }, 180);
+            });
+            input.addEventListener('keydown', function (e) {
+                var items = bd.querySelectorAll('.ra-search-item');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (items.length) { activeIndex = (activeIndex + 1) % items.length; updateActive(); items[activeIndex].scrollIntoView({ block: 'nearest' }); }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (items.length) { activeIndex = (activeIndex - 1 + items.length) % items.length; updateActive(); items[activeIndex].scrollIntoView({ block: 'nearest' }); }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (items[activeIndex]) items[activeIndex].click();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    RaSearch.close();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            var isK = (e.key || '').toLowerCase() === 'k';
+            if (isK && (e.ctrlKey || e.metaKey)) {
+                var target = e.target;
+                var tag = target && target.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || (target && target.isContentEditable)) return;
+                e.preventDefault();
+                RaSearch.open();
+            }
+            if (e.key === 'Escape' && bd.classList.contains('active')) {
+                RaSearch.close();
+            }
+        });
+    });
+})();
