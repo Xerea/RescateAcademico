@@ -324,8 +324,10 @@ namespace RescateAcademico.Controllers
                 var json = await response.Content.ReadAsStringAsync();
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var success = doc.RootElement.GetProperty("success").GetBoolean();
-                var score = doc.RootElement.TryGetProperty("score", out var scoreEl) ? scoreEl.GetDouble() : 0;
-                return success && score >= 0.5;
+                if (!success) return false;
+
+                var hasScore = doc.RootElement.TryGetProperty("score", out var scoreEl);
+                return !hasScore || scoreEl.GetDouble() >= 0.5;
             }
             catch
             {
