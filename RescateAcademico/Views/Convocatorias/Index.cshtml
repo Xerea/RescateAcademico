@@ -1,22 +1,24 @@
 @model IEnumerable<RescateAcademico.Models.Convocatoria>
 @{
-    ViewData["Title"] = "Convocatorias Disponibles";
+    ViewData["Title"] = "Convocatorias";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Convocatorias disponibles",
+        Subtitle = "Explora y postúlate a proyectos de servicio social, investigación o apoyo académico.",
+        Icon = "bi-megaphone",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-megaphone ra-text-accent me-2"></i>Convocatorias Disponibles</h1>
-        <p class="text-secondary small mb-0">Explora y postúlate a proyectos de servicio social, investigación o apoyo académico.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
-<div class="ra-card mb-4">
+<div class="ra-card ra-filter-bar">
     <div class="ra-card-body">
         <form method="get">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
-                    <input type="text" name="busqueda" class="ra-input" placeholder="Buscar por título..." />
+                    <input type="text" name="busqueda" class="ra-input" placeholder="Buscar por título…" />
                 </div>
                 <div class="col-md-3">
                     <select name="tipo" class="ra-select">
@@ -28,7 +30,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" name="area" class="ra-input" placeholder="Área..." />
+                    <input type="text" name="area" class="ra-input" placeholder="Área…" />
                 </div>
                 <div class="col-md-2">
                     <button type="submit" class="ra-btn ra-btn-primary w-100">

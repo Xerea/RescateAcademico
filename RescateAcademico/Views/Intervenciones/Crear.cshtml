@@ -1,6 +1,6 @@
 @model RescateAcademico.Models.IntervencionTutoria
 @{
-    ViewData["Title"] = "Nueva Intervencion";
+    ViewData["Title"] = "Nueva intervención";
     Layout = "_Layout";
     var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
     var planMejora = ViewBag.PlanMejora as RescateAcademico.Models.PlanMejora;
@@ -11,40 +11,50 @@
         if (planMejora.AccionesTomadas.Contains("Asesoria")) tipoSugerido = "Tutoria";
         else if (planMejora.AccionesTomadas.Contains("Psicologico")) tipoSugerido = "Canalizacion";
     }
+
+    string backUrl;
+    string backLabel;
+    if (planMejoraId.HasValue)
+    {
+        backUrl = Url.Action("Detalles", "PlanesMejora", new { id = planMejoraId.Value }) ?? "/";
+        backLabel = "Volver al plan";
+    }
+    else
+    {
+        backUrl = Url.Action("PorAlumno", "Intervenciones", new { matricula = ViewBag.Matricula as string }) ?? "/";
+        backLabel = "Intervenciones";
+    }
+
+    var header = new PageHeader
+    {
+        Title = "Nueva intervención",
+        Subtitle = alumno == null ? null : $"Para {alumno.Nombre} {alumno.Apellidos} · Boleta {alumno.Matricula}",
+        Icon = "bi-clipboard-pulse",
+        IconVariant = "accent",
+        BackUrl = backUrl,
+        BackLabel = backLabel
+    };
 }
 
+<partial name="_PageHeader" model="header" />
+
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-7">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            @if (planMejoraId.HasValue)
-            {
-                <a asp-controller="PlanesMejora" asp-action="Detalles" asp-route-id="@planMejoraId.Value" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Volver al plan</a>
-            }
-            else
-            {
-                <a asp-action="PorAlumno" asp-route-matricula="@ViewBag.Matricula" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Volver</a>
-            }
-        </div>
-
-        <h2 class="fw-bold h4 mb-3">Nueva Intervencion</h2>
-
+    <div class="col-md-9 col-lg-8">
         @if (planMejora != null)
         {
             <div class="ra-card ra-card-primary mb-3">
                 <div class="ra-card-body d-flex align-items-start gap-3">
-                    <i class="bi bi-journal-check fs-4" style="color:var(--ra-primary);"></i>
+                    <i class="bi bi-journal-check fs-4" style="color: var(--ra-primary);"></i>
                     <div>
                         <div class="fw-semibold">Vinculada al Plan #@planMejora.Id</div>
-                        <div class="text-secondary small">@planMejora.Alumno?.Nombre @planMejora.Alumno?.Apellidos &mdash; @planMejora.Estado</div>
+                        <div class="text-secondary small">@planMejora.Alumno?.Nombre @planMejora.Alumno?.Apellidos — @planMejora.Estado</div>
                     </div>
                 </div>
             </div>
         }
 
         <div class="ra-card">
-            <div class="ra-card-header">
-                <span>Intervencion para @alumno?.Nombre @alumno?.Apellidos</span>
-            </div>
+            <div class="ra-card-header">Registrar intervención</div>
             <div class="ra-card-body">
                 <form asp-action="Crear" method="post">
                     @Html.AntiForgeryToken()
@@ -55,49 +65,100 @@
                     }
 
                     <div class="mb-3">
-                        <label class="ra-label">Tipo de Intervencion *</label>
-                        <select asp-for="Tipo" class="ra-select" required>
-                            <option value="Acercamiento" selected="@(tipoSugerido == "Acercamiento" ? "selected" : null)">Acercamiento</option>
-                            <option value="Tutoria" selected="@(tipoSugerido == "Tutoria" ? "selected" : null)">Tutoria</option>
-                            <option value="Canalizacion" selected="@(tipoSugerido == "Canalizacion" ? "selected" : null)">Canalizacion</option>
-                            <option value="Otro">Otro</option>
-                        </select>
+                        <label class="ra-label">Tipo de intervención *</label>
+                        <div class="row g-2" role="radiogroup">
+                            @{
+                                var tipos = new (string Value, string Label, string Desc, string Icon)[]
+                                {
+                                    ("Acercamiento", "Acercamiento", "Conversación informal para entender la situación del alumno.", "bi-chat-dots"),
+                                    ("Tutoria", "Tutoría", "Sesión estructurada de apoyo académico o asesoría en materias.", "bi-mortarboard"),
+                                    ("Canalizacion", "Canalización", "Derivación a servicios especializados (psicología, orientación, salud).", "bi-signpost-split"),
+                                    ("Otro", "Otro", "Cualquier otra acción documentada con el alumno.", "bi-three-dots")
+                                };
+                            }
+                            @foreach (var (value, label, desc, icon) in tipos)
+                            {
+                                <div class="col-sm-6 col-md-3">
+                                    <label class="ra-type-card @(tipoSugerido == value ? "checked" : "")">
+                                        <input type="radio" name="Tipo" value="@value" @(tipoSugerido == value ? "checked" : "") required />
+                                        <i class="bi @icon"></i>
+                                        <div class="ra-type-card-title">@label</div>
+                                        <div class="ra-type-card-desc">@desc</div>
+                                    </label>
+                                </div>
+                            }
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="ra-label">Descripcion *</label>
-                        <textarea asp-for="Descripcion" class="ra-input" rows="4" placeholder="Describe la intervencion realizada..." required></textarea>
+                        <label class="ra-label">Descripción *</label>
+                        <textarea asp-for="Descripcion" class="ra-input" rows="4" placeholder="¿Qué se abordó en la intervención?" required></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label class="ra-label">Resultado / Observaciones</label>
-                        <textarea asp-for="Resultado" class="ra-input" rows="3" placeholder="Resultados obtenidos..."></textarea>
+                        <label class="ra-label">Resultado / observaciones</label>
+                        <textarea asp-for="Resultado" class="ra-input" rows="3" placeholder="Resultados o compromisos del alumno…"></textarea>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input asp-for="RequiereSeguimiento" class="form-check-input" />
-                        <label class="form-check-label" style="color: var(--ra-text-secondary);">Requiere seguimiento</label>
-                    </div>
+                    <label class="ra-check-label mb-4">
+                        <input asp-for="RequiereSeguimiento" class="ra-checkbox" type="checkbox" />
+                        <span>Requiere seguimiento en una sesión posterior</span>
+                    </label>
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="ra-btn ra-btn-primary flex-fill">
-                            <i class="bi bi-save"></i> Guardar Intervencion
+                            <i class="bi bi-save"></i> Guardar intervención
                         </button>
-                        @if (planMejoraId.HasValue)
-                        {
-                            <a asp-controller="PlanesMejora" asp-action="Detalles" asp-route-id="@planMejoraId.Value" class="ra-btn ra-btn-ghost">
-                                Cancelar
-                            </a>
-                        }
-                        else
-                        {
-                            <a asp-action="PorAlumno" asp-route-matricula="@ViewBag.Matricula" class="ra-btn ra-btn-ghost">
-                                Cancelar
-                            </a>
-                        }
+                        <a href="@backUrl" class="ra-btn ra-btn-ghost">Cancelar</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .ra-type-card {
+        display: block;
+        background: var(--ra-surface);
+        border: 1px solid var(--ra-border);
+        border-radius: var(--ra-radius);
+        padding: 0.75rem 0.85rem;
+        cursor: pointer;
+        transition: var(--ra-transition);
+        height: 100%;
+    }
+    .ra-type-card input { display: none; }
+    .ra-type-card i {
+        font-size: 1.2rem;
+        color: var(--ra-text-muted);
+        margin-bottom: 0.35rem;
+    }
+    .ra-type-card-title { font-weight: 600; font-size: 0.875rem; }
+    .ra-type-card-desc {
+        font-size: 0.75rem;
+        color: var(--ra-text-secondary);
+        margin-top: 0.25rem;
+        line-height: 1.4;
+    }
+    .ra-type-card:hover { border-color: var(--ra-primary); }
+    .ra-type-card.checked,
+    .ra-type-card:has(input:checked) {
+        border-color: var(--ra-primary);
+        background: var(--ra-primary-soft);
+    }
+    .ra-type-card.checked i,
+    .ra-type-card:has(input:checked) i { color: var(--ra-primary); }
+</style>
+
+@section Scripts {
+    <script>
+        // Fallback for browsers without :has() — sync .checked class on change
+        document.querySelectorAll('input[name="Tipo"]').forEach(function (inp) {
+            inp.addEventListener('change', function () {
+                document.querySelectorAll('.ra-type-card').forEach(function (c) { c.classList.remove('checked'); });
+                inp.closest('.ra-type-card')?.classList.add('checked');
+            });
+        });
+    </script>
+}

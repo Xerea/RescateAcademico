@@ -1,15 +1,17 @@
 @model IEnumerable<RescateAcademico.Models.Postulacion>
 @{
-    ViewData["Title"] = "Gestión de Postulaciones";
+    ViewData["Title"] = "Postulaciones";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Gestión de postulaciones",
+        Subtitle = "Revisión de solicitudes estudiantiles.",
+        Icon = "bi-clipboard-check",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-clipboard-check"></i> Gestión de Postulaciones</h1>
-        <p class="text-secondary small mb-0">Revisión de solicitudes estudiantiles.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">

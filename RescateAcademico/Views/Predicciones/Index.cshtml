@@ -1,15 +1,17 @@
 @model List<RescateAcademico.Services.PrediccionAlumnoViewModel>
 @{
-    ViewData["Title"] = "Predicción de Deserción";
+    ViewData["Title"] = "Predicción de deserción";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Predicción de deserción",
+        Subtitle = "Modelo heurístico institucional basado en indicadores académicos.",
+        Icon = "bi-brain",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-brain ra-text-accent me-2"></i>Predicción de Deserción</h1>
-        <p class="text-secondary small mb-0">Modelo heurístico institucional basado en indicadores académicos.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-alert ra-alert-info mb-4" role="alert">
     <i class="bi bi-info-circle-fill fs-5"></i>

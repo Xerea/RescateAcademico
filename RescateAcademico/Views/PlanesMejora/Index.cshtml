@@ -1,23 +1,21 @@
 @model IEnumerable<RescateAcademico.Models.PlanMejora>
 @{
-    ViewData["Title"] = "Planes de Mejora";
+    ViewData["Title"] = "Planes de mejora";
     Layout = "_Layout";
+    var actionsHtml = !User.IsInRole("Autoridad")
+        ? $"<a href=\"{Url.Action("Crear")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo plan</a>"
+        : null;
+    var header = new PageHeader
+    {
+        Title = "Planes de mejora",
+        Subtitle = "Seguimiento académico personalizado.",
+        Icon = "bi-journal-check",
+        IconVariant = "accent",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-journal-check ra-text-accent me-2"></i>Planes de Mejora</h1>
-        <p class="text-secondary small mb-0">Seguimiento académico personalizado.</p>
-    </div>
-    @if (!User.IsInRole("Autoridad"))
-    {
-        <div class="col-auto">
-            <a asp-action="Crear" class="ra-btn ra-btn-primary">
-                <i class="bi bi-plus-circle"></i> Nuevo Plan
-            </a>
-        </div>
-    }
-</div>
+<partial name="_PageHeader" model="header" />
 
 @if (!string.IsNullOrEmpty(ViewBag.MatriculaFiltro))
 {

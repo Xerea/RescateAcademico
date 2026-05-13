@@ -2,14 +2,16 @@
 @{
     ViewData["Title"] = "Intervenciones";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Intervenciones",
+        Subtitle = "Registro de intervenciones y seguimientos.",
+        Icon = "bi-clipboard-pulse",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-clipboard-pulse ra-text-accent me-2"></i>Intervenciones</h1>
-        <p class="text-secondary small mb-0">Registro de intervenciones y seguimientos.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">

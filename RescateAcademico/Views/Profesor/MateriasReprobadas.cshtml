@@ -1,23 +1,27 @@
 @model List<RescateAcademico.Models.Calificacion>
 @{
-    ViewData["Title"] = "Materias Reprobadas";
+    ViewData["Title"] = "Materias reprobadas";
     Layout = "_Layout";
     var grupos = ViewBag.Grupos as List<string> ?? new List<string>();
+    var header = new PageHeader
+    {
+        Title = "Materias reprobadas",
+        Subtitle = "Alumnos con materias no aprobadas en tus grupos.",
+        Icon = "bi-x-circle",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index", "Profesor"),
+        BackLabel = "Mis Grupos"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-x-circle ra-text-danger me-2"></i>Materias Reprobadas</h1>
-        <p class="text-secondary small mb-0">Listado de estudiantes con materias reprobadas en tus grupos asignados.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaReprobadas">
+                <table class="table ra-table ra-table-cards mb-0" id="tablaReprobadas">
                     <thead>
                         <tr>
                             <th>Boleta</th>
@@ -26,21 +30,21 @@
                             <th>Materia</th>
                             <th>Calificación</th>
                             <th>Veces</th>
-                            <th>Acciones</th>
+                            <th style="width:1px;" data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var c in Model)
                         {
                             <tr>
-                                <td><strong>@c.AlumnoMatricula</strong></td>
-                                <td>@(c.Alumno?.Nombre) @(c.Alumno?.Apellidos)</td>
-                                <td>@(c.Alumno?.Grupo?.Clave ?? "—")</td>
-                                <td><span class="ra-badge ra-badge-neutral">@c.Materia?.Clave</span> @c.Materia?.Nombre</td>
-                                <td><span class="ra-badge ra-badge-danger">@((c.Valor ?? 0).ToString("F1"))</span></td>
-                                <td>@c.VecesCursada</td>
-                                <td>
-                                    <a asp-action="HistorialAcademico" asp-route-boleta="@c.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver historial">
+                                <td data-label="Boleta"><strong class="ra-mono">@c.AlumnoMatricula</strong></td>
+                                <td data-label="Estudiante">@(c.Alumno?.Nombre) @(c.Alumno?.Apellidos)</td>
+                                <td data-label="Grupo">@(c.Alumno?.Grupo?.Clave ?? "—")</td>
+                                <td data-label="Materia"><span class="ra-badge ra-badge-neutral">@c.Materia?.Clave</span> @c.Materia?.Nombre</td>
+                                <td data-label="Calificación"><span class="ra-badge ra-badge-danger">@((c.Valor ?? 0).ToString("F1"))</span></td>
+                                <td data-label="Veces">@c.VecesCursada</td>
+                                <td data-label="Acciones">
+                                    <a asp-action="HistorialAcademico" asp-route-boleta="@c.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver historial">
                                         <i class="bi bi-journal-text"></i> Historial
                                     </a>
                                 </td>
@@ -60,19 +64,11 @@
     </div>
 </div>
 
-<div class="mt-4">
-    <a asp-action="Index" class="ra-btn ra-btn-outline">
-        <i class="bi bi-arrow-left"></i> Volver a Mis Grupos
-    </a>
-</div>
-
 @section Scripts {
     <script>
         $(document).ready(function () {
             $('#tablaReprobadas').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
-                },
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
                 pageLength: 25
             });
         });

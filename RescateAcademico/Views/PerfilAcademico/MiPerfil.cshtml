@@ -2,6 +2,13 @@
 @{
     ViewData["Title"] = "Mi Perfil Académico";
     Layout = "_Layout";
+    var header = Model?.Alumno == null ? null : new PageHeader
+    {
+        Title = "Mi Perfil Académico",
+        Subtitle = $"{Model.Alumno.Nombre} {Model.Alumno.Apellidos} · Boleta {Model.Alumno.Matricula}",
+        Icon = "bi-person-badge",
+        IconVariant = "accent"
+    };
 }
 
 @if (TempData["Error"] != null)
@@ -15,12 +22,7 @@
 
 @if (Model?.Alumno != null)
 {
-    <div class="row mb-4 align-items-end">
-        <div class="col">
-            <h1 class="fw-bold h3 mb-1"><i class="bi bi-person-badge ra-text-accent me-2"></i>Mi Perfil Académico</h1>
-            <p class="text-secondary small mb-0">@Model.Alumno.Nombre @Model.Alumno.Apellidos — Boleta @Model.Alumno.Matricula</p>
-        </div>
-    </div>
+    <partial name="_PageHeader" model="header" />
 
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">

@@ -1,33 +1,37 @@
 @model RescateAcademico.Models.Alumno
 @{
-    ViewData["Title"] = "Detalles del Alumno";
+    ViewData["Title"] = "Detalle del alumno";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = Model.Nombre + " " + Model.Apellidos,
+        Subtitle = $"Boleta {Model.Matricula}",
+        Icon = "bi-person-badge",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index", "Alumnos"),
+        BackLabel = "Catálogo"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1">
-            <i class="bi bi-person-badge ra-text-accent me-2"></i>@Model.Nombre @Model.Apellidos
-        </h1>
-        <p class="text-secondary small mb-0">Boleta: @Model.Matricula</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="row g-3">
     <div class="col-md-4">
         <div class="ra-card h-100">
             <div class="ra-card-body text-center">
-                <h4 class="mb-0 @(Model.PromedioGlobal >= 8 ? "ra-text-success" : Model.PromedioGlobal >= 6 ? "ra-text-warning" : "ra-text-danger")">
+                <div class="fw-bold" style="font-size:2.25rem; line-height:1;" class="@(Model.PromedioGlobal >= 8 ? "ra-text-success" : Model.PromedioGlobal >= 6 ? "ra-text-warning" : "ra-text-danger")">
                     @Model.PromedioGlobal.ToString("F2")
-                </h4>
-                <small class="text-secondary">Promedio Global</small>
+                </div>
+                <small class="text-secondary">Promedio global</small>
                 <hr style="border-color: var(--ra-border);" />
-                <p class="mb-2"><strong>Carrera:</strong> @Model.Carrera</p>
-                <p class="mb-2"><strong>Semestre:</strong> @Model.SemestreActual</p>
-                <p class="mb-0">
-                    <strong>Riesgo:</strong>
-                    <ra-semaforo riesgo="@Model.RiesgoAcademico" size="sm"></ra-semaforo>
-                </p>
+                <div class="text-start small">
+                    <p class="mb-2"><span class="text-secondary">Carrera:</span> <strong>@Model.Carrera</strong></p>
+                    <p class="mb-2"><span class="text-secondary">Semestre:</span> <strong>@Model.SemestreActual</strong></p>
+                    <p class="mb-0 d-flex align-items-center gap-2">
+                        <span class="text-secondary">Riesgo:</span>
+                        <ra-semaforo riesgo="@Model.RiesgoAcademico" size="sm"></ra-semaforo>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -35,21 +39,27 @@
     <div class="col-md-8">
         <div class="ra-card">
             <div class="ra-card-header">
-                <i class="bi bi-journal-text"></i> Información Académica
+                <i class="bi bi-journal-text"></i> Información académica
             </div>
             <div class="ra-card-body">
-                <div class="row text-center">
+                <div class="row text-center g-3">
                     <div class="col-4">
-                        <h5 class="ra-text-success">@Model.CargaAcademicaActual</h5>
-                        <small class="text-secondary">Materias Actuales</small>
+                        <div class="p-2 rounded-3" style="background: var(--ra-success-bg);">
+                            <div class="fw-bold fs-5 ra-text-success">@Model.CargaAcademicaActual</div>
+                            <small class="text-secondary">Materias actuales</small>
+                        </div>
                     </div>
                     <div class="col-4">
-                        <h5 class="ra-text-danger">@(Model.MateriasReprobadas ?? 0)</h5>
-                        <small class="text-secondary">Reprobadas</small>
+                        <div class="p-2 rounded-3" style="background: var(--ra-danger-bg);">
+                            <div class="fw-bold fs-5 ra-text-danger">@(Model.MateriasReprobadas ?? 0)</div>
+                            <small class="text-secondary">Reprobadas</small>
+                        </div>
                     </div>
                     <div class="col-4">
-                        <h5 class="ra-text-warning">@(Model.Recursamientos ?? 0)</h5>
-                        <small class="text-secondary">Recursadas</small>
+                        <div class="p-2 rounded-3" style="background: var(--ra-warning-bg);">
+                            <div class="fw-bold fs-5 ra-text-warning">@(Model.Recursamientos ?? 0)</div>
+                            <small class="text-secondary">Recursadas</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -59,11 +69,11 @@
         {
             <div class="ra-card mt-3">
                 <div class="ra-card-header">
-                    <i class="bi bi-list-check"></i> Historial de Calificaciones
+                    <i class="bi bi-list-check"></i> Historial de calificaciones
                 </div>
                 <div class="ra-card-body p-0">
                     <div class="table-responsive">
-                        <table class="table ra-table mb-0">
+                        <table class="table ra-table ra-table-cards mb-0">
                             <thead>
                                 <tr>
                                     <th>Materia</th>
@@ -76,10 +86,10 @@
                                 @foreach (var calif in Model.Calificaciones)
                                 {
                                     <tr>
-                                        <td>@calif.Materia?.Nombre</td>
-                                        <td>@calif.Periodo</td>
-                                        <td>@calif.Valor?.ToString("F1")</td>
-                                        <td>
+                                        <td data-label="Materia">@calif.Materia?.Nombre</td>
+                                        <td data-label="Período">@calif.Periodo</td>
+                                        <td data-label="Calificación">@calif.Valor?.ToString("F1")</td>
+                                        <td data-label="Estado">
                                             @if (calif.Aprobada)
                                             {
                                                 <span class="ra-badge ra-badge-success">Aprobada</span>
@@ -98,10 +108,4 @@
             </div>
         }
     </div>
-</div>
-
-<div class="mt-4">
-    <a asp-controller="Alumnos" asp-action="Index" class="ra-btn ra-btn-outline">
-        <i class="bi bi-arrow-left"></i> Volver a la lista
-    </a>
 </div>
