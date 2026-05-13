@@ -1,8 +1,14 @@
 @model dynamic
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnv
 @{
-    ViewData["Title"] = "Inicio de Sesión";
+    ViewData["Title"] = "Acceder";
     Layout = "_Layout";
+    // Demo credentials are only displayed in non-production environments OR when
+    // the env var SHOW_DEMO_CREDENTIALS is explicitly set to "true".
+    // This prevents exposing credentials on the public Railway deployment.
+    var showDemoCredentials = HostEnv.IsDevelopment()
+        || string.Equals(Configuration["SHOW_DEMO_CREDENTIALS"], "true", StringComparison.OrdinalIgnoreCase);
     var adminPw = Configuration["DEMO_ADMIN_PASSWORD"] ?? "Admin123!";
     var autoridadPw = Configuration["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!";
     var tutorPw = Configuration["DEMO_TUTOR_PASSWORD"] ?? "Demo123!";
@@ -70,49 +76,52 @@
             </div>
         </div>
 
-        <div class="accordion mt-3" id="demoCredentialsAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-transparent shadow-none small text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDemo">
-                        <i class="bi bi-info-circle me-2"></i> Credenciales de demostración
-                    </button>
-                </h2>
-                <div id="collapseDemo" class="accordion-collapse collapse" data-bs-parent="#demoCredentialsAccordion">
-                    <div class="accordion-body p-0 pt-2">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Administrador</small>
-                                    <code class="small d-block">admin@ipn.mx</code>
-                                    <code class="small">@adminPw</code>
+        @if (showDemoCredentials)
+        {
+            <div class="accordion mt-3" id="demoCredentialsAccordion">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent shadow-none small text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDemo">
+                            <i class="bi bi-info-circle me-2"></i> Credenciales de demostración
+                        </button>
+                    </h2>
+                    <div id="collapseDemo" class="accordion-collapse collapse" data-bs-parent="#demoCredentialsAccordion">
+                        <div class="accordion-body p-0 pt-2">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="ra-card text-center py-2">
+                                        <small class="text-secondary d-block fw-semibold">Administrador</small>
+                                        <code class="small d-block">admin@ipn.mx</code>
+                                        <code class="small">@adminPw</code>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Autoridad</small>
-                                    <code class="small d-block">autoridad@ipn.mx</code>
-                                    <code class="small">@autoridadPw</code>
+                                <div class="col-6">
+                                    <div class="ra-card text-center py-2">
+                                        <small class="text-secondary d-block fw-semibold">Autoridad</small>
+                                        <code class="small d-block">autoridad@ipn.mx</code>
+                                        <code class="small">@autoridadPw</code>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Profesor</small>
-                                    <code class="small d-block">profesor1@ipn.mx</code>
-                                    <code class="small">@tutorPw</code>
+                                <div class="col-6">
+                                    <div class="ra-card text-center py-2">
+                                        <small class="text-secondary d-block fw-semibold">Profesor</small>
+                                        <code class="small d-block">profesor1@ipn.mx</code>
+                                        <code class="small">@tutorPw</code>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Alumno</small>
-                                    <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
-                                    <code class="small">@alumnoPw</code>
+                                <div class="col-6">
+                                    <div class="ra-card text-center py-2">
+                                        <small class="text-secondary d-block fw-semibold">Alumno</small>
+                                        <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
+                                        <code class="small">@alumnoPw</code>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
     </div>
 </div>
 
