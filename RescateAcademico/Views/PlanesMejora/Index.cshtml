@@ -55,7 +55,7 @@
                                     <span class="text-secondary small">@plan.AlumnoMatricula</span>
                                 </td>
                                 <td>@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
-                                <td>@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                                <td data-order="@plan.FechaCreacion.ToString("yyyyMMddHHmmss")">@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
                                 <td>
                                     <span class="ra-badge @(plan.Estado == "Activo" ? "ra-badge-primary" : plan.Estado == "Cumplido" ? "ra-badge-success" : plan.Estado == "Vencido" ? "ra-badge-danger" : "ra-badge-neutral")">
                                         @plan.Estado
@@ -100,7 +100,11 @@
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
                 },
-                pageLength: 25
+                pageLength: 25,
+                order: [[2, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: [4] }
+                ]
             });
         });
     </script>

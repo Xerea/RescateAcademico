@@ -179,6 +179,15 @@ namespace RescateAcademico.Controllers
 
             if (!await _studentAccessService.CanAccessAlumnoAsync(model.AlumnoMatricula)) return Forbid();
 
+            var existingActive = await _context.PlanesMejora
+                .AnyAsync(p => p.AlumnoMatricula == model.AlumnoMatricula && p.Estado == "Activo");
+            if (existingActive)
+            {
+                TempData["Error"] = "Este alumno ya cuenta con un plan de mejora activo. Edita el plan existente en lugar de crear uno nuevo.";
+                await ReloadCrearViewBag(model.AlumnoMatricula);
+                return View(model);
+            }
+
             if (!model.EsPersonalizado)
             {
                 var types = new List<string>();
@@ -235,6 +244,12 @@ namespace RescateAcademico.Controllers
             if (plan == null) return NotFound();
             if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
 
+            if (!User.IsInRole("Administrador"))
+            {
+                var currentTutor = await _studentAccessService.GetCurrentTutorAsync();
+                if (plan.TutorId != currentTutor?.Id) return Forbid();
+            }
+
             if (User.IsInRole("Administrador"))
             {
                 ViewBag.Tutores = await _context.Tutores.Where(t => t.EstaActivo).ToListAsync();
@@ -280,6 +295,12 @@ namespace RescateAcademico.Controllers
             var plan = await _context.PlanesMejora.FindAsync(model.Id);
             if (plan == null) return NotFound();
             if (!await _studentAccessService.CanAccessAlumnoAsync(plan.AlumnoMatricula)) return Forbid();
+
+            if (!User.IsInRole("Administrador"))
+            {
+                var currentTutor = await _studentAccessService.GetCurrentTutorAsync();
+                if (plan.TutorId != currentTutor?.Id) return Forbid();
+            }
 
             plan.TutorId = User.IsInRole("Administrador") ? model.TutorId : plan.TutorId;
             plan.Recomendaciones = model.Recomendaciones;
