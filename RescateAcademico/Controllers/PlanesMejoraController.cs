@@ -129,6 +129,16 @@ namespace RescateAcademico.Controllers
             }
         }
 
+        private static void ParseInterventionTypes(string? accionesTomadas, PlanMejoraViewModel model)
+        {
+            if (string.IsNullOrEmpty(accionesTomadas)) return;
+            model.AsesoriaAcademica = accionesTomadas.Contains("Asesoria academica");
+            model.ControlAusencias = accionesTomadas.Contains("Control de ausencias");
+            model.RegularizacionETS = accionesTomadas.Contains("Regularizacion ETS");
+            model.ApoyoPsicologico = accionesTomadas.Contains("Apoyo psicologico");
+            model.TutoriaPersonalizada = accionesTomadas.Contains("Tutoria personalizada");
+        }
+
         private static string BuildPlanSummary(Alumno alumno, List<string> sugerencias, List<string> factores)
         {
             var sb = new StringBuilder();
@@ -236,6 +246,8 @@ namespace RescateAcademico.Controllers
             }
 
             ViewBag.AlumnoSeleccionado = plan.Alumno;
+            if (plan.Alumno != null)
+                ViewBag.FactoresRiesgo = _riskEvaluationService.ObtenerFactoresRiesgo(plan.Alumno);
 
             var model = new PlanMejoraViewModel
             {
@@ -248,6 +260,7 @@ namespace RescateAcademico.Controllers
                 FechaCierre = plan.FechaCierre,
                 Estado = plan.Estado
             };
+            ParseInterventionTypes(plan.AccionesTomadas, model);
 
             return View(model);
         }
@@ -271,9 +284,25 @@ namespace RescateAcademico.Controllers
             plan.TutorId = User.IsInRole("Administrador") ? model.TutorId : plan.TutorId;
             plan.Recomendaciones = model.Recomendaciones;
             plan.Metas = model.Metas;
-            plan.AccionesTomadas = model.AccionesTomadas;
             plan.FechaCierre = model.FechaCierre;
             plan.Estado = User.IsInRole("Administrador") ? model.Estado : plan.Estado;
+
+            if (!model.EsPersonalizado)
+            {
+                var types = new List<string>();
+                if (model.AsesoriaAcademica) types.Add("Asesoria academica");
+                if (model.ControlAusencias) types.Add("Control de ausencias");
+                if (model.RegularizacionETS) types.Add("Regularizacion ETS");
+                if (model.ApoyoPsicologico) types.Add("Apoyo psicologico");
+                if (model.TutoriaPersonalizada) types.Add("Tutoria personalizada");
+                plan.AccionesTomadas = types.Count > 0
+                    ? $"Intervenciones programadas: {string.Join(", ", types)}. Fecha de actualizacion: {DateTime.Now:dd/MM/yyyy}."
+                    : $"Plan actualizado. Seguimiento: {DateTime.Now:dd/MM/yyyy}.";
+            }
+            else
+            {
+                plan.AccionesTomadas = model.AccionesTomadas;
+            }
 
             _context.PlanesMejora.Update(plan);
             await _context.SaveChangesAsync();

@@ -23,7 +23,7 @@
     var sugerencias = new List<(string Texto, string Accion, string Link, string Tipo)>();
     if (Model.EnRiesgoRojo >= 3)
     {
-        sugerencias.Add(("Tienes " + Model.EnRiesgoRojo + " estudiantes en riesgo alto. Considera un plan de mejora grupal.", "Planificar", Url.Action("Crear", "PlanesMejora")!, "warning"));
+        sugerencias.Add(("Tienes " + Model.EnRiesgoRojo + " estudiantes en riesgo alto. Considera crear un plan de mejora.", "Planificar", Url.Action("Crear", "PlanesMejora", new { matricula = Model.Estudiantes.FirstOrDefault(e => e.RiesgoAcademico == "Rojo")?.Matricula })!, "warning"));
     }
     var ultimaSemana = DateTime.Now.AddDays(-7);
     var recientesRiesgo = Model.Estudiantes.Where(e => e.FechaUltimaActualizacion >= ultimaSemana && e.RiesgoAcademico == "Rojo").Take(1).ToList();
