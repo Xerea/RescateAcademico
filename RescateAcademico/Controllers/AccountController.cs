@@ -35,11 +35,12 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("login")]
-        public async Task<IActionResult> Login(string email, string password, bool rememberMe, string? returnUrl = null, string? recaptchaToken = null)
+        public async Task<IActionResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
 
-            if (!await VerifyRecaptchaAsync(recaptchaToken))
+            var recaptchaResponse = Request.Form["g-recaptcha-response"].FirstOrDefault();
+            if (!await VerifyRecaptchaAsync(recaptchaResponse))
             {
                 ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Por favor intenta de nuevo.");
                 return View();
