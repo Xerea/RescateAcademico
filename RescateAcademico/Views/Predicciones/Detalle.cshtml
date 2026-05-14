@@ -1,6 +1,6 @@
 @model RescateAcademico.Services.DesercionOutput
 @{
-    ViewData["Title"] = "Detalle de Predicción";
+    ViewData["Title"] = "Análisis de riesgo";
     Layout = "_Layout";
     var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
     var historial = ViewBag.Historial as List<RescateAcademico.Models.PrediccionDesercion> ?? new List<RescateAcademico.Models.PrediccionDesercion>();
@@ -10,13 +10,18 @@
     {
         try { analisisIA = System.Text.Json.JsonSerializer.Deserialize<RescateAcademico.Services.AnalisisIAResultado>(analisisJson); } catch { }
     }
+    var header = new PageHeader
+    {
+        Title = "Análisis de riesgo de deserción",
+        Subtitle = alumno == null ? null : $"{alumno.Nombre} {alumno.Apellidos} · Boleta {alumno.Matricula}",
+        Icon = "bi-brain",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Predicciones"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 class="ra-text-accent"><i class="bi bi-brain"></i> Análisis de Riesgo de Deserción</h2>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 @if (alumno != null)
 {

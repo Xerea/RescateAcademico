@@ -1,6 +1,6 @@
 @model List<RescateAcademico.Controllers.HistorialPeriodo>
 @{
-    ViewData["Title"] = "Historial Académico";
+    ViewData["Title"] = "Historial académico";
     var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
     var reprobadas = ViewBag.Reprobadas as List<string> ?? new List<string>();
     var dictamenes = ViewBag.Dictamenes as List<RescateAcademico.Models.DictamenAcademico> ?? new List<RescateAcademico.Models.DictamenAcademico>();
@@ -9,26 +9,41 @@
     var nivelPred = ViewBag.NivelPredictivo as string ?? "Bajo";
     var factoresRiesgo = ViewBag.FactoresRiesgo as List<string> ?? new List<string>();
     var sugerenciasPred = ViewBag.Sugerencias as List<string> ?? new List<string>();
+
+    PageHeader? header = alumno == null ? null : new PageHeader
+    {
+        Title = alumno.Nombre + " " + alumno.Apellidos,
+        Subtitle = $"Boleta {alumno.Matricula} · {alumno.Carrera} · Semestre {alumno.SemestreActual}",
+        Icon = "bi-file-earmark-text",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index", "Profesor"),
+        BackLabel = "Mis Grupos"
+    };
+}
+
+@if (header != null)
+{
+    <partial name="_PageHeader" model="header" />
 }
 
 @if (alumno != null)
 {
     <div class="ra-card mb-4">
         <div class="ra-card-header">
-            <i class="bi bi-file-earmark-text ra-text-accent me-2"></i> Historial Académico
+            <i class="bi bi-info-circle"></i> Información general
         </div>
         <div class="ra-card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="mb-2"><span class="text-secondary small">Estudiante:</span> <strong>@alumno.Nombre @alumno.Apellidos</strong></p>
-                    <p class="mb-2"><span class="text-secondary small">Boleta:</span> <strong>@alumno.Matricula</strong></p>
-                    <p class="mb-2"><span class="text-secondary small">Carrera:</span> <strong>@alumno.Carrera</strong></p>
-                    <p class="mb-0"><span class="text-secondary small">Semestre Actual:</span> <strong>@alumno.SemestreActual</strong></p>
-                </div>
-                <div class="col-md-6">
-                    <p class="mb-2"><span class="text-secondary small">Promedio General:</span> <span class="fs-4 fw-bold @(alumno.PromedioGlobal < 6.0m ? "ra-text-danger" : alumno.PromedioGlobal < 7.5m ? "ra-text-warning" : "ra-text-success")">@alumno.PromedioGlobal.ToString("F2")</span></p>
+                    <p class="mb-2"><span class="text-secondary small">Promedio general</span></p>
+                    <p class="fs-4 fw-bold mb-3 @(alumno.PromedioGlobal < 6.0m ? "ra-text-danger" : alumno.PromedioGlobal < 7.5m ? "ra-text-warning" : "ra-text-success")">@alumno.PromedioGlobal.ToString("F2")</p>
                     <p class="mb-2"><span class="text-secondary small">Estatus:</span> <span class="ra-badge ra-badge-success">@alumno.Estatus</span></p>
-                    <p class="mb-0"><span class="text-secondary small">Riesgo Académico:</span> <ra-semaforo riesgo="@(alumno.RiesgoAcademico ?? "Verde")" size="sm"></ra-semaforo></p>
+                </div>
+                <div class="col-md-6 d-flex flex-column justify-content-center">
+                    <p class="mb-2 d-flex align-items-center gap-2">
+                        <span class="text-secondary small">Riesgo académico:</span>
+                        <ra-semaforo riesgo="@(alumno.RiesgoAcademico ?? "Verde")" size="sm"></ra-semaforo>
+                    </p>
                 </div>
             </div>
         </div>
@@ -231,9 +246,3 @@
         </div>
     }
 }
-
-<div class="mb-4">
-    <a asp-action="Index" class="ra-btn ra-btn-outline">
-        <i class="bi bi-arrow-left"></i> Volver a Mis Grupos
-    </a>
-</div>

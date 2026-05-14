@@ -1,14 +1,19 @@
 @model IEnumerable<RescateAcademico.Controllers.EstadisticaCarrera>
 @{
-    ViewData["Title"] = "Estadísticas por Carrera";
+    ViewData["Title"] = "Estadísticas por carrera";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Estadísticas por carrera",
+        Subtitle = "Análisis desagregado por programa académico.",
+        Icon = "bi-bar-chart",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Estadísticas"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 class="ra-text-accent"><i class="bi bi-bar-chart"></i> Estadísticas por Carrera</h2>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">

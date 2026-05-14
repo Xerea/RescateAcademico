@@ -1,15 +1,17 @@
 @model RescateAcademico.Controllers.EstadisticasViewModel
 @{
-    ViewData["Title"] = "Tablero Estadístico";
+    ViewData["Title"] = "Tablero estadístico";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Tablero estadístico",
+        Subtitle = Model.Nivel == "Global" ? "Vista institucional" : "Vista por carrera",
+        Icon = "bi-bar-chart-line",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-bar-chart-line ra-text-accent me-2"></i>Tablero Estadístico</h1>
-        <p class="text-secondary small mb-0">Vista @(Model.Nivel == "Global" ? "Institucional" : "por Carrera")</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card mb-4">
     <div class="ra-card-body">

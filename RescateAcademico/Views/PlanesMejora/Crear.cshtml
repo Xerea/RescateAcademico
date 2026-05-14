@@ -1,21 +1,27 @@
 @model RescateAcademico.Controllers.PlanMejoraViewModel
 @{
-    ViewData["Title"] = "Crear Plan de Mejora";
+    ViewData["Title"] = "Nuevo plan de mejora";
     Layout = "_Layout";
     var tutores = ViewBag.Tutores as List<RescateAcademico.Models.Tutor> ?? new List<RescateAcademico.Models.Tutor>();
     var tutorNombre = ViewBag.TutorNombre as string;
     var alumnoSeleccionado = ViewBag.AlumnoSeleccionado as RescateAcademico.Models.Alumno;
     var factoresRiesgo = ViewBag.FactoresRiesgo as List<string> ?? new List<string>();
     var esAdmin = User.IsInRole("Administrador");
+    var header = new PageHeader
+    {
+        Title = "Nuevo plan de mejora",
+        Subtitle = alumnoSeleccionado == null ? null : $"{alumnoSeleccionado.Nombre} {alumnoSeleccionado.Apellidos} · Boleta {alumnoSeleccionado.Matricula}",
+        Icon = "bi-journal-plus",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index", "Profesor"),
+        BackLabel = "Mis Grupos"
+    };
 }
+
+<partial name="_PageHeader" model="header" />
 
 <div class="row g-4">
     <div class="col-lg-5">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <a asp-controller="Profesor" asp-action="Index" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Mis Grupos</a>
-        </div>
-        <h2 class="fw-bold h4 mb-3">Nuevo Plan de Mejora</h2>
-
         @if (alumnoSeleccionado != null)
         {
             <div class="ra-card mb-3">

@@ -1,21 +1,22 @@
 @using Microsoft.AspNetCore.Identity
 @model IEnumerable<ApplicationUser>
 @{
-    ViewData["Title"] = "Gestión de Usuarios";
+    ViewData["Title"] = "Usuarios";
     Layout = "_Layout";
+    var actionsHtml = $"<a href=\"{Url.Action("CrearCuenta")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-person-plus\"></i> Crear cuenta</a>";
+    var header = new PageHeader
+    {
+        Title = "Gestión de usuarios",
+        Subtitle = "Cuentas, roles y estado de acceso al sistema.",
+        Icon = "bi-shield-lock",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Gestion"),
+        BackLabel = "Gestión",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-shield-lock"></i> Gestión de Usuarios</h1>
-        <p class="text-secondary small mb-0">Cuentas, roles y estado de acceso al sistema.</p>
-    </div>
-    <div class="col-auto">
-        <a asp-action="CrearCuenta" class="ra-btn ra-btn-primary">
-            <i class="bi bi-person-plus"></i> Crear Cuenta
-        </a>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">

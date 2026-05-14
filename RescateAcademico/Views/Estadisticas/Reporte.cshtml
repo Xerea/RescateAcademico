@@ -1,15 +1,19 @@
 @model RescateAcademico.Controllers.ReporteViewModel
 @{
-    ViewData["Title"] = "Reporte General";
+    ViewData["Title"] = "Reporte general";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Reporte general",
+        Subtitle = "Generado el " + Model.FechaReporte.ToString("dd/MM/yyyy HH:mm"),
+        Icon = "bi-file-earmark-text",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Estadísticas"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 class="ra-text-accent"><i class="bi bi-file-earmark-text"></i> Reporte General</h2>
-        <p class="text-secondary">Fecha de generación: @Model.FechaReporte.ToString("dd/MM/yyyy HH:mm")</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card mb-4">
     <div class="ra-card-header">

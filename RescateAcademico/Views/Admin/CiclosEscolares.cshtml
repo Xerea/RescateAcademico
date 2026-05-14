@@ -1,20 +1,21 @@
 @model IEnumerable<RescateAcademico.Models.CicloEscolar>
 @{
-    ViewData["Title"] = "Ciclos Escolares";
+    ViewData["Title"] = "Ciclos escolares";
     Layout = "_Layout";
+    var actionsHtml = $"<a href=\"{Url.Action("CrearCiclo")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo ciclo</a>";
+    var header = new PageHeader
+    {
+        Title = "Ciclos escolares",
+        Subtitle = "Períodos académicos activos e históricos.",
+        Icon = "bi-calendar-event",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Gestion"),
+        BackLabel = "Gestión",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-calendar-event"></i> Ciclos Escolares</h1>
-        <p class="text-secondary small mb-0">Períodos académicos activos e históricos.</p>
-    </div>
-    <div class="col-auto">
-        <a asp-action="CrearCiclo" class="ra-btn ra-btn-primary">
-            <i class="bi bi-plus-circle"></i> Nuevo Ciclo
-        </a>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">

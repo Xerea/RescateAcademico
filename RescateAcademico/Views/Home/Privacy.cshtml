@@ -1,17 +1,19 @@
 @{
-    ViewData["Title"] = "Política de Privacidad";
+    ViewData["Title"] = "Política de privacidad";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Política de privacidad",
+        Subtitle = "Rescate Académico IPN · CECyT No. 13 \"Ricardo Flores Magón\"",
+        Icon = "bi-shield-lock",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 style="color: var(--ra-accent);"><i class="bi bi-shield-lock"></i> Política de Privacidad</h2>
-        <p class="text-muted">Rescate Académico IPN — CECyT No. 13 "Ricardo Flores Magón"</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
+<div class="ra-card mb-4">
+    <div class="ra-card-body">
         <h5 class="mb-3">1. Responsable del Tratamiento de Datos</h5>
         <p>El sistema <strong>Rescate Académico</strong> es operado por la Coordinación de Orientación Educativa y Tutoría del Centro de Estudios Científicos y Tecnológicos No. 13 del Instituto Politécnico Nacional (IPN). La información recopilada se utiliza exclusivamente con fines académicos, de seguimiento estudiantil y mejora continua de los procesos institucionales.</p>
 
@@ -64,7 +66,7 @@
 </div>
 
 <div class="mb-3">
-    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+    <a asp-controller="Home" asp-action="Index" class="ra-btn ra-btn-outline">
         <i class="bi bi-arrow-left"></i> Volver al inicio
     </a>
 </div>

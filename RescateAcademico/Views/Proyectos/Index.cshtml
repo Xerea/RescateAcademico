@@ -1,20 +1,19 @@
 @model IEnumerable<RescateAcademico.Models.Proyecto>
 @{
-    ViewData["Title"] = "Gestión de Proyectos";
+    ViewData["Title"] = "Gestión de proyectos";
     Layout = "_Layout";
+    var actionsHtml = $"<a href=\"{Url.Action("Create")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo proyecto</a>";
+    var header = new PageHeader
+    {
+        Title = "Gestión de proyectos",
+        Subtitle = "Catálogo de proyectos académicos y de servicio social.",
+        Icon = "bi-folder",
+        IconVariant = "accent",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-folder"></i> Gestión de Proyectos</h1>
-        <p class="text-secondary small mb-0">Catálogo de proyectos académicos y de servicio social.</p>
-    </div>
-    <div class="col-auto">
-        <a asp-action="Create" class="ra-btn ra-btn-primary">
-            <i class="bi bi-plus-circle"></i> Nuevo Proyecto
-        </a>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">

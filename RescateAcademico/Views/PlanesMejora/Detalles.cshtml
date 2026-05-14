@@ -1,24 +1,22 @@
 @model RescateAcademico.Models.PlanMejora
 @{
-    ViewData["Title"] = "Detalles del Plan de Mejora";
+    ViewData["Title"] = "Plan de mejora";
     Layout = "_Layout";
     var intervenciones = ViewBag.Intervenciones as List<RescateAcademico.Models.IntervencionTutoria> ?? new List<RescateAcademico.Models.IntervencionTutoria>();
+    var estadoBadgeHtml = $"<span class=\"ra-badge {(Model.Estado == "Activo" ? "ra-badge-success" : Model.Estado == "Cumplido" ? "ra-badge-info" : Model.Estado == "Vencido" ? "ra-badge-warning" : "ra-badge-neutral")} fs-6\">{Model.Estado}</span>";
+    var header = new PageHeader
+    {
+        Title = "Plan de mejora",
+        Subtitle = $"Creado el {Model.FechaCreacion.ToString("dd/MM/yyyy")}",
+        Icon = "bi-journal-check",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Todos los planes",
+        ActionsHtml = estadoBadgeHtml
+    };
 }
 
-<div class="row mb-3 align-items-end">
-    <div class="col">
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <a asp-action="Index" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Todos los planes</a>
-        </div>
-        <h1 class="fw-bold h3 mb-1">Plan de Mejora</h1>
-        <p class="text-secondary small mb-0">Creado el @Model.FechaCreacion.ToString("dd/MM/yyyy")</p>
-    </div>
-    <div class="col-auto">
-        <span class="ra-badge @(Model.Estado == "Activo" ? "ra-badge-success" : Model.Estado == "Cumplido" ? "ra-badge-info" : Model.Estado == "Vencido" ? "ra-badge-warning" : "ra-badge-neutral") fs-6">
-            @Model.Estado
-        </span>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="row g-4">
     <div class="col-lg-5">

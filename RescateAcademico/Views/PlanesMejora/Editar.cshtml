@@ -1,21 +1,27 @@
 @model RescateAcademico.Controllers.PlanMejoraViewModel
 @{
-    ViewData["Title"] = "Editar Plan de Mejora";
+    ViewData["Title"] = "Editar plan de mejora";
     Layout = "_Layout";
     var tutores = ViewBag.Tutores as List<RescateAcademico.Models.Tutor> ?? new List<RescateAcademico.Models.Tutor>();
     var tutorNombre = ViewBag.TutorNombre as string;
     var alumnoSeleccionado = ViewBag.AlumnoSeleccionado as RescateAcademico.Models.Alumno;
     var factoresRiesgo = ViewBag.FactoresRiesgo as List<string> ?? new List<string>();
     var esAdmin = User.IsInRole("Administrador");
+    var header = new PageHeader
+    {
+        Title = "Editar plan de mejora",
+        Subtitle = alumnoSeleccionado == null ? null : $"{alumnoSeleccionado.Nombre} {alumnoSeleccionado.Apellidos} · Boleta {alumnoSeleccionado.Matricula}",
+        Icon = "bi-journal-check",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Detalles", new { id = Model.Id }),
+        BackLabel = "Detalles"
+    };
 }
+
+<partial name="_PageHeader" model="header" />
 
 <div class="row g-4">
     <div class="col-lg-5">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <a asp-action="Detalles" asp-route-id="@Model.Id" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Detalles</a>
-        </div>
-        <h2 class="fw-bold h4 mb-3">Editar Plan de Mejora</h2>
-
         @if (alumnoSeleccionado != null)
         {
             <div class="ra-card mb-3">
@@ -58,7 +64,7 @@
 
             <div class="ra-card mb-3">
                 <div class="ra-card-header d-flex justify-content-between align-items-center">
-                    <span>Estado del Plan</span>
+                    <span>Estado del plan</span>
                 </div>
                 <div class="ra-card-body">
                     @if (esAdmin)
@@ -83,7 +89,7 @@
 
         <div class="ra-card">
             <div class="ra-card-header d-flex justify-content-between align-items-center">
-                <span>Plan Actual</span>
+                <span>Plan actual</span>
                 <button type="button" id="btnPersonalizar" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="togglePersonalizar()">
                     Personalizar
                 </button>

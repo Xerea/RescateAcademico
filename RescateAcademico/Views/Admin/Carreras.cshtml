@@ -2,19 +2,20 @@
 @{
     ViewData["Title"] = "Carreras";
     Layout = "_Layout";
+    var actionsHtml = $"<a href=\"{Url.Action("CrearCarrera")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nueva carrera</a>";
+    var header = new PageHeader
+    {
+        Title = "Carreras",
+        Subtitle = "Programas académicos del CECyT 13.",
+        Icon = "bi-mortarboard",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Gestion"),
+        BackLabel = "Gestión",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-mortarboard"></i> Gestión de Carreras</h1>
-        <p class="text-secondary small mb-0">Programas académicos del CECyT 13.</p>
-    </div>
-    <div class="col-auto">
-        <a asp-action="CrearCarrera" class="ra-btn ra-btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Carrera
-        </a>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">

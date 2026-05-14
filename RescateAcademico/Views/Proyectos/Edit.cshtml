@@ -1,15 +1,23 @@
 @model RescateAcademico.Models.Proyecto
 @{
-    ViewData["Title"] = "Editar Proyecto";
+    ViewData["Title"] = "Editar proyecto";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = $"Editar: {Model.Titulo}",
+        Subtitle = "Actualiza los datos del proyecto.",
+        Icon = "bi-pencil",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Proyectos"
+    };
 }
+
+<partial name="_PageHeader" model="header" />
 
 <div class="row">
     <div class="col-md-8 col-lg-6 mx-auto">
         <div class="ra-card">
-            <div class="ra-card-header">
-                <h5 class="mb-0"><i class="bi bi-pencil"></i> Editar Proyecto</h5>
-            </div>
             <div class="ra-card-body">
                 <form asp-action="Edit">
                     <input type="hidden" asp-for="Id" />

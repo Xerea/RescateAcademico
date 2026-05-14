@@ -1,15 +1,19 @@
 @{
-    ViewData["Title"] = "Integridad de Datos";
+    ViewData["Title"] = "Integridad de datos";
     Layout = "_Layout";
     var problemas = ViewBag.Problemas as List<(string Mensaje, string Severidad)> ?? new List<(string, string)>();
+    var header = new PageHeader
+    {
+        Title = "Integridad de datos",
+        Subtitle = "Verificación de consistencia en la base de datos institucional.",
+        Icon = "bi-shield-check",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Gestion"),
+        BackLabel = "Gestión"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-shield-check"></i> Integridad de Datos</h1>
-        <p class="text-secondary small mb-0">Verificación de consistencia en la base de datos institucional.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 @if (TempData["Success"] != null)
 {
@@ -127,13 +131,10 @@
     <form asp-action="EvaluarRiesgos" method="post" class="m-0">
         @Html.AntiForgeryToken()
         <button type="submit" class="ra-btn ra-btn-primary" onclick="return confirm('¿Ejecutar evaluación masiva de riesgo?')">
-            <i class="bi bi-exclamation-triangle"></i> Evaluar Riesgos Ahora
+            <i class="bi bi-exclamation-triangle"></i> Evaluar riesgos ahora
         </button>
     </form>
     <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-accent">
         <i class="bi bi-brain"></i> Predicciones IA
-    </a>
-    <a asp-controller="Dashboard" asp-action="Index" class="ra-btn ra-btn-ghost">
-        <i class="bi bi-arrow-left"></i> Volver al Panel
     </a>
 </div>
