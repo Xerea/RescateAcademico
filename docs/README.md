@@ -26,3 +26,8 @@ The following files intentionally stay at root because build, deploy, or contrib
 - `.dockerignore`
 - `.gitattributes`
 - `.gitignore`
+
+## GitHub Workflow
+
+- Branch strategy: `git/BRANCH_STRATEGY.md`
+- GitHub Actions guide: `git/GITHUB_ACTIONS.md`
