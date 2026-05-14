@@ -1,27 +1,39 @@
 @model List<RescateAcademico.Models.Alumno>
 @{
-    ViewData["Title"] = "Estudiantes del Grupo " + ViewBag.FiltroGrupo;
+    Layout = "_Layout";
     var grupos = ViewBag.Grupos as List<string> ?? new List<string>();
     var grupoActual = ViewBag.FiltroGrupo as string ?? "Todos";
+    ViewData["Title"] = "Grupo " + grupoActual;
+
+    ViewData["BreadcrumbTrail"] = new List<(string Label, string Url)>
+    {
+        ("Mis Grupos", Url.Action("Index", "Profesor") ?? "/"),
+        (grupoActual, string.Empty)
+    };
+
+    var filterActive = !string.IsNullOrEmpty(ViewBag.Busqueda as string)
+        || (!string.IsNullOrEmpty(ViewBag.FiltroRiesgo as string) && (string)ViewBag.FiltroRiesgo != "Todos");
+
+    var header = new PageHeader
+    {
+        Title = grupoActual,
+        Subtitle = $"{Model.Count} estudiantes asignados",
+        Icon = "bi-people",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index", "Profesor"),
+        BackLabel = "Mis Grupos"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <a asp-action="Index" class="ra-btn ra-btn-sm ra-btn-ghost"><i class="bi bi-arrow-left"></i> Mis Grupos</a>
-        </div>
-        <h1 class="fw-bold h3 mb-1">@grupoActual</h1>
-        <p class="text-secondary small mb-0">@(Model.Count) estudiantes asignados</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
-<div class="ra-card mb-4">
+<div class="ra-card ra-filter-bar">
     <div class="ra-card-body">
         <form method="get" class="row g-2 align-items-end">
             <input type="hidden" name="grupo" value="@grupoActual" />
             <div class="col-md-4">
                 <label class="ra-label">Buscar</label>
-                <input type="text" name="busqueda" class="ra-input" placeholder="Boleta o nombre..." value="@ViewBag.Busqueda" />
+                <input type="text" name="busqueda" class="ra-input" placeholder="Boleta o nombre…" value="@ViewBag.Busqueda" />
             </div>
             <div class="col-md-3">
                 <label class="ra-label">Riesgo</label>
@@ -32,8 +44,16 @@
                     <option value="Rojo" selected="@(ViewBag.FiltroRiesgo == "Rojo" ? "selected" : null)">Rojo</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="ra-btn ra-btn-primary w-100"><i class="bi bi-search"></i> Filtrar</button>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="ra-btn ra-btn-primary flex-fill">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                @if (filterActive)
+                {
+                    <a asp-action="MisEstudiantes" asp-route-grupo="@grupoActual" class="ra-btn ra-btn-ghost" title="Limpiar filtros">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
             </div>
             <div class="col-md-3 text-md-end">
                 <a asp-action="MateriasReprobadas" asp-route-grupo="@grupoActual" class="ra-btn ra-btn-outline">
@@ -49,7 +69,7 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table mb-0" id="tablaEstudiantes">
+                <table class="table ra-table ra-table-cards mb-0" id="tablaEstudiantes">
                     <thead>
                         <tr>
                             <th>Boleta</th>
@@ -65,27 +85,27 @@
                         @foreach (var a in Model)
                         {
                             <tr>
-                                <td class="ra-mono"><strong>@a.Matricula</strong></td>
-                                <td>@a.Nombre @a.Apellidos</td>
-                                <td class="text-secondary">@a.Carrera</td>
-                                <td>@a.SemestreActual</td>
-                                <td>
+                                <td data-label="Boleta" class="ra-mono"><strong>@a.Matricula</strong></td>
+                                <td data-label="Nombre">@a.Nombre @a.Apellidos</td>
+                                <td data-label="Carrera" class="text-secondary">@a.Carrera</td>
+                                <td data-label="Semestre">@a.SemestreActual</td>
+                                <td data-label="Promedio">
                                     <span class="ra-badge @(a.PromedioGlobal >= 8 ? "ra-badge-success" : a.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
                                         @a.PromedioGlobal.ToString("F2")
                                     </span>
                                 </td>
-                                <td>
+                                <td data-label="Riesgo">
                                     <ra-semaforo riesgo="@a.RiesgoAcademico" size="sm"></ra-semaforo>
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-1 flex-nowrap">
-                                        <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" onclick="loadQuickViewGrupo('@a.Matricula')" title="Vista rápida">
+                                <td data-label="Acciones">
+                                    <div class="d-flex gap-1 flex-nowrap justify-content-end">
+                                        <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" onclick="RaQuickView.open('@a.Matricula')" aria-label="Vista rápida" title="Vista rápida">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <a asp-action="HistorialAcademico" asp-route-boleta="@a.Matricula" class="ra-btn ra-btn-sm ra-btn-primary" title="Perfil">
+                                        <a asp-action="HistorialAcademico" asp-route-boleta="@a.Matricula" class="ra-btn ra-btn-sm ra-btn-primary" aria-label="Perfil académico" title="Perfil">
                                             <i class="bi bi-graph-up"></i>
                                         </a>
-                                        <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@a.Matricula" class="ra-btn ra-btn-sm ra-btn-accent" title="Intervención">
+                                        <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@a.Matricula" class="ra-btn ra-btn-sm ra-btn-accent" aria-label="Nueva intervención" title="Nueva intervención">
                                             <i class="bi bi-plus-circle"></i>
                                         </a>
                                     </div>
@@ -107,60 +127,7 @@
     </div>
 </div>
 
-<!-- Single Shared Quick View Modal -->
-<div class="modal fade" id="quickViewGrupoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border: 1px solid var(--ra-border); border-radius: var(--ra-radius-lg); background: var(--ra-surface);">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="qvgTitle"><i class="bi bi-person-badge me-2" style="color: var(--ra-primary);"></i>Cargando...</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <div id="qvgLoading" class="text-center py-5">
-                    <div class="spinner-border" role="status" style="color: var(--ra-primary);"><span class="visually-hidden">Cargando...</span></div>
-                    <p class="text-secondary mt-3">Cargando información del estudiante...</p>
-                </div>
-                <div id="qvgContent" style="display:none;">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="ra-card h-100">
-                                <div class="ra-card-body">
-                                    <div class="mb-3"><small class="text-secondary d-block">Boleta</small><span class="fw-semibold ra-mono" id="qvgMatricula">—</span></div>
-                                    <div class="mb-3"><small class="text-secondary d-block">Carrera</small><span id="qvgCarrera">—</span></div>
-                                    <div class="mb-3"><small class="text-secondary d-block">Semestre</small><span id="qvgSemestre">—</span></div>
-                                    <div><small class="text-secondary d-block">Grupo</small><span id="qvgGrupo">—</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="ra-card h-100">
-                                <div class="ra-card-body">
-                                    <div class="mb-3"><small class="text-secondary d-block">Promedio Global</small><span class="fw-bold fs-5" id="qvgPromedio">—</span></div>
-                                    <div class="mb-3"><small class="text-secondary d-block">Riesgo Académico</small><span id="qvgRiesgo">—</span></div>
-                                    <div class="mb-3"><small class="text-secondary d-block">Carga Académica</small><span id="qvgCarga">—</span></div>
-                                    <div><small class="text-secondary d-block">Última Actualización</small><span id="qvgActualizacion">—</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="row g-2">
-                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5" style="color: var(--ra-danger);" id="qvgReprobadas">0</div><small class="text-secondary">Reprobadas</small></div></div>
-                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5" style="color: var(--ra-warning);" id="qvgAusencias">0</div><small class="text-secondary">Ausencias</small></div></div>
-                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5" style="color: var(--ra-info);" id="qvgEts">0</div><small class="text-secondary">ETS</small></div></div>
-                                <div class="col-3"><div class="ra-card text-center py-2"><div class="fw-bold fs-5 text-secondary" id="qvgRecursadas">0</div><small class="text-secondary">Recursadas</small></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <a id="qvgLinkPerfil" href="#" class="ra-btn ra-btn-primary ra-btn-sm"><i class="bi bi-graph-up"></i> Ver Perfil</a>
-                <a id="qvgLinkIntervencion" href="#" class="ra-btn ra-btn-accent ra-btn-sm"><i class="bi bi-plus-circle"></i> Intervención</a>
-                <button type="button" class="ra-btn ra-btn-ghost ra-btn-sm" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_AlumnoQuickView" />
 
 @section Scripts {
     <script>
@@ -168,86 +135,13 @@
             $('#tablaEstudiantes').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
                 pageLength: 25,
-                columnDefs: [
-                    { orderable: false, targets: [5, 6] }
-                ]
+                columnDefs: [{ orderable: false, targets: [5, 6] }]
             });
         });
 
-        async function loadQuickViewGrupo(matricula) {
-            const modalEl = document.getElementById('quickViewGrupoModal');
-            const existing = bootstrap.Modal.getInstance(modalEl);
-            if (existing) {
-                existing.hide();
-                await new Promise(function(resolve) {
-                    modalEl.addEventListener('hidden.bs.modal', function handler() {
-                        modalEl.removeEventListener('hidden.bs.modal', handler);
-                        existing.dispose();
-                        resolve();
-                    }, { once: true });
-                    setTimeout(resolve, 500);
-                });
-            }
-            const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
-            modal.show();
-
-            document.getElementById('qvgLoading').style.display = 'block';
-            document.getElementById('qvgContent').style.display = 'none';
-            const qvgTitle = document.getElementById('qvgTitle');
-            qvgTitle.innerHTML = '';
-            const loadIcon = document.createElement('i');
-            loadIcon.className = 'bi bi-person-badge me-2';
-            loadIcon.style.color = 'var(--ra-primary)';
-            qvgTitle.appendChild(loadIcon);
-            qvgTitle.appendChild(document.createTextNode('Cargando...'));
-
-            try {
-                const response = await fetch('/Alumnos/QuickView?matricula=' + encodeURIComponent(matricula));
-                if (!response.ok) throw new Error('Error al cargar');
-                const data = await response.json();
-
-                const title = document.getElementById('qvgTitle');
-                title.innerHTML = '';
-                const icon = document.createElement('i');
-                icon.className = 'bi bi-person-badge me-2';
-                icon.style.color = 'var(--ra-primary)';
-                title.appendChild(icon);
-                title.appendChild(document.createTextNode(data.nombre + ' ' + data.apellidos));
-
-                document.getElementById('qvgMatricula').textContent = data.matricula;
-                document.getElementById('qvgCarrera').textContent = data.carrera || '—';
-                document.getElementById('qvgSemestre').textContent = data.semestreActual;
-                document.getElementById('qvgGrupo').textContent = data.grupo || '—';
-
-                const promedioEl = document.getElementById('qvgPromedio');
-                promedioEl.textContent = data.promedioGlobal.toFixed(2);
-                promedioEl.style.color = data.promedioGlobal >= 8 ? 'var(--ra-success)' : data.promedioGlobal >= 6 ? 'var(--ra-warning)' : 'var(--ra-danger)';
-
-                const riesgoEl = document.getElementById('qvgRiesgo');
-                const riesgo = data.riesgoAcademico || 'Verde';
-                riesgoEl.innerHTML = '';
-                const sem = document.createElement('ra-semaforo');
-                sem.setAttribute('riesgo', riesgo);
-                sem.setAttribute('size', 'sm');
-                riesgoEl.appendChild(sem);
-
-                document.getElementById('qvgCarga').textContent = (data.cargaAcademicaActual || 0) + ' materias';
-                document.getElementById('qvgActualizacion').textContent = data.fechaUltimaActualizacion || '—';
-
-                document.getElementById('qvgReprobadas').textContent = data.materiasReprobadas || 0;
-                document.getElementById('qvgAusencias').textContent = data.ausencias || 0;
-                document.getElementById('qvgEts').textContent = data.etsPresentados || 0;
-                document.getElementById('qvgRecursadas').textContent = data.recursamientos || 0;
-
-                document.getElementById('qvgLinkPerfil').href = '/Profesor/HistorialAcademico?boleta=' + encodeURIComponent(data.matricula);
-                document.getElementById('qvgLinkIntervencion').href = '/Intervenciones/Crear?matricula=' + encodeURIComponent(data.matricula);
-
-                document.getElementById('qvgLoading').style.display = 'none';
-                document.getElementById('qvgContent').style.display = 'block';
-            } catch (err) {
-                const loadingEl = document.getElementById('qvgLoading');
-                loadingEl.innerHTML = '<p class="text-danger">No se pudo cargar la información. Intenta de nuevo.</p>';
-            }
-        }
+        RaQuickView.configure({
+            profile:      '/Profesor/HistorialAcademico?boleta={matricula}',
+            intervencion: '/Intervenciones/Crear?matricula={matricula}'
+        });
     </script>
 }

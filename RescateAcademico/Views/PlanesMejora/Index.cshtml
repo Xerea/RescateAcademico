@@ -1,23 +1,21 @@
 @model IEnumerable<RescateAcademico.Models.PlanMejora>
 @{
-    ViewData["Title"] = "Planes de Mejora";
+    ViewData["Title"] = "Planes de mejora";
     Layout = "_Layout";
+    var actionsHtml = !User.IsInRole("Autoridad")
+        ? $"<a href=\"{Url.Action("Crear")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo plan</a>"
+        : null;
+    var header = new PageHeader
+    {
+        Title = "Planes de mejora",
+        Subtitle = "Seguimiento académico personalizado.",
+        Icon = "bi-journal-check",
+        IconVariant = "accent",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-journal-check ra-text-accent me-2"></i>Planes de Mejora</h1>
-        <p class="text-secondary small mb-0">Seguimiento académico personalizado.</p>
-    </div>
-    @if (!User.IsInRole("Autoridad"))
-    {
-        <div class="col-auto">
-            <a asp-action="Crear" class="ra-btn ra-btn-primary">
-                <i class="bi bi-plus-circle"></i> Nuevo Plan
-            </a>
-        </div>
-    }
-</div>
+<partial name="_PageHeader" model="header" />
 
 @if (!string.IsNullOrEmpty(ViewBag.MatriculaFiltro))
 {
@@ -35,44 +33,44 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaPlanes">
+                <table class="table ra-table ra-table-cards" id="tablaPlanes">
                     <thead>
                         <tr>
                             <th>Alumno</th>
                             <th>Profesor</th>
-                            <th>Fecha Creación</th>
+                            <th>Creado</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var plan in Model)
                         {
                             <tr>
-                                <td>
+                                <td data-label="Alumno">
                                     <strong>@plan.Alumno?.Nombre @plan.Alumno?.Apellidos</strong>
                                     <br />
-                                    <span class="text-secondary small">@plan.AlumnoMatricula</span>
+                                    <span class="text-secondary small ra-mono">@plan.AlumnoMatricula</span>
                                 </td>
-                                <td>@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
-                                <td data-order="@plan.FechaCreacion.ToString("yyyyMMddHHmmss")">@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
-                                <td>
+                                <td data-label="Profesor">@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
+                                <td data-label="Creado" data-order="@plan.FechaCreacion.ToString("yyyyMMddHHmmss")">@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Estado">
                                     <span class="ra-badge @(plan.Estado == "Activo" ? "ra-badge-primary" : plan.Estado == "Cumplido" ? "ra-badge-success" : plan.Estado == "Vencido" ? "ra-badge-danger" : "ra-badge-neutral")">
                                         @plan.Estado
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a asp-action="Detalles" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver detalles">
+                                <td data-label="Acciones">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a asp-action="Detalles" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalles del plan" title="Ver detalles">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         @if (!User.IsInRole("Autoridad"))
                                         {
-                                            <a asp-action="Editar" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                                            <a asp-action="Editar" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar plan" title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         }
-                                        <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Seguimiento">
+                                        <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Seguimiento del plan" title="Seguimiento">
                                             <i class="bi bi-clock-history"></i>
                                         </a>
                                     </div>

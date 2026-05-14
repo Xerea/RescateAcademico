@@ -1,15 +1,23 @@
 @model RescateAcademico.Models.Alumno
 @{
-    ViewData["Title"] = "Crear Alumno";
+    ViewData["Title"] = "Crear alumno";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Nuevo alumno",
+        Subtitle = "Registra un nuevo estudiante en el sistema.",
+        Icon = "bi-person-plus",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Alumnos"),
+        BackLabel = "Alumnos"
+    };
 }
 
+<partial name="_PageHeader" model="header" />
+
 <div class="row">
-    <div class="col-md-6 mx-auto">
+    <div class="col-md-8 col-lg-6 mx-auto">
         <div class="ra-card">
-            <div class="ra-card-header">
-                <h5 class="mb-0"><i class="bi bi-person-plus"></i> Nuevo Alumno</h5>
-            </div>
             <div class="ra-card-body">
                 <form asp-action="CrearAlumno">
                     <div class="mb-3">

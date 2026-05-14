@@ -1,12 +1,41 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var routeController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var routeAction = ViewContext.RouteData.Values["action"]?.ToString();
+    bool isTutor = User.IsInRole("Tutor");
+    bool isAlumno = User.IsInRole("Alumno");
+    bool isAutoridad = User.IsInRole("Autoridad");
+    bool isAdmin = User.IsInRole("Administrador");
+    bool isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var antiforgeryToken = isAuthenticated ? Antiforgery.GetAndStoreTokens(Context).RequestToken : null;
+
+    // Home ("brand click") routes to the role's main entry
+    string homeController = isTutor ? "Profesor" : "Dashboard";
+
+    // Pages with their own bespoke hero skip the breadcrumb
+    bool suppressBreadcrumb = (routeController == "Home" && routeAction == "Index")
+        || (routeController == "Dashboard" && routeAction == "Index")
+        || (routeController == "Profesor" && routeAction == "Index")
+        || (routeController == "Account");
+
+    // Allow a view to override the breadcrumb trail.
+    // Trail format: list of tuples "Label|url" (empty url for non-link crumb).
+    var breadcrumbTrail = ViewData["BreadcrumbTrail"] as List<(string Label, string Url)>;
+}
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Rescate Académico</title>
+    @if (!string.IsNullOrEmpty(antiforgeryToken))
+    {
+        <meta name="request-verification-token" content="@antiforgeryToken" />
+    }
+    <title>@ViewData["Title"] · Rescate Académico</title>
     <script>
-        (function() {
-            var theme = localStorage.getItem('ra-theme');
+        (function () {
+            var theme = null;
+            try { theme = localStorage.getItem('ra-theme'); } catch (e) { }
             if (!theme) {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
@@ -23,77 +52,113 @@
     <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
 </head>
 <body>
+    <a href="#mainContent" class="visually-hidden-focusable ra-btn ra-btn-primary ra-btn-sm" style="position:fixed;top:0.5rem;left:0.5rem;z-index:2100;">Saltar al contenido</a>
+
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm ra-navbar">
             <div class="container-fluid px-4 px-lg-5">
-                <a class="navbar-brand ra-navbar-brand" asp-area="" asp-controller="@(User.IsInRole("Tutor") ? "Profesor" : "Dashboard")" asp-action="Index">
+                <a class="navbar-brand ra-navbar-brand" asp-area="" asp-controller="@homeController" asp-action="Index">
                     <i class="bi bi-mortarboard-fill"></i>
                     <span>Rescate Académico</span>
                 </a>
-                <button class="navbar-toggler ra-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler ra-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menú">
                     <i class="bi bi-list fs-4"></i>
                 </button>
                 <div class="navbar-collapse collapse" id="mainNav">
                     <ul class="navbar-nav flex-grow-1">
                         @{
-                            var cc = ViewContext.RouteData.Values["controller"]?.ToString();
-                            var ca = ViewContext.RouteData.Values["action"]?.ToString();
-                            bool isDash = cc == "Dashboard" && ca == "Index";
+                            bool isActiveDashboard = routeController == "Dashboard" && routeAction == "Index";
                         }
 
-                        @* ALL authenticated NON-Tutor users see Dashboard *@
-                        @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Tutor"))
+                        @* Alumno · Dashboard · Mi Perfil · Convocatorias *@
+                        @if (isAlumno)
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(isDash ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
-                                    <i class="bi bi-grid-1x2"></i> Panel
+                                <a class="nav-link @(isActiveDashboard ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bi bi-grid-1x2"></i> Inicio
                                 </a>
                             </li>
-                        }
-
-                        @* Alumno: only Convocatorias in nav *@
-                        @if (User.IsInRole("Alumno"))
-                        {
                             <li class="nav-item">
-                                <a class="nav-link @(cc == "Convocatorias" ? "active" : "")" asp-controller="Convocatorias" asp-action="Index">
+                                <a class="nav-link @(routeController == "PerfilAcademico" ? "active" : "")" asp-controller="PerfilAcademico" asp-action="MiPerfil">
+                                    <i class="bi bi-person-badge"></i> Mi Perfil
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(routeController == "Convocatorias" || routeController == "Postulaciones" ? "active" : "")" asp-controller="Convocatorias" asp-action="Index">
                                     <i class="bi bi-megaphone"></i> Convocatorias
                                 </a>
                             </li>
                         }
 
-
-
-                        @* Autoridad: Alumnos + Reportes *@
-                        @if (User.IsInRole("Autoridad"))
+                        @* Tutor · Mis Grupos · Intervenciones · Planes · Predicciones *@
+                        @if (isTutor)
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(cc == "Alumnos" ? "active" : "")" asp-controller="Alumnos" asp-action="Index">
+                                <a class="nav-link @(routeController == "Profesor" ? "active" : "")" asp-controller="Profesor" asp-action="Index">
+                                    <i class="bi bi-person-workspace"></i> Mis Grupos
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(routeController == "Intervenciones" ? "active" : "")" asp-controller="Intervenciones" asp-action="Index">
+                                    <i class="bi bi-clipboard-pulse"></i> Intervenciones
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(routeController == "PlanesMejora" ? "active" : "")" asp-controller="PlanesMejora" asp-action="Index">
+                                    <i class="bi bi-journal-check"></i> Planes
+                                </a>
+                            </li>
+                        }
+
+                        @* Autoridad · Panel · Alumnos · Reportes *@
+                        @if (isAutoridad)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(isActiveDashboard ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bi bi-grid-1x2"></i> Panel
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(routeController == "Alumnos" ? "active" : "")" asp-controller="Alumnos" asp-action="Index">
                                     <i class="bi bi-people"></i> Alumnos
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link @(cc == "Reportes" ? "active" : "")" asp-controller="Reportes" asp-action="Index">
+                                <a class="nav-link @(routeController == "Reportes" || routeController == "Estadisticas" || routeController == "Predicciones" ? "active" : "")" asp-controller="Reportes" asp-action="Index">
                                     <i class="bi bi-bar-chart-line"></i> Reportes
                                 </a>
                             </li>
                         }
 
-                        @* Admin: Gestión + Reportes *@
-                        @if (User.IsInRole("Administrador"))
+                        @* Admin · Panel · Gestión · Reportes *@
+                        @if (isAdmin)
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(cc == "Admin" && ca != "Index" ? "active" : "")" asp-controller="Admin" asp-action="Gestion">
+                                <a class="nav-link @(isActiveDashboard ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
+                                    <i class="bi bi-grid-1x2"></i> Panel
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(routeController == "Admin" || routeController == "Proyectos" || routeController == "Convocatorias" || routeController == "Bitacora" ? "active" : "")" asp-controller="Admin" asp-action="Gestion">
                                     <i class="bi bi-sliders"></i> Gestión
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link @(cc == "Reportes" ? "active" : "")" asp-controller="Reportes" asp-action="Index">
+                                <a class="nav-link @(routeController == "Reportes" || routeController == "Estadisticas" || routeController == "Predicciones" ? "active" : "")" asp-controller="Reportes" asp-action="Index">
                                     <i class="bi bi-bar-chart-line"></i> Reportes
                                 </a>
                             </li>
                         }
                     </ul>
                     <div class="d-flex align-items-center gap-2">
+                        @if (isAuthenticated && (isAdmin || isAutoridad || isTutor))
+                        {
+                            <button type="button" id="raSearchTrigger" class="ra-search-trigger" aria-label="Buscar">
+                                <i class="bi bi-search"></i>
+                                <span>Buscar alumnos, secciones…</span>
+                                <kbd>Ctrl K</kbd>
+                            </button>
+                        }
                         <button type="button" class="ra-theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">
                             <i class="bi bi-sun-fill" id="themeIcon"></i>
                         </button>
@@ -104,25 +169,40 @@
         </nav>
     </header>
 
-    <main role="main" class="pb-4">
+    <main id="mainContent" role="main" class="pb-4">
         <div class="container-fluid px-4 px-lg-5">
-            @{
-                var isHome = cc == "Home" && ca == "Index";
-                var isPanel = (cc == "Dashboard" && ca == "Index") || (cc == "Profesor" && ca == "Index");
-            }
-            @if (!isHome && !isPanel)
+            @if (!suppressBreadcrumb)
             {
                 <nav aria-label="breadcrumb" class="ra-breadcrumb mt-3">
                     <ol class="breadcrumb mb-0">
-                        @if (User.IsInRole("Tutor"))
+                        @if (breadcrumbTrail != null && breadcrumbTrail.Count > 0)
                         {
-                            <li class="breadcrumb-item"><a asp-controller="Profesor" asp-action="Index"><i class="bi bi-person-workspace"></i> Mis Grupos</a></li>
+                            for (int i = 0; i < breadcrumbTrail.Count; i++)
+                            {
+                                var crumb = breadcrumbTrail[i];
+                                var isLast = i == breadcrumbTrail.Count - 1;
+                                if (isLast || string.IsNullOrEmpty(crumb.Url))
+                                {
+                                    <li class="breadcrumb-item active" aria-current="page">@crumb.Label</li>
+                                }
+                                else
+                                {
+                                    <li class="breadcrumb-item"><a href="@crumb.Url">@crumb.Label</a></li>
+                                }
+                            }
                         }
                         else
                         {
-                            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2"></i> Panel</a></li>
+                            @if (isTutor)
+                            {
+                                <li class="breadcrumb-item"><a asp-controller="Profesor" asp-action="Index"><i class="bi bi-person-workspace"></i> Mis Grupos</a></li>
+                            }
+                            else
+                            {
+                                <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2"></i> Inicio</a></li>
+                            }
+                            <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
                         }
-                        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
                     </ol>
                 </nav>
             }
@@ -142,14 +222,79 @@
     <!-- Toast container -->
     <div id="raToastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
 
+    @if (isAuthenticated && (isAdmin || isAutoridad || isTutor))
+    {
+        <!-- Global search overlay -->
+        <div class="ra-search-backdrop" id="raSearchBackdrop" role="dialog" aria-label="Búsqueda rápida">
+            <div class="ra-search-panel">
+                <div class="ra-search-input-row">
+                    <i class="bi bi-search"></i>
+                    <input type="text" class="ra-search-input" placeholder="Buscar alumnos, secciones…" autocomplete="off" spellcheck="false" />
+                    <span class="ra-kbd-hint">ESC</span>
+                </div>
+                <div class="ra-search-results"></div>
+                <div class="ra-search-footer">
+                    <span><kbd>↑</kbd> <kbd>↓</kbd> navegar</span>
+                    <span><kbd>↵</kbd> abrir</span>
+                    <span><kbd>ESC</kbd> cerrar</span>
+                </div>
+            </div>
+        </div>
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.8.0/countUp.umd.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (isAuthenticated && (isAdmin || isAutoridad || isTutor))
+    {
+        <script>
+            // Register static nav items in the global search
+            (function () {
+                if (!window.RaSearch) return;
+                var items = [
+                    @if (isAdmin || isAutoridad)
+                    {
+                        <text>
+                        { label: 'Panel', icon: 'bi-grid-1x2', url: '@Url.Action("Index", "Dashboard")' , group: 'Navegación' },
+                        { label: 'Alumnos', icon: 'bi-people', url: '@Url.Action("Index", "Alumnos")', group: 'Navegación' },
+                        { label: 'Reportes', icon: 'bi-bar-chart-line', url: '@Url.Action("Index", "Reportes")', group: 'Navegación' },
+                        { label: 'Estadísticas', icon: 'bi-pie-chart', url: '@Url.Action("Index", "Estadisticas")', group: 'Navegación' },
+                        { label: 'Predicciones', icon: 'bi-brain', url: '@Url.Action("Index", "Predicciones")', group: 'Navegación' },
+                        </text>
+                    }
+                    @if (isAdmin)
+                    {
+                        <text>
+                        { label: 'Gestión', icon: 'bi-sliders', url: '@Url.Action("Gestion", "Admin")', group: 'Navegación' },
+                        { label: 'Usuarios', icon: 'bi-shield-lock', url: '@Url.Action("Usuarios", "Admin")', group: 'Admin' },
+                        { label: 'Carreras', icon: 'bi-mortarboard', url: '@Url.Action("Carreras", "Admin")', group: 'Admin' },
+                        { label: 'Ciclos escolares', icon: 'bi-calendar-event', url: '@Url.Action("CiclosEscolares", "Admin")', group: 'Admin' },
+                        { label: 'Bitácora', icon: 'bi-clock-history', url: '@Url.Action("Index", "Bitacora")', group: 'Admin' },
+                        { label: 'Integridad de datos', icon: 'bi-shield-check', url: '@Url.Action("IntegridadDatos", "Admin")', group: 'Admin' },
+                        { label: 'Proyectos', icon: 'bi-folder', url: '@Url.Action("Index", "Proyectos")', group: 'Admin' },
+                        { label: 'Convocatorias (todas)', icon: 'bi-megaphone', url: '@Url.Action("Todas", "Convocatorias")', group: 'Admin' },
+                        </text>
+                    }
+                    @if (isTutor)
+                    {
+                        <text>
+                        { label: 'Mis Grupos', icon: 'bi-person-workspace', url: '@Url.Action("Index", "Profesor")', group: 'Navegación' },
+                        { label: 'Intervenciones', icon: 'bi-clipboard-pulse', url: '@Url.Action("Index", "Intervenciones")', group: 'Navegación' },
+                        { label: 'Planes de mejora', icon: 'bi-journal-check', url: '@Url.Action("Index", "PlanesMejora")', group: 'Navegación' },
+                        { label: 'Predicciones', icon: 'bi-brain', url: '@Url.Action("Index", "Predicciones")', group: 'Navegación' },
+                        { label: 'Materias reprobadas', icon: 'bi-x-circle', url: '@Url.Action("MateriasReprobadas", "Profesor")', group: 'Navegación' },
+                        </text>
+                    }
+                    { label: 'Notificaciones', icon: 'bi-bell', url: '@Url.Action("Index", "Notificaciones")', group: 'Cuenta' },
+                    { label: 'Cambiar contraseña', icon: 'bi-shield-lock', url: '@Url.Action("CambiarContrasena", "Account")', group: 'Cuenta' }
+                ];
+                RaSearch.register(items);
+            })();
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

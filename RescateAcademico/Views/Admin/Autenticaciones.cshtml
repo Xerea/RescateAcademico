@@ -1,12 +1,21 @@
 @model List<RescateAcademico.Models.Autenticacion>
 @{
     ViewData["Title"] = "Autenticaciones";
+    Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Historial de autenticaciones",
+        Subtitle = "Últimos intentos de inicio de sesión registrados.",
+        Icon = "bi-shield-check",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Gestion"),
+        BackLabel = "Gestión"
+    };
 }
 
+<partial name="_PageHeader" model="header" />
+
 <div class="ra-card">
-    <div class="ra-card-header">
-        <i class="bi bi-shield-check"></i> Historial de Autenticaciones
-    </div>
     <div class="ra-card-body">
         @if (Model == null || !Model.Any())
         {

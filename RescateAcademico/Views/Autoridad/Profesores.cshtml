@@ -1,26 +1,31 @@
 @model IEnumerable<RescateAcademico.Models.Tutor>
 @{
-    ViewData["Title"] = "Catálogo de Profesores";
+    ViewData["Title"] = "Catálogo de profesores";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Catálogo de profesores",
+        Subtitle = "Plantilla docente y grupos asignados.",
+        Icon = "bi-person-badge",
+        IconVariant = "accent"
+    };
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="ra-text-accent"><i class="bi bi-person-badge"></i> Catálogo de Profesores</h2>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
-    <div class="ra-card-body">
+    <div class="ra-card-body p-0">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaProfesores">
+                <table class="table ra-table ra-table-cards mb-0" id="tablaProfesores">
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>No. Empleado</th>
+                            <th>No. empleado</th>
                             <th>Email</th>
                             <th>Especialidad</th>
-                            <th>Grupos Asignados</th>
+                            <th>Grupos</th>
                             <th>Estado</th>
                         </tr>
                     </thead>
@@ -28,27 +33,29 @@
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.Nombre @item.Apellidos</td>
-                                <td><span class="ra-badge ra-badge-neutral">@item.NumeroEmpleado</span></td>
-                                <td>@item.Email</td>
-                                <td>@item.Especialidad</td>
-                                <td>
+                                <td data-label="Nombre">@item.Nombre @item.Apellidos</td>
+                                <td data-label="No. empleado"><span class="ra-badge ra-badge-neutral">@item.NumeroEmpleado</span></td>
+                                <td data-label="Email" class="ra-mono small">@item.Email</td>
+                                <td data-label="Especialidad">@item.Especialidad</td>
+                                <td data-label="Grupos">
                                     @{
                                         var grupos = ViewBag.GruposPorProfesor.ContainsKey(item.Id) ? ViewBag.GruposPorProfesor[item.Id] : null;
                                     }
                                     @if (grupos?.Any() == true)
                                     {
-                                        @foreach (var g in grupos)
-                                        {
-                                            <span class="ra-badge ra-badge-info me-1">@g.Clave</span>
-                                        }
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var g in grupos)
+                                            {
+                                                <span class="ra-badge ra-badge-info">@g.Clave</span>
+                                            }
+                                        </div>
                                     }
                                     else
                                     {
-                                        <span class="text-secondary">Sin grupos</span>
+                                        <span class="text-secondary small">Sin grupos</span>
                                     }
                                 </td>
-                                <td>
+                                <td data-label="Estado">
                                     @if (item.EstaActivo)
                                     {
                                         <span class="ra-badge ra-badge-success">Activo</span>
@@ -68,7 +75,7 @@
         {
             <div class="ra-empty">
                 <i class="bi bi-person-badge"></i>
-                <p>No hay profesores registrados</p>
+                <p>No hay profesores registrados.</p>
             </div>
         }
     </div>
@@ -78,9 +85,7 @@
     <script>
         $(document).ready(function () {
             $('#tablaProfesores').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
-                },
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
                 pageLength: 25
             });
         });

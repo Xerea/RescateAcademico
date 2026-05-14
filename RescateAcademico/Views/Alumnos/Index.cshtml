@@ -2,26 +2,33 @@
 @{
     ViewData["Title"] = "Catálogo de Alumnos";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Catálogo de alumnos",
+        Subtitle = "Consulta y filtra el alumnado por riesgo, carrera y semestre.",
+        Icon = "bi-people",
+        IconVariant = "accent"
+    };
+
+    var filterActive = !string.IsNullOrEmpty(ViewBag.Busqueda as string)
+        || !string.IsNullOrEmpty(ViewBag.FiltroRiesgo as string)
+        || !string.IsNullOrEmpty(ViewBag.FiltroCarrera as string)
+        || ViewBag.FiltroSemestre != null;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="fw-bold h3 mb-1">Catálogo de Alumnos</h1>
-        <p class="text-secondary small mb-0">Consulta y filtra el alumnado por riesgo, carrera y semestre.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
-<div class="ra-card mb-4">
+<div class="ra-card ra-filter-bar">
     <div class="ra-card-body">
         <form method="get">
             <div class="row g-2 align-items-end">
                 <div class="col-md-3">
                     <label class="ra-label">Buscar</label>
-                    <input type="text" name="busqueda" class="ra-input" placeholder="Boleta, nombre o apellidos..." value="@ViewBag.Busqueda" />
+                    <input type="text" name="busqueda" class="ra-input" placeholder="Boleta, nombre o apellidos…" value="@ViewBag.Busqueda" />
                 </div>
                 <div class="col-md-2">
                     <label class="ra-label">Riesgo</label>
-                    <select name="filtroRiesgo" class="ra-input">
+                    <select name="filtroRiesgo" class="ra-select">
                         <option value="">Todos</option>
                         <option value="Verde" selected="@(ViewBag.FiltroRiesgo == "Verde" ? "selected" : null)">Verde</option>
                         <option value="Amarillo" selected="@(ViewBag.FiltroRiesgo == "Amarillo" ? "selected" : null)">Amarillo</option>
@@ -30,7 +37,7 @@
                 </div>
                 <div class="col-md-2">
                     <label class="ra-label">Carrera</label>
-                    <select name="carrera" class="ra-input">
+                    <select name="carrera" class="ra-select">
                         <option value="">Todas</option>
                         @foreach (var c in (ViewBag.Carreras as List<string>)!)
                         {
@@ -40,7 +47,7 @@
                 </div>
                 <div class="col-md-2">
                     <label class="ra-label">Semestre</label>
-                    <select name="semestre" class="ra-input">
+                    <select name="semestre" class="ra-select">
                         <option value="">Todos</option>
                         @foreach (var s in (ViewBag.Semestres as List<int>)!)
                         {
@@ -48,10 +55,16 @@
                         }
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="ra-btn ra-btn-primary w-100">
-                        <i class="bi bi-search"></i> Buscar
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="ra-btn ra-btn-primary flex-fill">
+                        <i class="bi bi-search"></i> Filtrar
                     </button>
+                    @if (filterActive)
+                    {
+                        <a asp-action="Index" class="ra-btn ra-btn-ghost" title="Limpiar filtros">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
                 </div>
             </div>
         </form>
@@ -60,7 +73,7 @@
 
 <div class="ra-card">
     <div class="table-responsive">
-        <table class="ra-table mb-0" id="tablaAlumnos">
+        <table class="ra-table ra-table-cards mb-0" id="tablaAlumnos">
             <thead>
                 <tr>
                     <th>Boleta</th>
@@ -70,35 +83,35 @@
                     <th>Promedio</th>
                     <th>Riesgo</th>
                     <th>Actualización</th>
-                    <th style="width: 1px;">Acciones</th>
+                    <th style="width: 1px;" data-orderable="false">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td><strong>@item.Matricula</strong></td>
-                        <td>@item.Nombre @item.Apellidos</td>
-                        <td class="text-secondary">@item.Carrera</td>
-                        <td>@item.SemestreActual</td>
-                        <td>
+                        <td data-label="Boleta"><strong class="ra-mono">@item.Matricula</strong></td>
+                        <td data-label="Nombre">@item.Nombre @item.Apellidos</td>
+                        <td data-label="Carrera" class="text-secondary">@item.Carrera</td>
+                        <td data-label="Semestre">@item.SemestreActual</td>
+                        <td data-label="Promedio">
                             <span class="ra-badge @(item.PromedioGlobal >= 8 ? "ra-badge-success" : item.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
                                 @item.PromedioGlobal.ToString("F2")
                             </span>
                         </td>
-                        <td data-order="@(item.RiesgoAcademico == "Rojo" ? 3 : item.RiesgoAcademico == "Amarillo" ? 2 : 1)">
+                        <td data-label="Riesgo" data-order="@(item.RiesgoAcademico == "Rojo" ? 3 : item.RiesgoAcademico == "Amarillo" ? 2 : 1)">
                             <ra-semaforo riesgo="@item.RiesgoAcademico" size="sm"></ra-semaforo>
                         </td>
-                        <td class="text-secondary small">@(item.FechaUltimaActualizacion?.ToString("dd/MM/yyyy") ?? "—")</td>
-                        <td>
-                            <div class="d-flex gap-1 flex-nowrap">
-                                <button type="button" class="ra-btn ra-btn-ghost ra-btn-sm" onclick="loadQuickView('@item.Matricula')" title="Vista rápida">
+                        <td data-label="Actualizado" class="text-secondary small">@(item.FechaUltimaActualizacion?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        <td data-label="Acciones">
+                            <div class="d-flex gap-1 flex-nowrap justify-content-end">
+                                <button type="button" class="ra-btn ra-btn-ghost ra-btn-sm" onclick="RaQuickView.open('@item.Matricula')" aria-label="Vista rápida de @item.Nombre @item.Apellidos" title="Vista rápida">
                                     <i class="bi bi-lightning"></i>
                                 </button>
-                                <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="ra-btn ra-btn-outline ra-btn-sm" title="Detalle">
+                                <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="ra-btn ra-btn-outline ra-btn-sm" aria-label="Detalles completos" title="Detalle">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a asp-controller="Alumnos" asp-action="Timeline" asp-route-matricula="@item.Matricula" class="ra-btn ra-btn-outline ra-btn-sm" title="Línea de tiempo">
+                                <a asp-controller="Alumnos" asp-action="Timeline" asp-route-matricula="@item.Matricula" class="ra-btn ra-btn-outline ra-btn-sm" aria-label="Línea de tiempo" title="Línea de tiempo">
                                     <i class="bi bi-clock-history"></i>
                                 </a>
                             </div>
@@ -110,203 +123,22 @@
     </div>
 </div>
 
-<!-- Quick View Modal -->
-<div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border: 1px solid var(--ra-border); border-radius: var(--ra-radius-lg); background: var(--ra-surface);">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="qvTitle"><i class="bi bi-person-badge me-2" style="color: var(--ra-primary);"></i>Cargando...</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <div id="qvLoading" class="text-center py-5">
-                    <div class="spinner-border" role="status" style="color: var(--ra-primary);"><span class="visually-hidden">Cargando...</span></div>
-                    <p class="text-secondary mt-3">Cargando información del estudiante...</p>
-                </div>
-                <div id="qvContent" style="display:none;">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="ra-card h-100">
-                                <div class="ra-card-body">
-                                    <div class="mb-3">
-                                        <small class="text-secondary d-block">Boleta</small>
-                                        <span class="fw-semibold" id="qvMatricula">—</span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <small class="text-secondary d-block">Carrera</small>
-                                        <span id="qvCarrera">—</span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <small class="text-secondary d-block">Semestre</small>
-                                        <span id="qvSemestre">—</span>
-                                    </div>
-                                    <div>
-                                        <small class="text-secondary d-block">Grupo</small>
-                                        <span id="qvGrupo">—</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="ra-card h-100">
-                                <div class="ra-card-body">
-                                    <div class="mb-3">
-                                        <small class="text-secondary d-block">Promedio Global</small>
-                                        <span class="fw-bold fs-5" id="qvPromedio">—</span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <small class="text-secondary d-block">Riesgo Académico</small>
-                                        <span id="qvRiesgo">—</span>
-                                    </div>
-                                    <div class="mb-3">
-                                        <small class="text-secondary d-block">Carga Académica</small>
-                                        <span id="qvCarga">—</span>
-                                    </div>
-                                    <div>
-                                        <small class="text-secondary d-block">Última Actualización</small>
-                                        <span id="qvActualizacion">—</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="row g-2">
-                                <div class="col-3">
-                                    <div class="ra-card text-center py-2">
-                                        <div class="fw-bold fs-5" style="color: var(--ra-danger);" id="qvReprobadas">0</div>
-                                        <small class="text-secondary">Reprobadas</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="ra-card text-center py-2">
-                                        <div class="fw-bold fs-5" style="color: var(--ra-warning);" id="qvAusencias">0</div>
-                                        <small class="text-secondary">Ausencias</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="ra-card text-center py-2">
-                                        <div class="fw-bold fs-5" style="color: var(--ra-info);" id="qvEts">0</div>
-                                        <small class="text-secondary">ETS</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="ra-card text-center py-2">
-                                        <div class="fw-bold fs-5 text-secondary" id="qvRecursadas">0</div>
-                                        <small class="text-secondary">Recursadas</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <a id="qvLinkDetalle" href="#" class="ra-btn ra-btn-primary ra-btn-sm">
-                    <i class="bi bi-eye"></i> Detalle Completo
-                </a>
-                <a id="qvLinkTimeline" href="#" class="ra-btn ra-btn-outline ra-btn-sm">
-                    <i class="bi bi-clock-history"></i> Línea de Tiempo
-                </a>
-                <button type="button" class="ra-btn ra-btn-ghost ra-btn-sm" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_AlumnoQuickView" />
 
 @section Scripts {
     <script>
         $(document).ready(function () {
             $('#tablaAlumnos').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
-                },
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
                 pageLength: 25,
-                columnDefs: [
-                    { orderable: false, targets: 7 }
-                ]
+                columnDefs: [{ orderable: false, targets: 7 }]
             });
         });
 
-        async function loadQuickView(matricula) {
-            const modalEl = document.getElementById('quickViewModal');
-            // Properly hide and dispose existing instance before creating new one
-            const existing = bootstrap.Modal.getInstance(modalEl);
-            if (existing) {
-                existing.hide();
-                await new Promise(function(resolve) {
-                    modalEl.addEventListener('hidden.bs.modal', function handler() {
-                        modalEl.removeEventListener('hidden.bs.modal', handler);
-                        existing.dispose();
-                        resolve();
-                    }, { once: true });
-                    // Fallback: force resolve after 500ms if event doesn't fire
-                    setTimeout(resolve, 500);
-                });
-            }
-            const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
-            modal.show();
-
-            document.getElementById('qvLoading').style.display = 'block';
-            document.getElementById('qvContent').style.display = 'none';
-            const qvTitle = document.getElementById('qvTitle');
-            qvTitle.innerHTML = '';
-            const loadIcon = document.createElement('i');
-            loadIcon.className = 'bi bi-person-badge me-2';
-            loadIcon.style.color = 'var(--ra-primary)';
-            qvTitle.appendChild(loadIcon);
-            qvTitle.appendChild(document.createTextNode('Cargando...'));
-
-            try {
-                const response = await fetch('/Alumnos/QuickView?matricula=' + encodeURIComponent(matricula));
-                if (!response.ok) throw new Error('Error al cargar');
-                const data = await response.json();
-
-                const title = document.getElementById('qvTitle');
-                title.innerHTML = '';
-                const icon = document.createElement('i');
-                icon.className = 'bi bi-person-badge me-2';
-                icon.style.color = 'var(--ra-primary)';
-                title.appendChild(icon);
-                title.appendChild(document.createTextNode(data.nombre + ' ' + data.apellidos));
-
-                document.getElementById('qvMatricula').textContent = data.matricula;
-                document.getElementById('qvCarrera').textContent = data.carrera || '—';
-                document.getElementById('qvSemestre').textContent = data.semestreActual;
-                document.getElementById('qvGrupo').textContent = data.grupo || '—';
-
-                const promedioEl = document.getElementById('qvPromedio');
-                promedioEl.textContent = data.promedioGlobal.toFixed(2);
-                promedioEl.style.color = data.promedioGlobal >= 8 ? 'var(--ra-success)' : data.promedioGlobal >= 6 ? 'var(--ra-warning)' : 'var(--ra-danger)';
-
-                const riesgoEl = document.getElementById('qvRiesgo');
-                const riesgo = data.riesgoAcademico || 'Verde';
-                riesgoEl.innerHTML = '';
-                const sem = document.createElement('ra-semaforo');
-                sem.setAttribute('riesgo', riesgo);
-                sem.setAttribute('size', 'sm');
-                riesgoEl.appendChild(sem);
-
-                document.getElementById('qvCarga').textContent = (data.cargaAcademicaActual || 0) + ' materias';
-                document.getElementById('qvActualizacion').textContent = data.fechaUltimaActualizacion || '—';
-
-                document.getElementById('qvReprobadas').textContent = data.materiasReprobadas || 0;
-                document.getElementById('qvAusencias').textContent = data.ausencias || 0;
-                document.getElementById('qvEts').textContent = data.etsPresentados || 0;
-                document.getElementById('qvRecursadas').textContent = data.recursamientos || 0;
-
-                document.getElementById('qvLinkDetalle').href = '/Alumnos/Detalles/' + encodeURIComponent(data.matricula);
-                document.getElementById('qvLinkTimeline').href = '/Alumnos/Timeline?matricula=' + encodeURIComponent(data.matricula);
-
-                document.getElementById('qvLoading').style.display = 'none';
-                document.getElementById('qvContent').style.display = 'block';
-            } catch (err) {
-                const loadingEl = document.getElementById('qvLoading');
-                loadingEl.innerHTML = '';
-                const errP = document.createElement('p');
-                errP.className = 'text-danger';
-                errP.textContent = 'No se pudo cargar la información. Intenta de nuevo.';
-                loadingEl.appendChild(errP);
-            }
-        }
+        // Configure shared quick view links for this page
+        RaQuickView.configure({
+            detalle:  '/Alumnos/Detalles/{matricula}',
+            timeline: '/Alumnos/Timeline?matricula={matricula}'
+        });
     </script>
 }

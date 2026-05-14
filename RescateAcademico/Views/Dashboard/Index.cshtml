@@ -3,31 +3,32 @@
 @{
     ViewData["Title"] = "Panel Principal";
     Layout = "_Layout";
+
+    var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+    var today = DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX"));
+
+    var header = new PageHeader
+    {
+        Title = "Panel de control",
+        SubtitleHtml = new Microsoft.AspNetCore.Html.HtmlString($"<i class=\"bi bi-person-circle me-1\"></i> {System.Net.WebUtility.HtmlEncode(userName ?? "")} <span class=\"mx-2 text-muted\">·</span> {today}"),
+        Icon = "bi-grid-1x2",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold mb-1" style="letter-spacing: -0.02em;">Panel de Control</h1>
-        <p class="text-secondary mb-0">
-            <i class="bi bi-person-circle me-1"></i>
-            @User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
-            <span class="mx-2 text-muted">|</span>
-            @(DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX")))
-        </p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 @if (TempData["Success"] != null)
 {
     <div class="ra-alert ra-alert-success mb-4" role="alert">
-        <i class="bi bi-check-circle-fill fs-5"></i>
+        <i class="bi bi-check-circle-fill"></i>
         <div>@TempData["Success"]</div>
     </div>
 }
 @if (TempData["Error"] != null)
 {
     <div class="ra-alert ra-alert-danger mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <i class="bi bi-exclamation-triangle-fill"></i>
         <div>@TempData["Error"]</div>
     </div>
 }
@@ -35,29 +36,29 @@
 @if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
 {
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-sm-6 col-md-3">
             <div class="ra-stat ra-stat-accent">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="ra-stat-label">Total Alumnos</div>
+                        <div class="ra-stat-label">Total alumnos</div>
                         <div class="ra-stat-value" data-countup="@Model.TotalAlumnos">@Model.TotalAlumnos</div>
                     </div>
                     <i class="bi bi-people-fill ra-stat-icon"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-sm-6 col-md-3">
             <div class="ra-stat ra-stat-success">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="ra-stat-label">Proyectos Activos</div>
+                        <div class="ra-stat-label">Proyectos activos</div>
                         <div class="ra-stat-value" data-countup="@Model.TotalProyectos">@Model.TotalProyectos</div>
                     </div>
                     <i class="bi bi-folder-fill ra-stat-icon"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-sm-6 col-md-3">
             <div class="ra-stat ra-stat-info">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -68,11 +69,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-sm-6 col-md-3">
             <div class="ra-stat ra-stat-warning">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="ra-stat-label">En Riesgo</div>
+                        <div class="ra-stat-label">En riesgo</div>
                         <div class="ra-stat-value" data-countup="@Model.AlumnosEnRiesgo">@Model.AlumnosEnRiesgo</div>
                     </div>
                     <i class="bi bi-exclamation-triangle-fill ra-stat-icon"></i>
@@ -85,7 +86,7 @@
         <div class="col-md-4">
             <div class="ra-card h-100">
                 <div class="ra-card-header">
-                    <i class="bi bi-pie-chart"></i> Distribución por Riesgo
+                    <i class="bi bi-pie-chart"></i> Distribución por riesgo
                 </div>
                 <div class="ra-card-body">
                     <canvas id="chartRiesgo" height="220"></canvas>
@@ -95,7 +96,7 @@
         <div class="col-md-4">
             <div class="ra-card h-100">
                 <div class="ra-card-header">
-                    <i class="bi bi-bar-chart"></i> Alumnos por Carrera
+                    <i class="bi bi-bar-chart"></i> Alumnos por carrera
                 </div>
                 <div class="ra-card-body">
                     <canvas id="chartCarrera" height="220"></canvas>
@@ -105,7 +106,7 @@
         <div class="col-md-4">
             <div class="ra-card h-100">
                 <div class="ra-card-header">
-                    <i class="bi bi-bar-chart-line"></i> Alumnos por Semestre
+                    <i class="bi bi-bar-chart-line"></i> Alumnos por semestre
                 </div>
                 <div class="ra-card-body">
                     <canvas id="chartSemestre" height="220"></canvas>
@@ -118,7 +119,7 @@
 @if (User.IsInRole("Alumno"))
 {
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="ra-stat ra-stat-accent">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -129,7 +130,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="ra-stat @(Model.AlumnoRiesgo == "Rojo" ? "ra-stat-danger" : Model.AlumnoRiesgo == "Amarillo" ? "ra-stat-warning" : "ra-stat-success")">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -140,7 +141,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="ra-stat ra-stat-info">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -151,7 +152,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
             <div class="ra-stat ra-stat-primary">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -164,102 +165,81 @@
         </div>
     </div>
 
-    <div class="row g-3">
-        <div class="col-md-4">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <div class="mb-3">
-                        <i class="bi bi-person-badge fs-1" style="color: var(--ra-accent);"></i>
-                    </div>
-                    <h5 class="fw-semibold">Mi Perfil Académico</h5>
-                    <p class="text-secondary small">Consulta tu situación académica, promedio, materias y carga actual.</p>
-                    <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="ra-btn ra-btn-primary w-100">Ver Perfil</a>
-                </div>
+    @* Single, focused CTA band: quick links go where the navbar doesn't *@
+    <div class="ra-card mb-4">
+        <div class="ra-card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="ra-heading mb-1">Accesos rápidos</div>
+                <div class="text-secondary small">Abre lo que más consultas esta semana.</div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <div class="mb-3">
-                        <i class="bi bi-journal-text fs-1" style="color: var(--ra-accent);"></i>
-                    </div>
-                    <h5 class="fw-semibold">Convocatorias</h5>
-                    <p class="text-secondary small">Explora y postúlate a proyectos de servicio social o investigación.</p>
-                    <a asp-controller="Convocatorias" asp-action="Index" class="ra-btn ra-btn-primary w-100">Explorar</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="ra-card h-100 text-center">
-                <div class="ra-card-body">
-                    <div class="mb-3">
-                        <i class="bi bi-send-check fs-1" style="color: var(--ra-accent);"></i>
-                    </div>
-                    <h5 class="fw-semibold">Mis Postulaciones</h5>
-                    <p class="text-secondary small">Consulta el estado de tus solicitudes a proyectos.</p>
-                    <a asp-controller="Postulaciones" asp-action="MisPostulaciones" class="ra-btn ra-btn-primary w-100">Ver Postulaciones</a>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
-@if (User.IsInRole("Tutor"))
-{
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="ra-stat ra-stat-accent">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="ra-stat-label">Mis Estudiantes</div>
-                        <div class="ra-stat-value">@Model.TutorAssignedStudents</div>
-                    </div>
-                    <i class="bi bi-people-fill ra-stat-icon"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="ra-stat ra-stat-warning">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="ra-stat-label">En Riesgo</div>
-                        <div class="ra-stat-value">@Model.TutorStudentsAtRisk</div>
-                    </div>
-                    <i class="bi bi-exclamation-triangle-fill ra-stat-icon"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="ra-stat ra-stat-info">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="ra-stat-label">Intervenciones (30 días)</div>
-                        <div class="ra-stat-value">@Model.TutorRecentInterventions</div>
-                    </div>
-                    <i class="bi bi-clipboard-pulse ra-stat-icon"></i>
-                </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-person-badge"></i> Mi perfil
+                </a>
+                <a asp-controller="Convocatorias" asp-action="Index" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-megaphone"></i> Convocatorias
+                </a>
+                <a asp-controller="Postulaciones" asp-action="MisPostulaciones" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-send-check"></i> Mis postulaciones
+                </a>
             </div>
         </div>
     </div>
 
+    @* Highlight: risk + recommendations — the actual useful content *@
     <div class="row g-3">
-        <div class="col-md-6">
-            <div class="ra-card ra-card-accent h-100">
-                <div class="ra-card-body text-center">
-                    <i class="bi bi-people fs-1 mb-3" style="color: var(--ra-accent);"></i>
-                    <h5 class="fw-semibold">Mis Estudiantes</h5>
-                    <p class="text-secondary small">Visualiza la radiografía académica y riesgo de tus alumnos asignados.</p>
-                    <a asp-controller="Profesor" asp-action="Index" class="ra-btn ra-btn-accent w-100">Mis Grupos</a>
+        <div class="col-md-7">
+            <div class="ra-card h-100">
+                <div class="ra-card-header">
+                    <i class="bi bi-lightbulb"></i> Sugerencias para ti
+                </div>
+                <div class="ra-card-body">
+                    @{
+                        var riesgo = Model.AlumnoRiesgo ?? "Verde";
+                    }
+                    @if (riesgo == "Rojo")
+                    {
+                        <div class="ra-alert ra-alert-danger mb-3">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>
+                                Tu promedio y carga académica indican <strong>riesgo alto</strong>. Agenda una tutoría con tu profesor asignado lo antes posible.
+                            </div>
+                        </div>
+                    }
+                    else if (riesgo == "Amarillo")
+                    {
+                        <div class="ra-alert ra-alert-warning mb-3">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            <div>
+                                Tu desempeño está por debajo del umbral recomendado. Usa el simulador en tu perfil para planear calificaciones objetivo.
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ra-alert ra-alert-success mb-3">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div>Vas bien. Considera postularte a una convocatoria de investigación o servicio social.</div>
+                        </div>
+                    }
+                    <ul class="list-unstyled mb-0 small text-secondary">
+                        <li class="mb-2"><i class="bi bi-arrow-right-short"></i> Revisa tu <a asp-controller="PerfilAcademico" asp-action="MiPerfil">perfil académico</a> para el desglose por periodo.</li>
+                        <li class="mb-2"><i class="bi bi-arrow-right-short"></i> Explora <a asp-controller="Convocatorias" asp-action="Index">convocatorias abiertas</a> para complementar tu formación.</li>
+                        <li class="mb-0"><i class="bi bi-arrow-right-short"></i> Consulta el estado de tus <a asp-controller="Postulaciones" asp-action="MisPostulaciones">postulaciones</a>.</li>
+                    </ul>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="ra-card ra-card-primary h-100">
+        <div class="col-md-5">
+            <div class="ra-card h-100">
+                <div class="ra-card-header">
+                    <i class="bi bi-calculator"></i> Simulador de calificaciones
+                </div>
                 <div class="ra-card-body text-center">
-                    <i class="bi bi-graph-up fs-1 mb-3" style="color: var(--ra-primary);"></i>
-                    <h5 class="fw-semibold">Radiografía Académica</h5>
-                    <p class="text-secondary small">Consulta el desempeño integral de un tutorado específico.</p>
-                    <a asp-controller="Profesor" asp-action="MisEstudiantes" class="ra-btn ra-btn-primary w-100">Buscar Estudiante</a>
+                    <p class="text-secondary small mb-3">Calcula tu promedio proyectado, nivel de riesgo y elegibilidad para convocatorias.</p>
+                    <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="ra-btn ra-btn-accent">
+                        <i class="bi bi-arrow-right"></i> Abrir simulador
+                    </a>
                 </div>
             </div>
         </div>
@@ -275,9 +255,9 @@
                     <div class="mb-3">
                         <i class="bi bi-bar-chart-line fs-1" style="color: var(--ra-accent);"></i>
                     </div>
-                    <h5 class="fw-semibold">Tablero Estadístico</h5>
-                    <p class="text-secondary small">Métricas globales de desempeño y situación estudiantil.</p>
-                    <a asp-controller="Estadisticas" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver Estadísticas</a>
+                    <h5 class="fw-semibold">Tablero estadístico</h5>
+                    <p class="text-secondary small">Métricas globales de desempeño.</p>
+                    <a asp-controller="Estadisticas" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver</a>
                 </div>
             </div>
         </div>
@@ -288,8 +268,8 @@
                         <i class="bi bi-clipboard-data fs-1" style="color: var(--ra-accent);"></i>
                     </div>
                     <h5 class="fw-semibold">Reportes</h5>
-                    <p class="text-secondary small">Estadísticas, predicciones y exportes institucionales.</p>
-                    <a asp-controller="Reportes" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ir a Reportes</a>
+                    <p class="text-secondary small">Estadísticas, predicciones y exportes.</p>
+                    <a asp-controller="Reportes" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ir a reportes</a>
                 </div>
             </div>
         </div>
@@ -300,8 +280,8 @@
                         <i class="bi bi-folder-check fs-1" style="color: var(--ra-accent);"></i>
                     </div>
                     <h5 class="fw-semibold">Postulaciones</h5>
-                    <p class="text-secondary small">Revisa y gestiona las postulaciones pendientes.</p>
-                    <a asp-controller="Postulaciones" asp-action="Todas" class="ra-btn ra-btn-primary w-100">Ver Postulaciones</a>
+                    <p class="text-secondary small">Revisa solicitudes pendientes.</p>
+                    <a asp-controller="Postulaciones" asp-action="Todas" class="ra-btn ra-btn-primary w-100">Ver</a>
                 </div>
             </div>
         </div>
@@ -314,10 +294,21 @@
         @if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
         {
             <text>
-            (function() {
-                const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-                const textColor = isDark ? '#cbd5e1' : '#475569';
-                const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+            (function () {
+                var rootStyle = getComputedStyle(document.documentElement);
+                var get = function (v) { return (rootStyle.getPropertyValue(v) || '').trim(); };
+                var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                var textColor = isDark ? '#cbd5e1' : '#475569';
+                var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+
+                var palette = {
+                    primary: get('--ra-primary') || '#0f766e',
+                    accent: get('--ra-accent') || '#6c1d45',
+                    success: get('--ra-success') || '#15803d',
+                    warning: get('--ra-warning') || '#b45309',
+                    danger: get('--ra-danger') || '#b91c1c',
+                    info: get('--ra-info') || '#1d4ed8'
+                };
 
                 Chart.defaults.color = textColor;
                 Chart.defaults.borderColor = gridColor;
@@ -329,7 +320,7 @@
                         labels: ['Verde', 'Amarillo', 'Rojo'],
                         datasets: [{
                             data: [@Model.RiesgoVerde, @Model.RiesgoAmarillo, @Model.RiesgoRojo],
-                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                            backgroundColor: [palette.success, palette.warning, palette.danger],
                             borderWidth: 0,
                             hoverOffset: 4
                         }]
@@ -338,12 +329,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         cutout: '65%',
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { usePointStyle: true, padding: 16 }
-                            }
-                        }
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } }
                     }
                 });
 
@@ -353,8 +339,8 @@
                         labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorCarrera.Select(c => c.Carrera))),
                         datasets: [{
                             label: 'Alumnos',
-                            data: [@string.Join(", ", Model.AlumnosPorCarrera.Select(c => c.Count))],
-                            backgroundColor: '#4f46e5',
+                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorCarrera.Select(c => c.Count))),
+                            backgroundColor: palette.primary,
                             borderRadius: 6,
                             barThickness: 24
                         }]
@@ -373,11 +359,11 @@
                 new Chart(document.getElementById('chartSemestre'), {
                     type: 'bar',
                     data: {
-                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => $"Sem {s.Semestre}"))),
+                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => "Sem " + s.Semestre))),
                         datasets: [{
                             label: 'Alumnos',
-                            data: [@string.Join(", ", Model.AlumnosPorSemestre.Select(s => s.Count))],
-                            backgroundColor: '#3b82f6',
+                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => s.Count))),
+                            backgroundColor: palette.accent,
                             borderRadius: 6,
                             barThickness: 24
                         }]

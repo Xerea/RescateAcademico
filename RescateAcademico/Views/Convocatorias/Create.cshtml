@@ -1,15 +1,23 @@
 @model RescateAcademico.Models.Convocatoria
 @{
-    ViewData["Title"] = "Crear Convocatoria";
+    ViewData["Title"] = "Crear convocatoria";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Nueva convocatoria",
+        Subtitle = "Publica una nueva oportunidad para los estudiantes.",
+        Icon = "bi-megaphone",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Todas"),
+        BackLabel = "Convocatorias"
+    };
 }
+
+<partial name="_PageHeader" model="header" />
 
 <div class="row">
     <div class="col-md-8 col-lg-6 mx-auto">
         <div class="ra-card">
-            <div class="ra-card-header">
-                <h5 class="mb-0"><i class="bi bi-megaphone"></i> Nueva Convocatoria</h5>
-            </div>
             <div class="ra-card-body">
                 <form asp-action="Create">
                     <div class="mb-3">

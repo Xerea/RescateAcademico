@@ -1,12 +1,21 @@
 @model List<RescateAcademico.Models.BitacoraLog>
 @{
-    ViewData["Title"] = "Exportar Bitácora";
+    ViewData["Title"] = "Exportar bitácora";
+    Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Exportar bitácora",
+        Subtitle = "Descarga los registros filtrados como CSV.",
+        Icon = "bi-download",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Bitácora"
+    };
 }
 
+<partial name="_PageHeader" model="header" />
+
 <div class="ra-card">
-    <div class="ra-card-header">
-        <i class="bi bi-download"></i> Exportar Bitácora
-    </div>
     <div class="ra-card-body">
         <div class="row g-3 mb-4">
             <div class="col-md-4">

@@ -1,14 +1,19 @@
 @model RescateAcademico.Models.Proyecto
 @{
-    ViewData["Title"] = "Detalles del Proyecto";
+    ViewData["Title"] = Model.Titulo;
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = Model.Titulo,
+        Subtitle = "Detalles del proyecto",
+        Icon = "bi-folder",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Proyectos"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 class="ra-text-accent"><i class="bi bi-folder"></i> @Model.Titulo</h2>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="row">
     <div class="col-md-8">

@@ -1,15 +1,17 @@
 @model IEnumerable<RescateAcademico.Models.BitacoraLog>
 @{
-    ViewData["Title"] = "Bitácora de Auditoría";
+    ViewData["Title"] = "Bitácora de auditoría";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Bitácora de auditoría",
+        Subtitle = "Registro histórico de acciones del sistema.",
+        Icon = "bi-clock-history",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-clock-history"></i> Bitácora de Auditoría</h1>
-        <p class="text-secondary small mb-0">Registro histórico de acciones realizadas en el sistema.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">
@@ -46,7 +48,7 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table ra-table" id="tablaBitacora">
+            <table class="table ra-table ra-table-cards" id="tablaBitacora">
                 <thead>
                     <tr>
                         <th>Fecha y Hora</th>
@@ -54,28 +56,28 @@
                         <th>Acción</th>
                         <th>Tabla</th>
                         <th>IP</th>
-                        <th>Detalles</th>
+                        <th data-orderable="false">Detalles</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td>
+                            <td data-label="Fecha">
                                 <span class="text-secondary small">@item.FechaHora.ToString("dd/MM/yyyy HH:mm:ss")</span>
                             </td>
-                            <td>@item.UsuarioEmail</td>
-                            <td>
+                            <td data-label="Usuario">@item.UsuarioEmail</td>
+                            <td data-label="Acción">
                                 <span class="ra-badge @(item.Accion == "Crear" ? "ra-badge-success" : item.Accion == "Editar" ? "ra-badge-primary" : item.Accion == "Eliminar" ? "ra-badge-danger" : item.Accion == "Login" ? "ra-badge-info" : "ra-badge-neutral")">
                                     @item.Accion
                                 </span>
                             </td>
-                            <td><span class="text-secondary small">@item.TablaAfectada</span></td>
-                            <td><span class="text-secondary small">@item.IpAddress</span></td>
-                            <td>
+                            <td data-label="Tabla"><span class="text-secondary small">@item.TablaAfectada</span></td>
+                            <td data-label="IP"><span class="text-secondary small">@item.IpAddress</span></td>
+                            <td data-label="Detalles">
                                 @if (!string.IsNullOrEmpty(item.RegistroAnterior) || !string.IsNullOrEmpty(item.RegistroNuevo))
                                 {
-                                    <a asp-action="Detalles" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver detalles">
+                                    <a asp-action="Detalles" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalles del registro" title="Ver detalles">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 }

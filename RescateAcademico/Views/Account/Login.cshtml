@@ -1,61 +1,87 @@
 @model dynamic
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnv
 @{
-    ViewData["Title"] = "Inicio de Sesión";
+    ViewData["Title"] = "Acceder";
     Layout = "_Layout";
+    // Demo credentials are only displayed in non-production environments OR when
+    // the env var SHOW_DEMO_CREDENTIALS is explicitly set to "true".
+    var showDemoCredentials = HostEnv.IsDevelopment()
+        || string.Equals(Configuration["SHOW_DEMO_CREDENTIALS"], "true", StringComparison.OrdinalIgnoreCase);
     var adminPw = Configuration["DEMO_ADMIN_PASSWORD"] ?? "Admin123!";
     var autoridadPw = Configuration["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!";
     var tutorPw = Configuration["DEMO_TUTOR_PASSWORD"] ?? "Demo123!";
     var alumnoPw = Configuration["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!";
 }
 
-<canvas id="loginParticles" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+<div class="ra-auth-bg" aria-hidden="true"></div>
+<div class="ra-auth-grid" aria-hidden="true"></div>
+
 @if (!string.IsNullOrEmpty(Configuration["RECAPTCHA_SITE_KEY"]))
 {
     <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["RECAPTCHA_SITE_KEY"]"></script>
 }
 
-<div class="row justify-content-center align-items-center position-relative" style="min-height: 80vh; z-index: 1;">
+<div class="row justify-content-center align-items-center position-relative" style="min-height: 82vh; z-index: 1;">
     <div class="col-md-5 col-lg-4">
         <div class="text-center mb-4">
             <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 64px; height: 64px; background: var(--ra-primary-soft);">
                 <i class="bi bi-mortarboard-fill fs-2" style="color: var(--ra-primary);"></i>
             </div>
             <h1 class="fw-bold h3 mb-1">Rescate Académico</h1>
-            <p class="text-secondary small">Accede con tu correo institucional del IPN</p>
+            <p class="text-secondary small mb-0">Accede con tu correo institucional del IPN.</p>
         </div>
 
         <div class="ra-card" style="backdrop-filter: blur(12px); background: rgba(var(--ra-surface-rgb), 0.85);">
             <div class="ra-card-body">
-                <form asp-controller="Account" asp-action="Login" method="post">
+                <form asp-controller="Account" asp-action="Login" method="post" novalidate>
                     @if (ViewData["ReturnUrl"] != null)
                     {
                         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
                     }
                     <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response" />
 
-                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState[""] != null)
+                    {
+                        <div class="ra-alert ra-alert-danger mb-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <div>
+                                @foreach (var err in ViewData.ModelState[""]!.Errors)
+                                {
+                                    <div>@err.ErrorMessage</div>
+                                }
+                            </div>
+                        </div>
+                    }
 
-                    <div class="mb-3">
-                        <label for="inputEmail" class="ra-label">Correo institucional</label>
-                        <input name="email" class="ra-input" id="inputEmail" type="email" placeholder="correo@alumno.ipn.mx" required />
+                    <div id="recaptchaError" class="ra-alert ra-alert-danger mb-3" role="alert" style="display:none;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>No se pudo cargar la verificación de seguridad. Recarga la página e intenta de nuevo.</div>
                     </div>
 
                     <div class="mb-3">
+                        <label for="inputEmail" class="ra-label">Correo institucional</label>
+                        <input name="email" class="ra-input" id="inputEmail" type="email" autocomplete="username" placeholder="correo@alumno.ipn.mx" required autofocus />
+                    </div>
+
+                    <div class="mb-2">
                         <label for="inputPassword" class="ra-label">Contraseña</label>
                         <div class="position-relative">
-                            <input name="password" class="ra-input pe-5" id="inputPassword" type="password" placeholder="••••••••" required />
-                            <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 p-1" style="color: var(--ra-text-muted); z-index: 10;" onclick="togglePassword()">
+                            <input name="password" class="ra-input pe-5" id="inputPassword" type="password" autocomplete="current-password" placeholder="••••••••" required />
+                            <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 p-1" style="color: var(--ra-text-muted); z-index: 10;" onclick="togglePassword()" aria-label="Mostrar u ocultar contraseña">
                                 <i class="bi bi-eye" id="togglePasswordIcon"></i>
                             </button>
+                        </div>
+                        <div class="small mt-1" id="capsLockHint" style="display:none; color: var(--ra-warning);">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Bloq. Mayús está activado
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="form-check">
-                            <input name="rememberMe" class="form-check-input" id="inputRemember" type="checkbox" value="true" />
-                            <label class="form-check-label small text-secondary" for="inputRemember">Recordarme</label>
-                        </div>
+                        <label class="ra-check-label">
+                            <input name="rememberMe" class="ra-checkbox" type="checkbox" value="true" />
+                            <span class="small">Recordarme</span>
+                        </label>
                         <a asp-controller="Account" asp-action="ForgotPassword" class="small" style="color: var(--ra-primary);">¿Olvidaste tu contraseña?</a>
                     </div>
 
@@ -64,144 +90,117 @@
                     </button>
 
                     <div class="text-center">
-                        <span class="small text-secondary">¿No tienes cuenta? Contacta a <a href="#" style="color: var(--ra-primary);">administración</a></span>
+                        <span class="small text-secondary">¿Sin cuenta? Contacta a la <a asp-controller="Home" asp-action="Privacy" style="color: var(--ra-primary);">coordinación académica</a>.</span>
                     </div>
                 </form>
             </div>
         </div>
 
-        <div class="accordion mt-3" id="demoCredentialsAccordion">
-            <div class="accordion-item border-0 bg-transparent">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed bg-transparent shadow-none small text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDemo">
-                        <i class="bi bi-info-circle me-2"></i> Credenciales de demostración
-                    </button>
-                </h2>
-                <div id="collapseDemo" class="accordion-collapse collapse" data-bs-parent="#demoCredentialsAccordion">
-                    <div class="accordion-body p-0 pt-2">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Administrador</small>
-                                    <code class="small d-block">admin@ipn.mx</code>
-                                    <code class="small">@adminPw</code>
+        @if (showDemoCredentials)
+        {
+            <div class="accordion mt-3" id="demoCredentialsAccordion">
+                <div class="accordion-item border-0 bg-transparent">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent shadow-none small text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDemo" aria-expanded="false" aria-controls="collapseDemo">
+                            <i class="bi bi-info-circle me-2"></i> Credenciales de demostración
+                        </button>
+                    </h2>
+                    <div id="collapseDemo" class="accordion-collapse collapse" data-bs-parent="#demoCredentialsAccordion">
+                        <div class="accordion-body p-0 pt-2">
+                            <p class="text-secondary small text-center mb-2">Haz clic en una tarjeta para autocompletar.</p>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="admin@ipn.mx" data-password="@adminPw" style="cursor:pointer;">
+                                        <small class="text-secondary d-block fw-semibold">Administrador</small>
+                                        <code class="small d-block">admin@ipn.mx</code>
+                                        <code class="small">@adminPw</code>
+                                    </button>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Autoridad</small>
-                                    <code class="small d-block">autoridad@ipn.mx</code>
-                                    <code class="small">@autoridadPw</code>
+                                <div class="col-6">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="autoridad@ipn.mx" data-password="@autoridadPw" style="cursor:pointer;">
+                                        <small class="text-secondary d-block fw-semibold">Autoridad</small>
+                                        <code class="small d-block">autoridad@ipn.mx</code>
+                                        <code class="small">@autoridadPw</code>
+                                    </button>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Profesor</small>
-                                    <code class="small d-block">profesor1@ipn.mx</code>
-                                    <code class="small">@tutorPw</code>
+                                <div class="col-6">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="profesor1@ipn.mx" data-password="@tutorPw" style="cursor:pointer;">
+                                        <small class="text-secondary d-block fw-semibold">Profesor</small>
+                                        <code class="small d-block">profesor1@ipn.mx</code>
+                                        <code class="small">@tutorPw</code>
+                                    </button>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="ra-card text-center py-2">
-                                    <small class="text-secondary d-block fw-semibold">Alumno</small>
-                                    <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
-                                    <code class="small">@alumnoPw</code>
+                                <div class="col-6">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="demo.alumno@alumno.ipn.mx" data-password="@alumnoPw" style="cursor:pointer;">
+                                        <small class="text-secondary d-block fw-semibold">Alumno</small>
+                                        <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
+                                        <code class="small">@alumnoPw</code>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script>
         function togglePassword() {
-            const input = document.getElementById('inputPassword');
-            const icon = document.getElementById('togglePasswordIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            }
+            var input = document.getElementById('inputPassword');
+            var icon = document.getElementById('togglePasswordIcon');
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            icon.classList.toggle('bi-eye', !show);
+            icon.classList.toggle('bi-eye-slash', show);
         }
 
-        // Particle network animation
-        (function() {
-            var canvas = document.getElementById('loginParticles');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var particles = [];
-            var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-            var colors = isDark
-                ? ['rgba(48,209,88,0.6)', 'rgba(48,209,88,0.4)', 'rgba(255,159,10,0.5)', 'rgba(255,69,58,0.5)']
-                : ['rgba(21,128,61,0.35)', 'rgba(21,128,61,0.25)', 'rgba(180,83,9,0.35)', 'rgba(185,28,28,0.35)'];
-            var w, h;
-            function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-            resize();
-            window.addEventListener('resize', resize);
+        document.querySelectorAll('[data-demo-fill]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var e = document.getElementById('inputEmail');
+                var p = document.getElementById('inputPassword');
+                if (e) e.value = button.dataset.email || '';
+                if (p) p.value = button.dataset.password || '';
+                if (p) p.focus();
+            });
+        });
 
-            var count = window.innerWidth < 768 ? 50 : 100;
-            for (var i = 0; i < count; i++) {
-                particles.push({
-                    x: Math.random() * w,
-                    y: Math.random() * h,
-                    vx: (Math.random() - 0.5) * 0.3,
-                    vy: (Math.random() - 0.5) * 0.3,
-                    r: Math.random() * 2 + 1,
-                    color: colors[Math.random() < 0.7 ? 0 : Math.random() < 0.9 ? 2 : 3]
-                });
-            }
-
-            var frame = 0;
-            function animate() {
-                frame++;
-                if (frame % 2 !== 0) { requestAnimationFrame(animate); return; } // 30fps
-                ctx.clearRect(0, 0, w, h);
-                for (var i = 0; i < particles.length; i++) {
-                    var p = particles[i];
-                    p.x += p.vx; p.y += p.vy;
-                    if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
-                    if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                    for (var j = i + 1; j < particles.length; j++) {
-                        var q = particles[j];
-                        var dx = p.x - q.x, dy = p.y - q.y;
-                        var dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 120) {
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(q.x, q.y);
-                            ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
-                            ctx.lineWidth = 0.5;
-                            ctx.stroke();
-                        }
-                    }
+        // CapsLock detector (password field only)
+        (function () {
+            var pw = document.getElementById('inputPassword');
+            var hint = document.getElementById('capsLockHint');
+            if (!pw || !hint) return;
+            function onKey(e) {
+                if (typeof e.getModifierState === 'function') {
+                    hint.style.display = e.getModifierState('CapsLock') ? 'block' : 'none';
                 }
-                requestAnimationFrame(animate);
             }
-            animate();
+            pw.addEventListener('keydown', onKey);
+            pw.addEventListener('keyup', onKey);
+            pw.addEventListener('blur', function () { hint.style.display = 'none'; });
         })();
 
         // reCAPTCHA v3 — generate token on submit
-        var siteKey = '@Configuration["RECAPTCHA_SITE_KEY"]';
+        var siteKey = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Configuration["RECAPTCHA_SITE_KEY"] ?? string.Empty));
         if (siteKey) {
-            document.forms[0].addEventListener('submit', function(e) {
+            document.forms[0].addEventListener('submit', function (e) {
                 e.preventDefault();
                 var form = this;
-                grecaptcha.ready(function() {
-                    grecaptcha.execute(siteKey, { action: 'login' }).then(function(token) {
+                var error = document.getElementById('recaptchaError');
+                if (!window.grecaptcha || typeof grecaptcha.ready !== 'function' || typeof grecaptcha.execute !== 'function') {
+                    if (error) error.style.display = '';
+                    return;
+                }
+
+                if (error) error.style.display = 'none';
+                grecaptcha.ready(function () {
+                    grecaptcha.execute(siteKey, { action: 'login' }).then(function (token) {
                         document.getElementById('g-recaptcha-response').value = token;
                         form.submit();
+                    }).catch(function () {
+                        if (error) error.style.display = '';
                     });
                 });
             });

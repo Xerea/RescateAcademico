@@ -30,7 +30,7 @@
                             <label class="ra-label">Rol *</label>
                             <select asp-for="Rol" class="ra-select" id="rolSelect" required>
                                 <option value="Alumno">Alumno</option>
-                                <option value="Profesor">Profesor</option>
+                                <option value="Tutor">Profesor</option>
                                 <option value="Autoridad">Autoridad</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
@@ -87,7 +87,7 @@
             var semestreField = document.getElementById('semestreField');
             var especialidadField = document.getElementById('especialidadField');
 
-            if (rol === 'Profesor') {
+            if (rol === 'Tutor') {
                 especialidadField.classList.remove('d-none');
                 carreraField.classList.add('d-none');
                 semestreField.classList.add('d-none');

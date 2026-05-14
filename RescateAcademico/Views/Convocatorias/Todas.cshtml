@@ -1,20 +1,19 @@
 @model IEnumerable<RescateAcademico.Models.Convocatoria>
 @{
-    ViewData["Title"] = "Todas las Convocatorias";
+    ViewData["Title"] = "Gestión de convocatorias";
     Layout = "_Layout";
+    var actionsHtml = $"<a href=\"{Url.Action("Create")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nueva convocatoria</a>";
+    var header = new PageHeader
+    {
+        Title = "Gestión de convocatorias",
+        Subtitle = "Publicación, validación y cierre.",
+        Icon = "bi-megaphone",
+        IconVariant = "accent",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-megaphone"></i> Gestión de Convocatorias</h1>
-        <p class="text-secondary small mb-0">Publicación, validación y cierre de convocatorias.</p>
-    </div>
-    <div class="col-auto">
-        <a asp-action="Create" class="ra-btn ra-btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Convocatoria
-        </a>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">
@@ -27,43 +26,43 @@
         }
 
         <div class="table-responsive">
-            <table class="table ra-table" id="tablaConvocatorias">
+            <table class="table ra-table ra-table-cards" id="tablaConvocatorias">
                 <thead>
                     <tr>
                         <th>Título</th>
                         <th>Tipo</th>
                         <th>Cupo</th>
-                        <th>Fecha Cierre</th>
+                        <th>Cierre</th>
                         <th>Validada</th>
                         <th>Activa</th>
-                        <th>Acciones</th>
+                        <th data-orderable="false">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td><strong>@item.Titulo</strong></td>
-                            <td>@item.Tipo</td>
-                            <td>@item.PostulacionesActuales / @item.CupoMaximo</td>
-                            <td>@item.FechaCierre.ToString("dd/MM/yyyy")</td>
-                            <td>
+                            <td data-label="Título"><strong>@item.Titulo</strong></td>
+                            <td data-label="Tipo">@item.Tipo</td>
+                            <td data-label="Cupo">@item.PostulacionesActuales / @item.CupoMaximo</td>
+                            <td data-label="Cierre">@item.FechaCierre.ToString("dd/MM/yyyy")</td>
+                            <td data-label="Validada">
                                 @if (item.ValidadaPorAcademia)
                                 {
-                                    <i class="bi bi-check-circle ra-text-success"></i>
+                                    <span class="ra-badge ra-badge-success"><i class="bi bi-check-circle"></i> Validada</span>
                                 }
                                 else
                                 {
                                     <form asp-action="Validar" method="post" class="m-0" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.Id" />
-                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Validar">
+                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Validar @item.Titulo">
                                             <i class="bi bi-check ra-text-success"></i> Validar
                                         </button>
                                     </form>
                                 }
                             </td>
-                            <td>
+                            <td data-label="Activa">
                                 @if (item.EstaActiva)
                                 {
                                     <span class="ra-badge ra-badge-success">Activa</span>
@@ -73,15 +72,15 @@
                                     <span class="ra-badge ra-badge-neutral">Inactiva</span>
                                 }
                             </td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                            <td data-label="Acciones">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar @item.Titulo" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form asp-action="Delete" method="post" class="m-0" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.Id" />
-                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Cerrar" onclick="return confirm('¿Cerrar esta convocatoria?')">
+                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Cerrar @item.Titulo" title="Cerrar" onclick="return confirm('¿Cerrar esta convocatoria?')">
                                             <i class="bi bi-x-circle ra-text-danger"></i>
                                         </button>
                                     </form>

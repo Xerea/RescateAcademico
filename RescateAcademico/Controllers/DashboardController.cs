@@ -17,6 +17,12 @@ namespace RescateAcademico.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Tutors have their own dedicated hub at Profesor/Index
+            if (User.IsInRole("Tutor"))
+            {
+                return RedirectToAction("Index", "Profesor");
+            }
+
             var stats = new DashboardStats();
 
             if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))

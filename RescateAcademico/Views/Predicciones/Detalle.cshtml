@@ -1,6 +1,6 @@
 @model RescateAcademico.Services.DesercionOutput
 @{
-    ViewData["Title"] = "Detalle de Predicción";
+    ViewData["Title"] = "Análisis de riesgo";
     Layout = "_Layout";
     var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
     var historial = ViewBag.Historial as List<RescateAcademico.Models.PrediccionDesercion> ?? new List<RescateAcademico.Models.PrediccionDesercion>();
@@ -10,13 +10,18 @@
     {
         try { analisisIA = System.Text.Json.JsonSerializer.Deserialize<RescateAcademico.Services.AnalisisIAResultado>(analisisJson); } catch { }
     }
+    var header = new PageHeader
+    {
+        Title = "Análisis de riesgo de deserción",
+        Subtitle = alumno == null ? null : $"{alumno.Nombre} {alumno.Apellidos} · Boleta {alumno.Matricula}",
+        Icon = "bi-brain",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Predicciones"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 class="ra-text-accent"><i class="bi bi-brain"></i> Análisis de Riesgo de Deserción</h2>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 @if (alumno != null)
 {
@@ -239,16 +244,13 @@
 }
 
 <div class="mb-3">
-    <a asp-action="Index" class="ra-btn ra-btn-ghost">
-        <i class="bi bi-arrow-left"></i> Volver al listado
-    </a>
     @if (!User.IsInRole("Autoridad") && alumno != null)
     {
-        <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-warning">
-            <i class="bi bi-clipboard-pulse"></i> Registrar Intervención
+        <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-accent">
+            <i class="bi bi-clipboard-pulse"></i> Registrar intervención
         </a>
-        <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-success">
-            <i class="bi bi-journal-check"></i> Crear Plan de Mejora
+        <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-primary">
+            <i class="bi bi-journal-check"></i> Crear plan de mejora
         </a>
     }
 </div>

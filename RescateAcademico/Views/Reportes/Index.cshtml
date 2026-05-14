@@ -1,14 +1,16 @@
 @{
     ViewData["Title"] = "Reportes";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Reportes",
+        Subtitle = "Estadísticas, predicciones y exportes institucionales.",
+        Icon = "bi-bar-chart-line",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1">Reportes</h1>
-        <p class="text-secondary small mb-0">Estadísticas, predicciones y exportes institucionales.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-tabs" role="tablist">
     <button class="ra-tab active" data-bs-toggle="tab" data-bs-target="#tab-estadisticas" role="tab" aria-selected="true">
@@ -29,9 +31,9 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-bar-chart-line fs-1 mb-3" style="color: var(--ra-primary);"></i>
-                        <h5 class="fw-semibold">Tablero Estadístico</h5>
-                        <p class="text-secondary small">Métricas globales de desempeño estudiantil.</p>
-                        <a asp-controller="Estadisticas" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver Estadísticas</a>
+                        <h5 class="fw-semibold">Tablero estadístico</h5>
+                        <p class="text-secondary small">Métricas globales de desempeño.</p>
+                        <a asp-controller="Estadisticas" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -39,9 +41,9 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-pie-chart fs-1 mb-3" style="color: var(--ra-accent);"></i>
-                        <h5 class="fw-semibold">Reporte por Carrera</h5>
-                        <p class="text-secondary small">Análisis desagregado por programa académico.</p>
-                        <a asp-controller="Estadisticas" asp-action="PorCarrera" class="ra-btn ra-btn-outline w-100">Ver por Carrera</a>
+                        <h5 class="fw-semibold">Reporte por carrera</h5>
+                        <p class="text-secondary small">Análisis desagregado por programa.</p>
+                        <a asp-controller="Estadisticas" asp-action="PorCarrera" class="ra-btn ra-btn-outline w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -49,8 +51,8 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-file-earmark-text fs-1 mb-3" style="color: var(--ra-info);"></i>
-                        <h5 class="fw-semibold">Reporte Institucional</h5>
-                        <p class="text-secondary small">Documento imprimible para autoridades.</p>
+                        <h5 class="fw-semibold">Reporte institucional</h5>
+                        <p class="text-secondary small">Documento imprimible.</p>
                         <a asp-controller="Export" asp-action="ReporteImprimible" target="_blank" class="ra-btn ra-btn-outline w-100">Generar PDF</a>
                     </div>
                 </div>
@@ -64,19 +66,19 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-brain fs-1 mb-3" style="color: var(--ra-primary);"></i>
-                        <h5 class="fw-semibold">Predicciones de Deserción</h5>
-                        <p class="text-secondary small">Análisis heurístico + IA para todo el alumnado.</p>
-                        <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver Predicciones</a>
+                        <h5 class="fw-semibold">Predicciones de deserción</h5>
+                        <p class="text-secondary small">Análisis heurístico e IA para todo el alumnado.</p>
+                        <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary w-100">Ver</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
-                        <i class="bi bi-shield-check fs-1 mb-3" style="color: var(--ra-accent);"></i>
-                        <h5 class="fw-semibold">Integridad de Datos</h5>
-                        <p class="text-secondary small">Verificación automática de consistencia.</p>
-                        <a asp-controller="Admin" asp-action="IntegridadDatos" class="ra-btn ra-btn-outline w-100">Verificar</a>
+                        <i class="bi bi-journal-check fs-1 mb-3" style="color: var(--ra-accent);"></i>
+                        <h5 class="fw-semibold">Planes de mejora</h5>
+                        <p class="text-secondary small">Seguimiento de intervenciones activas.</p>
+                        <a asp-controller="PlanesMejora" asp-action="Index" class="ra-btn ra-btn-outline w-100">Ver</a>
                     </div>
                 </div>
             </div>
@@ -90,7 +92,7 @@
                     <div class="ra-card-body">
                         <i class="bi bi-people fs-1 mb-3" style="color: var(--ra-primary);"></i>
                         <h5 class="fw-semibold">Alumnos (CSV)</h5>
-                        <p class="text-secondary small">Exportación completa del catálogo de alumnos.</p>
+                        <p class="text-secondary small">Catálogo completo del alumnado.</p>
                         <a asp-controller="Export" asp-action="AlumnosCSV" class="ra-btn ra-btn-primary w-100">Descargar</a>
                     </div>
                 </div>
@@ -109,7 +111,7 @@
                 <div class="ra-card h-100 text-center">
                     <div class="ra-card-body">
                         <i class="bi bi-exclamation-triangle fs-1 mb-3" style="color: var(--ra-danger);"></i>
-                        <h5 class="fw-semibold">Alumnos en Riesgo (CSV)</h5>
+                        <h5 class="fw-semibold">Alumnos en riesgo (CSV)</h5>
                         <p class="text-secondary small">Solo estudiantes con riesgo académico.</p>
                         <a asp-controller="Export" asp-action="AlumnosEnRiesgoCSV" class="ra-btn ra-btn-outline w-100">Descargar</a>
                     </div>

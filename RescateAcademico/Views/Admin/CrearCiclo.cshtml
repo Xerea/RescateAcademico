@@ -1,15 +1,23 @@
 @model RescateAcademico.Models.CicloEscolar
 @{
-    ViewData["Title"] = "Crear Ciclo Escolar";
+    ViewData["Title"] = "Crear ciclo";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Nuevo ciclo escolar",
+        Subtitle = "Registra un período académico.",
+        Icon = "bi-calendar-plus",
+        IconVariant = "accent",
+        BackUrl = Url.Action("CiclosEscolares"),
+        BackLabel = "Ciclos escolares"
+    };
 }
 
+<partial name="_PageHeader" model="header" />
+
 <div class="row">
-    <div class="col-md-6 mx-auto">
+    <div class="col-md-8 col-lg-6 mx-auto">
         <div class="ra-card">
-            <div class="ra-card-header">
-                <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Nuevo Ciclo Escolar</h5>
-            </div>
             <div class="ra-card-body">
                 <form asp-action="CrearCiclo">
                     <div class="mb-3">

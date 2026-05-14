@@ -1,15 +1,19 @@
 @model RescateAcademico.Models.PlanMejora
 @{
-    ViewData["Title"] = "Seguimiento del Plan de Mejora";
+    ViewData["Title"] = "Seguimiento del plan #" + Model.Id;
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Seguimiento del plan #" + Model.Id,
+        Subtitle = $"{Model.Alumno?.Nombre} {Model.Alumno?.Apellidos} — Boleta {Model.AlumnoMatricula}",
+        Icon = "bi-clock-history",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Planes de mejora"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 class="ra-text-accent"><i class="bi bi-clock-history"></i> Seguimiento del Plan #@Model.Id</h2>
-        <p class="text-secondary">@Model.Alumno?.Nombre @Model.Alumno?.Apellidos — Boleta @Model.AlumnoMatricula</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card mb-4">
     <div class="ra-card-header">
@@ -69,14 +73,11 @@
 <div class="mb-3">
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-warning">
-            <i class="bi bi-pencil"></i> Actualizar Acciones
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-primary">
+            <i class="bi bi-pencil"></i> Actualizar acciones
         </a>
     }
-    <a asp-action="Detalles" asp-route-id="@Model.Id" class="ra-btn ra-btn-info">
-        <i class="bi bi-eye"></i> Ver Detalles
-    </a>
-    <a asp-action="Index" class="ra-btn ra-btn-ghost">
-        <i class="bi bi-arrow-left"></i> Volver
+    <a asp-action="Detalles" asp-route-id="@Model.Id" class="ra-btn ra-btn-outline">
+        <i class="bi bi-eye"></i> Ver detalles
     </a>
 </div>

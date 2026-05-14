@@ -1,14 +1,19 @@
 @model RescateAcademico.Models.Convocatoria
 @{
-    ViewData["Title"] = "Detalles de Convocatoria";
+    ViewData["Title"] = Model.Titulo;
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = Model.Titulo,
+        Subtitle = Model.Tipo,
+        Icon = "bi-megaphone",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Convocatorias"
+    };
 }
 
-<div class="row mb-4">
-    <div class="col">
-        <h2 class="ra-text-accent"><i class="bi bi-megaphone"></i> @Model.Titulo</h2>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="row">
     <div class="col-md-8">

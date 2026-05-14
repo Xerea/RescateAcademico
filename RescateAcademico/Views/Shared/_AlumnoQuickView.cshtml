@@ -1,0 +1,103 @@
+@*
+    Shared quick-view modal for an Alumno. Drop the partial once per page that
+    needs it, then trigger with:
+
+        <button onclick="RaQuickView.open('@matricula')">...</button>
+
+    The partial expects the endpoint /Alumnos/QuickView?matricula=... to return
+    JSON with: nombre, apellidos, matricula, carrera, semestreActual, grupo,
+    promedioGlobal, riesgoAcademico, cargaAcademicaActual, fechaUltimaActualizacion,
+    materiasReprobadas, ausencias, etsPresentados, recursamientos.
+*@
+<div class="modal fade" id="raQuickViewModal" tabindex="-1" aria-hidden="true" aria-labelledby="raQvTitle">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="ra-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="raQvTitle">
+                    <i class="bi bi-person-badge me-2" style="color: var(--ra-primary);"></i>
+                    <span>Cargando...</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="raQvLoading" class="text-center py-5">
+                    <div class="spinner-border" role="status" style="color: var(--ra-primary);">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="text-secondary mt-3 mb-0">Cargando información del estudiante...</p>
+                </div>
+                <div id="raQvError" class="ra-alert ra-alert-danger" style="display:none;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>No se pudo cargar la información. Intenta de nuevo.</div>
+                </div>
+                <div id="raQvContent" style="display:none;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="ra-card h-100">
+                                <div class="ra-card-body">
+                                    <div class="mb-3"><small class="text-secondary d-block">Boleta</small><span class="fw-semibold ra-mono" data-qv="matricula">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Carrera</small><span data-qv="carrera">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Semestre</small><span data-qv="semestre">—</span></div>
+                                    <div><small class="text-secondary d-block">Grupo</small><span data-qv="grupo">—</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ra-card h-100">
+                                <div class="ra-card-body">
+                                    <div class="mb-3"><small class="text-secondary d-block">Promedio Global</small><span class="fw-bold fs-5" data-qv="promedio">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Riesgo Académico</small><span data-qv="riesgo">—</span></div>
+                                    <div class="mb-3"><small class="text-secondary d-block">Carga Académica</small><span data-qv="carga">—</span></div>
+                                    <div><small class="text-secondary d-block">Última Actualización</small><span data-qv="actualizacion">—</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="row g-2">
+                                <div class="col-6 col-md-3">
+                                    <div class="ra-card text-center py-2">
+                                        <div class="fw-bold fs-5" style="color: var(--ra-danger);" data-qv="reprobadas">0</div>
+                                        <small class="text-secondary">Reprobadas</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="ra-card text-center py-2">
+                                        <div class="fw-bold fs-5" style="color: var(--ra-warning);" data-qv="ausencias">0</div>
+                                        <small class="text-secondary">Ausencias</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="ra-card text-center py-2">
+                                        <div class="fw-bold fs-5" style="color: var(--ra-info);" data-qv="ets">0</div>
+                                        <small class="text-secondary">ETS</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="ra-card text-center py-2">
+                                        <div class="fw-bold fs-5 text-secondary" data-qv="recursadas">0</div>
+                                        <small class="text-secondary">Recursadas</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 flex-wrap gap-1">
+                <a data-qv-link="profile" href="#" class="ra-btn ra-btn-primary ra-btn-sm" style="display:none;">
+                    <i class="bi bi-graph-up"></i> <span data-qv-label="profile">Ver Perfil</span>
+                </a>
+                <a data-qv-link="detalle" href="#" class="ra-btn ra-btn-outline ra-btn-sm" style="display:none;">
+                    <i class="bi bi-eye"></i> Detalle
+                </a>
+                <a data-qv-link="timeline" href="#" class="ra-btn ra-btn-outline ra-btn-sm" style="display:none;">
+                    <i class="bi bi-clock-history"></i> Línea de Tiempo
+                </a>
+                <a data-qv-link="intervencion" href="#" class="ra-btn ra-btn-accent ra-btn-sm" style="display:none;">
+                    <i class="bi bi-plus-circle"></i> Intervención
+                </a>
+                <button type="button" class="ra-btn ra-btn-ghost ra-btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

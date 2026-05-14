@@ -1,15 +1,23 @@
 @model RescateAcademico.Models.Alumno
 @{
-    ViewData["Title"] = "Editar Alumno";
+    ViewData["Title"] = "Editar alumno";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = $"Editar a {Model.Nombre} {Model.Apellidos}",
+        Subtitle = $"Boleta {Model.Matricula}",
+        Icon = "bi-pencil",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Alumnos"),
+        BackLabel = "Alumnos"
+    };
 }
 
+<partial name="_PageHeader" model="header" />
+
 <div class="row">
-    <div class="col-md-6 mx-auto">
+    <div class="col-md-8 col-lg-6 mx-auto">
         <div class="ra-card">
-            <div class="ra-card-header">
-                <h5 class="mb-0"><i class="bi bi-pencil"></i> Editar Alumno</h5>
-            </div>
             <div class="ra-card-body">
                 <form asp-action="EditarAlumno">
                     <div class="mb-3">

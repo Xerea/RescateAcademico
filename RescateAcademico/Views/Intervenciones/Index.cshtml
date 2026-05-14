@@ -2,21 +2,23 @@
 @{
     ViewData["Title"] = "Intervenciones";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Intervenciones",
+        Subtitle = "Registro de intervenciones y seguimientos.",
+        Icon = "bi-clipboard-pulse",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-clipboard-pulse ra-text-accent me-2"></i>Intervenciones</h1>
-        <p class="text-secondary small mb-0">Registro de intervenciones y seguimientos.</p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaIntervenciones">
+                <table class="table ra-table ra-table-cards" id="tablaIntervenciones">
                     <thead>
                         <tr>
                             <th>Fecha</th>
@@ -24,18 +26,18 @@
                             <th>Tipo</th>
                             <th>Descripción</th>
                             <th>Seguimiento</th>
-                            <th>Acciones</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
-                                <td>@item.Alumno?.Nombre @item.Alumno?.Apellidos</td>
-                                <td><span class="ra-badge ra-badge-info">@item.Tipo</span></td>
-                                <td>@item.Descripcion</td>
-                                <td>
+                                <td data-label="Fecha">@item.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Alumno">@item.Alumno?.Nombre @item.Alumno?.Apellidos</td>
+                                <td data-label="Tipo"><span class="ra-badge ra-badge-info">@item.Tipo</span></td>
+                                <td data-label="Descripción">@item.Descripcion</td>
+                                <td data-label="Seguimiento">
                                     @if (item.RequiereSeguimiento)
                                     {
                                         <span class="ra-badge ra-badge-warning">Pendiente</span>
@@ -49,15 +51,15 @@
                                         <span class="ra-badge ra-badge-neutral">No requiere</span>
                                     }
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-1">
+                                <td data-label="Acciones">
+                                    <div class="d-flex gap-1 justify-content-end">
                                         @if (item.RequiereSeguimiento && !User.IsInRole("Autoridad"))
                                         {
-                                            <a asp-action="Seguimiento" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-primary" title="Seguimiento">
+                                            <a asp-action="Seguimiento" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-primary" aria-label="Registrar seguimiento" title="Seguimiento">
                                                 <i class="bi bi-check"></i>
                                             </a>
                                         }
-                                        <a asp-action="PorAlumno" asp-route-matricula="@item.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver">
+                                        <a asp-action="PorAlumno" asp-route-matricula="@item.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver intervenciones del alumno" title="Ver">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                     </div>

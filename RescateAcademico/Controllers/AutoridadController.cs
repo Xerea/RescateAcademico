@@ -5,7 +5,7 @@ using RescateAcademico.Data;
 
 namespace RescateAcademico.Controllers
 {
-    [Authorize(Roles = "Autoridad")]
+    [Authorize(Roles = "Autoridad,Administrador")]
     public class AutoridadController : Controller
     {
         private readonly ApplicationDbContext _context;

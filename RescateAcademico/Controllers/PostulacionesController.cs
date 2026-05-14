@@ -76,6 +76,7 @@ namespace RescateAcademico.Controllers
                 return RedirectToAction("Index", "Convocatorias");
             }
 
+            ViewBag.PromedioAlumno = alumno.PromedioGlobal;
             return View(convocatoria);
         }
 

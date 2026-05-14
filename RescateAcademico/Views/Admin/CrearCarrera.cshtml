@@ -1,15 +1,23 @@
 @model RescateAcademico.Models.Carrera
 @{
-    ViewData["Title"] = "Crear Carrera";
+    ViewData["Title"] = "Crear carrera";
     Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Nueva carrera",
+        Subtitle = "Registra un programa académico.",
+        Icon = "bi-mortarboard",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Carreras"),
+        BackLabel = "Carreras"
+    };
 }
 
+<partial name="_PageHeader" model="header" />
+
 <div class="row">
-    <div class="col-md-6 mx-auto">
+    <div class="col-md-8 col-lg-6 mx-auto">
         <div class="ra-card">
-            <div class="ra-card-header">
-                <h5 class="mb-0"><i class="bi bi-mortarboard"></i> Nueva Carrera</h5>
-            </div>
             <div class="ra-card-body">
                 <form asp-action="CrearCarrera">
                     <div class="mb-3">

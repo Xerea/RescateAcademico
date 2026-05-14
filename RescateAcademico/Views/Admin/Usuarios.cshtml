@@ -1,42 +1,43 @@
 @using Microsoft.AspNetCore.Identity
 @model IEnumerable<ApplicationUser>
 @{
-    ViewData["Title"] = "Gestión de Usuarios";
+    ViewData["Title"] = "Usuarios";
     Layout = "_Layout";
+    var actionsHtml = $"<a href=\"{Url.Action("CrearCuenta")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-person-plus\"></i> Crear cuenta</a>";
+    var header = new PageHeader
+    {
+        Title = "Gestión de usuarios",
+        Subtitle = "Cuentas, roles y estado de acceso al sistema.",
+        Icon = "bi-shield-lock",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Gestion"),
+        BackLabel = "Gestión",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-shield-lock"></i> Gestión de Usuarios</h1>
-        <p class="text-secondary small mb-0">Cuentas, roles y estado de acceso al sistema.</p>
-    </div>
-    <div class="col-auto">
-        <a asp-action="CrearCuenta" class="ra-btn ra-btn-primary">
-            <i class="bi bi-person-plus"></i> Crear Cuenta
-        </a>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaUsuarios">
+                <table class="table ra-table ra-table-cards" id="tablaUsuarios">
                     <thead>
                         <tr>
                             <th>Email</th>
                             <th>Estado</th>
-                            <th>Email Confirmado</th>
-                            <th>Acciones</th>
+                            <th>Email confirmado</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.Email</td>
-                                <td>
+                                <td data-label="Email" class="ra-mono small">@item.Email</td>
+                                <td data-label="Estado">
                                     @if (item.IsActive)
                                     {
                                         <span class="ra-badge ra-badge-success">Activo</span>
@@ -46,17 +47,17 @@
                                         <span class="ra-badge ra-badge-danger">Inactivo</span>
                                     }
                                 </td>
-                                <td>
+                                <td data-label="Confirmado">
                                     @if (item.EmailConfirmed)
                                     {
-                                        <i class="bi bi-check-circle ra-text-success"></i>
+                                        <i class="bi bi-check-circle ra-text-success" aria-label="Sí"></i>
                                     }
                                     else
                                     {
-                                        <i class="bi bi-x-circle ra-text-danger"></i>
+                                        <i class="bi bi-x-circle ra-text-danger" aria-label="No"></i>
                                     }
                                 </td>
-                                <td>
+                                <td data-label="Acciones">
                                     @{
                                         var lockoutEnd = item.LockoutEnd;
                                         var isLocked = lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.Now;

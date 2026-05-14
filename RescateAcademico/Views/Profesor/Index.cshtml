@@ -6,17 +6,18 @@
     var pctVerde = total > 0 ? (Model.EnRiesgoVerde * 100.0 / total) : 0;
     var pctAmarillo = total > 0 ? (Model.EnRiesgoAmarillo * 100.0 / total) : 0;
     var pctRojo = total > 0 ? (Model.EnRiesgoRojo * 100.0 / total) : 0;
+
+    var hoy = DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX"));
+    var header = new PageHeader
+    {
+        Title = "Mis Grupos",
+        SubtitleHtml = new Microsoft.AspNetCore.Html.HtmlString($"Bienvenido, <strong>{System.Net.WebUtility.HtmlEncode(Model.ProfesorNombre ?? "")}</strong> · {hoy}"),
+        Icon = "bi-person-workspace",
+        IconVariant = "accent"
+    };
 }
 
-<div class="row mb-4 align-items-end">
-    <div class="col">
-        <h1 class="fw-bold h3 mb-1"><i class="bi bi-person-workspace ra-text-accent me-2"></i>Mis Grupos</h1>
-        <p class="text-secondary small mb-0">
-            Bienvenido, <strong>@Model.ProfesorNombre</strong>.
-            @(DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX")))
-        </p>
-    </div>
-</div>
+<partial name="_PageHeader" model="header" />
 
 <!-- Smart Suggestions -->
 @{

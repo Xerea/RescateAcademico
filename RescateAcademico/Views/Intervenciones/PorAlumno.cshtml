@@ -1,21 +1,24 @@
 @model IEnumerable<RescateAcademico.Models.IntervencionTutoria>
 @{
-    ViewData["Title"] = "Intervenciones por Alumno";
+    ViewData["Title"] = "Intervenciones por alumno";
     Layout = "_Layout";
     var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
+    var actionsHtml = !User.IsInRole("Autoridad") && alumno != null
+        ? $"<a href=\"{Url.Action("Crear", new { matricula = alumno.Matricula })}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nueva intervención</a>"
+        : null;
+    var header = new PageHeader
+    {
+        Title = "Intervenciones",
+        Subtitle = alumno == null ? null : $"{alumno.Nombre} {alumno.Apellidos} · Boleta {alumno.Matricula}",
+        Icon = "bi-clipboard-pulse",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Intervenciones",
+        ActionsHtml = actionsHtml
+    };
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="ra-text-accent">
-        <i class="bi bi-clipboard-pulse"></i> Intervenciones: @alumno?.Nombre @alumno?.Apellidos
-    </h2>
-    @if (!User.IsInRole("Autoridad"))
-    {
-        <a asp-action="Crear" asp-route-matricula="@alumno?.Matricula" class="ra-btn ra-btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Intervención
-        </a>
-    }
-</div>
+<partial name="_PageHeader" model="header" />
 
 <div class="ra-card">
     <div class="ra-card-body">
