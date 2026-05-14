@@ -102,12 +102,25 @@ El proyecto está configurado para desplegarse automáticamente en Railway usand
 
 ## Estructura del Proyecto
 ```
-Controllers/    -> Controladores MVC
-Models/         -> Modelos de datos y ViewModels
-Views/          -> Vistas Razor (.cshtml)
-Data/           -> ApplicationDbContext, Seeders y RoleSeeder
-wwwroot/        -> Archivos estáticos (CSS, JS, imágenes, uploads)
+.
+|-- RescateAcademico/      -> Aplicacion ASP.NET Core MVC
+|   |-- Controllers/       -> Controladores MVC
+|   |-- Data/              -> DbContext y seeding demo
+|   |-- Filters/           -> Filtros MVC transversales
+|   |-- Models/            -> Entidades de dominio
+|   |-- Services/          -> Reglas de negocio y servicios internos
+|   |-- ViewModels/        -> Contratos de presentacion para Razor
+|   |-- Views/             -> Vistas Razor (.cshtml)
+|   `-- wwwroot/           -> CSS, JS, favicon y librerias cliente
+|-- docs/                  -> Documentacion, presentaciones y artefactos generados
+|-- .github/               -> Automatizaciones de GitHub
+|-- Dockerfile             -> Build de produccion para Railway
+|-- railway.toml           -> Configuracion de deploy Railway
+|-- global.json            -> Version del SDK .NET
+`-- RescateAcademico.sln   -> Solucion principal
 ```
+
+La documentacion extendida vive en `docs/README.md`.
 
 ## Roles del Sistema
 1. **Administrador** - Gestión completa: usuarios, alumnos, profesores, proyectos, convocatorias, reportes

@@ -366,3 +366,19 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Repository-local workspace noise
+.idea/
+.vs/
+.codex-presentations/
+Visual Studio 18/
+documentacion/
+RescateAcademico/documentacion/
+
+# Generated local app artifacts
+RescateAcademico/bin/
+RescateAcademico/obj/
+RescateAcademico/app.db
+RescateAcademico/app.db-shm
+RescateAcademico/app.db-wal
+RescateAcademico/wwwroot/uploads/

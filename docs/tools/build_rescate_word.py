@@ -14,9 +14,11 @@ from docx.shared import Cm, Inches, Pt, RGBColor
 from PIL import Image, ImageDraw, ImageFont
 
 
-ROOT = Path(__file__).resolve().parent
-ARTIFACTS = ROOT / "build_artifacts"
-OUT = ROOT / "Rescate_Academico_Documento_Profesional.docx"
+TOOLS = Path(__file__).resolve().parent
+DOCS = TOOLS.parent
+GENERATED = DOCS / "generated"
+ARTIFACTS = GENERATED / "build_artifacts"
+OUT = GENERATED / "Rescate_Academico_Documento_Profesional.docx"
 
 IPN = "6C1D45"
 IPN_DARK = "4A1230"

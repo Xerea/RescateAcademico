@@ -1,8 +1,9 @@
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-pages_dir = Path(__file__).resolve().parent / "rendered_rescate_word" / "pages"
-out_dir = Path(__file__).resolve().parent / "rendered_rescate_word" / "review_sheets"
+generated_dir = Path(__file__).resolve().parent.parent / "generated"
+pages_dir = generated_dir / "rendered_rescate_word" / "pages"
+out_dir = generated_dir / "rendered_rescate_word" / "review_sheets"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 pages = sorted(pages_dir.glob("page-*.png"), key=lambda p: int(p.stem.split("-")[1]))
