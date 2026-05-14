@@ -309,8 +309,15 @@ namespace RescateAcademico.Controllers
 
         private async Task<bool> VerifyRecaptchaAsync(string? token)
         {
+            var enforceRecaptcha = string.Equals(_configuration["ENFORCE_RECAPTCHA"], "true", StringComparison.OrdinalIgnoreCase);
             var siteKey = _configuration["RECAPTCHA_SITE_KEY"];
             var secretKey = _configuration["RECAPTCHA_SECRET_KEY"];
+            if (!enforceRecaptcha)
+            {
+                _logger.LogInformation("reCAPTCHA: Advisory mode; allowing login. Set ENFORCE_RECAPTCHA=true to block failed checks.");
+                return true;
+            }
+
             if (string.IsNullOrEmpty(siteKey) || string.IsNullOrEmpty(secretKey))
             {
                 _logger.LogInformation("reCAPTCHA: Site key or secret key not configured; allowing login");
