@@ -43,9 +43,13 @@
                     }
                     <span>@Model.Title</span>
                 </h1>
-                @if (!string.IsNullOrEmpty(Model.Subtitle))
+                @if (Model.SubtitleHtml != null)
                 {
-                    <p class="ra-page-subtitle">@Html.Raw(Model.Subtitle)</p>
+                    <p class="ra-page-subtitle">@Model.SubtitleHtml</p>
+                }
+                else if (!string.IsNullOrEmpty(Model.Subtitle))
+                {
+                    <p class="ra-page-subtitle">@Model.Subtitle</p>
                 }
             </div>
             @if (Model.ActionsHtml != null)

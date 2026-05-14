@@ -54,6 +54,11 @@
                         </div>
                     }
 
+                    <div id="recaptchaError" class="ra-alert ra-alert-danger mb-3" role="alert" style="display:none;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>No se pudo cargar la verificación de seguridad. Recarga la página e intenta de nuevo.</div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="inputEmail" class="ra-label">Correo institucional</label>
                         <input name="email" class="ra-input" id="inputEmail" type="email" autocomplete="username" placeholder="correo@alumno.ipn.mx" required autofocus />
@@ -105,28 +110,28 @@
                             <p class="text-secondary small text-center mb-2">Haz clic en una tarjeta para autocompletar.</p>
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" onclick="fillDemo('admin@ipn.mx', '@adminPw')" style="cursor:pointer;">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="admin@ipn.mx" data-password="@adminPw" style="cursor:pointer;">
                                         <small class="text-secondary d-block fw-semibold">Administrador</small>
                                         <code class="small d-block">admin@ipn.mx</code>
                                         <code class="small">@adminPw</code>
                                     </button>
                                 </div>
                                 <div class="col-6">
-                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" onclick="fillDemo('autoridad@ipn.mx', '@autoridadPw')" style="cursor:pointer;">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="autoridad@ipn.mx" data-password="@autoridadPw" style="cursor:pointer;">
                                         <small class="text-secondary d-block fw-semibold">Autoridad</small>
                                         <code class="small d-block">autoridad@ipn.mx</code>
                                         <code class="small">@autoridadPw</code>
                                     </button>
                                 </div>
                                 <div class="col-6">
-                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" onclick="fillDemo('profesor1@ipn.mx', '@tutorPw')" style="cursor:pointer;">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="profesor1@ipn.mx" data-password="@tutorPw" style="cursor:pointer;">
                                         <small class="text-secondary d-block fw-semibold">Profesor</small>
                                         <code class="small d-block">profesor1@ipn.mx</code>
                                         <code class="small">@tutorPw</code>
                                     </button>
                                 </div>
                                 <div class="col-6">
-                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" onclick="fillDemo('demo.alumno@alumno.ipn.mx', '@alumnoPw')" style="cursor:pointer;">
+                                    <button type="button" class="ra-card text-center py-2 w-100 border-0" data-demo-fill data-email="demo.alumno@alumno.ipn.mx" data-password="@alumnoPw" style="cursor:pointer;">
                                         <small class="text-secondary d-block fw-semibold">Alumno</small>
                                         <code class="small d-block">demo.alumno@alumno.ipn.mx</code>
                                         <code class="small">@alumnoPw</code>
@@ -152,13 +157,15 @@
             icon.classList.toggle('bi-eye-slash', show);
         }
 
-        function fillDemo(email, pw) {
-            var e = document.getElementById('inputEmail');
-            var p = document.getElementById('inputPassword');
-            if (e) e.value = email;
-            if (p) p.value = pw;
-            if (p) p.focus();
-        }
+        document.querySelectorAll('[data-demo-fill]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var e = document.getElementById('inputEmail');
+                var p = document.getElementById('inputPassword');
+                if (e) e.value = button.dataset.email || '';
+                if (p) p.value = button.dataset.password || '';
+                if (p) p.focus();
+            });
+        });
 
         // CapsLock detector (password field only)
         (function () {
@@ -176,15 +183,24 @@
         })();
 
         // reCAPTCHA v3 — generate token on submit
-        var siteKey = '@Configuration["RECAPTCHA_SITE_KEY"]';
+        var siteKey = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Configuration["RECAPTCHA_SITE_KEY"] ?? string.Empty));
         if (siteKey) {
             document.forms[0].addEventListener('submit', function (e) {
                 e.preventDefault();
                 var form = this;
+                var error = document.getElementById('recaptchaError');
+                if (!window.grecaptcha || typeof grecaptcha.ready !== 'function' || typeof grecaptcha.execute !== 'function') {
+                    if (error) error.style.display = '';
+                    return;
+                }
+
+                if (error) error.style.display = 'none';
                 grecaptcha.ready(function () {
                     grecaptcha.execute(siteKey, { action: 'login' }).then(function (token) {
                         document.getElementById('g-recaptcha-response').value = token;
                         form.submit();
+                    }).catch(function () {
+                        if (error) error.style.display = '';
                     });
                 });
             });

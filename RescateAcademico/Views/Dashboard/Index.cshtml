@@ -10,7 +10,7 @@
     var header = new PageHeader
     {
         Title = "Panel de control",
-        Subtitle = $"<i class=\"bi bi-person-circle me-1\"></i> {System.Net.WebUtility.HtmlEncode(userName ?? "")} <span class=\"mx-2 text-muted\">·</span> {today}",
+        SubtitleHtml = new Microsoft.AspNetCore.Html.HtmlString($"<i class=\"bi bi-person-circle me-1\"></i> {System.Net.WebUtility.HtmlEncode(userName ?? "")} <span class=\"mx-2 text-muted\">·</span> {today}"),
         Icon = "bi-grid-1x2",
         IconVariant = "accent"
     };

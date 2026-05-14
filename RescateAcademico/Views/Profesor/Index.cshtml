@@ -11,7 +11,7 @@
     var header = new PageHeader
     {
         Title = "Mis Grupos",
-        Subtitle = $"Bienvenido, <strong>{System.Net.WebUtility.HtmlEncode(Model.ProfesorNombre ?? "")}</strong> · {hoy}",
+        SubtitleHtml = new Microsoft.AspNetCore.Html.HtmlString($"Bienvenido, <strong>{System.Net.WebUtility.HtmlEncode(Model.ProfesorNombre ?? "")}</strong> · {hoy}"),
         Icon = "bi-person-workspace",
         IconVariant = "accent"
     };

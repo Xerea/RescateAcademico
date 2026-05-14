@@ -68,10 +68,17 @@ namespace RescateAcademico.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<int> GetConteoNoLeidas()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public async Task<IActionResult> GetConteoNoLeidas()
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            return await _context.Notificaciones.CountAsync(n => n.UserId == userId && !n.Leida);
+            Response.Headers.CacheControl = "no-store, no-cache, max-age=0";
+            Response.Headers.Pragma = "no-cache";
+
+            var count = await _context.Notificaciones.CountAsync(n => n.UserId == userId && !n.Leida);
+            return Json(new { count });
         }
 
         [HttpPost]

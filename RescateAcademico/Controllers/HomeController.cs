@@ -4,16 +4,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
 
 namespace RescateAcademico.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StudentAccessService _studentAccessService;
 
-        public HomeController(ApplicationDbContext context)
+        public HomeController(ApplicationDbContext context, StudentAccessService studentAccessService)
         {
             _context = context;
+            _studentAccessService = studentAccessService;
         }
 
         public IActionResult Index()
@@ -48,7 +51,7 @@ namespace RescateAcademico.Controllers
             }
 
             var lower = q.ToLowerInvariant();
-            var alumnos = await _context.Alumnos
+            var alumnos = await _studentAccessService.ApplyVisibleStudents(_context.Alumnos.AsNoTracking())
                 .Where(a => a.Matricula.Contains(q)
                     || (a.Nombre != null && EF.Functions.Like(a.Nombre.ToLower(), "%" + lower + "%"))
                     || (a.Apellidos != null && EF.Functions.Like(a.Apellidos.ToLower(), "%" + lower + "%")))

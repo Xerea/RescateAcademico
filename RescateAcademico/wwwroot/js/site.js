@@ -115,11 +115,29 @@
         var badgeEl = document.getElementById('raNotifBadge');
         if (!badgeEl) return;
 
+        function getAntiForgeryToken() {
+            var meta = document.querySelector('meta[name="request-verification-token"]');
+            if (meta && meta.content) return meta.content;
+
+            var input = document.querySelector('input[name="__RequestVerificationToken"]');
+            return input ? input.value : '';
+        }
+
         function updateBadge() {
-            fetch('/Notificaciones/GetConteoNoLeidas', { method: 'GET', credentials: 'same-origin' })
-                .then(function(r) { return r.text(); })
-                .then(function(count) {
-                    var n = parseInt(count, 10) || 0;
+            var token = getAntiForgeryToken();
+            if (!token) return;
+
+            fetch('/Notificaciones/GetConteoNoLeidas', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'RequestVerificationToken': token,
+                    'Accept': 'application/json'
+                }
+            })
+                .then(function(r) { return r.ok ? r.json() : { count: 0 }; })
+                .then(function(data) {
+                    var n = parseInt(data && data.count, 10) || 0;
                     if (n > 0) {
                         badgeEl.textContent = n > 99 ? '99+' : n;
                         badgeEl.style.display = 'inline-flex';
