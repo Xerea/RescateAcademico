@@ -33,44 +33,44 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaPlanes">
+                <table class="table ra-table ra-table-cards" id="tablaPlanes">
                     <thead>
                         <tr>
                             <th>Alumno</th>
                             <th>Profesor</th>
-                            <th>Fecha Creación</th>
+                            <th>Creado</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var plan in Model)
                         {
                             <tr>
-                                <td>
+                                <td data-label="Alumno">
                                     <strong>@plan.Alumno?.Nombre @plan.Alumno?.Apellidos</strong>
                                     <br />
-                                    <span class="text-secondary small">@plan.AlumnoMatricula</span>
+                                    <span class="text-secondary small ra-mono">@plan.AlumnoMatricula</span>
                                 </td>
-                                <td>@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
-                                <td data-order="@plan.FechaCreacion.ToString("yyyyMMddHHmmss")">@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
-                                <td>
+                                <td data-label="Profesor">@plan.Tutor?.Nombre @plan.Tutor?.Apellidos</td>
+                                <td data-label="Creado" data-order="@plan.FechaCreacion.ToString("yyyyMMddHHmmss")">@plan.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Estado">
                                     <span class="ra-badge @(plan.Estado == "Activo" ? "ra-badge-primary" : plan.Estado == "Cumplido" ? "ra-badge-success" : plan.Estado == "Vencido" ? "ra-badge-danger" : "ra-badge-neutral")">
                                         @plan.Estado
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a asp-action="Detalles" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver detalles">
+                                <td data-label="Acciones">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a asp-action="Detalles" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalles del plan" title="Ver detalles">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         @if (!User.IsInRole("Autoridad"))
                                         {
-                                            <a asp-action="Editar" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                                            <a asp-action="Editar" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar plan" title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         }
-                                        <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Seguimiento">
+                                        <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Seguimiento del plan" title="Seguimiento">
                                             <i class="bi bi-clock-history"></i>
                                         </a>
                                     </div>

@@ -28,30 +28,30 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaProyectos">
+                <table class="table ra-table ra-table-cards" id="tablaProyectos">
                     <thead>
                         <tr>
                             <th>Título</th>
                             <th>Tipo</th>
                             <th>Cupo</th>
-                            <th>Fecha Cierre</th>
+                            <th>Cierre</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>
+                                <td data-label="Título">
                                     <strong>@item.Titulo</strong>
                                     <br />
                                     <span class="text-secondary small">@item.Descripcion</span>
                                 </td>
-                                <td>@item.Tipo</td>
-                                <td>@item.CupoMaximo</td>
-                                <td>@item.FechaCierre.ToString("dd/MM/yyyy")</td>
-                                <td>
+                                <td data-label="Tipo">@item.Tipo</td>
+                                <td data-label="Cupo">@item.CupoMaximo</td>
+                                <td data-label="Cierre">@item.FechaCierre.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Estado">
                                     @if (item.EstaActivo)
                                     {
                                         <span class="ra-badge ra-badge-success">Activo</span>
@@ -61,18 +61,18 @@
                                         <span class="ra-badge ra-badge-neutral">Inactivo</span>
                                     }
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                                <td data-label="Acciones">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar @item.Titulo" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalles de @item.Titulo" title="Ver">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <form asp-action="Delete" method="post" class="m-0" style="display:inline;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Eliminar" onclick="return confirm('¿Desactivar este proyecto?')">
+                                            <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Desactivar @item.Titulo" title="Eliminar" onclick="return confirm('¿Desactivar este proyecto?')">
                                                 <i class="bi bi-trash ra-text-danger"></i>
                                             </button>
                                         </form>

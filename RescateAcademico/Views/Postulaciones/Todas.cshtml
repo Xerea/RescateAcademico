@@ -44,28 +44,28 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaPostulaciones">
+                <table class="table ra-table ra-table-cards" id="tablaPostulaciones">
                     <thead>
                         <tr>
                             <th>Alumno</th>
                             <th>Proyecto</th>
                             <th>Fecha</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>
+                                <td data-label="Alumno">
                                     <strong>@item.Alumno?.Nombre @item.Alumno?.Apellidos</strong>
                                     <br />
-                                    <span class="text-secondary small">@item.AlumnoId</span>
+                                    <span class="text-secondary small ra-mono">@item.AlumnoId</span>
                                 </td>
-                                <td>@item.Proyecto?.Titulo</td>
-                                <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
-                                <td>
+                                <td data-label="Proyecto">@item.Proyecto?.Titulo</td>
+                                <td data-label="Fecha">@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Estado">
                                     @if (item.Estado == "Aceptado")
                                     {
                                         <span class="ra-badge ra-badge-success">Aceptado</span>
@@ -76,10 +76,10 @@
                                     }
                                     else
                                     {
-                                        <span class="ra-badge ra-badge-warning">En Revisión</span>
+                                        <span class="ra-badge ra-badge-warning">En revisión</span>
                                     }
                                 </td>
-                                <td>
+                                <td data-label="Acciones">
                                     @if (item.Estado == "En Revisión")
                                     {
                                         <div class="d-flex gap-1">
@@ -87,7 +87,7 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
                                                 <input type="hidden" name="estado" value="Aceptado" />
-                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Aceptar">
+                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Aceptar postulación" title="Aceptar">
                                                     <i class="bi bi-check ra-text-success"></i>
                                                 </button>
                                             </form>
@@ -95,7 +95,7 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
                                                 <input type="hidden" name="estado" value="Rechazado" />
-                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Rechazar">
+                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Rechazar postulación" title="Rechazar">
                                                     <i class="bi bi-x ra-text-danger"></i>
                                                 </button>
                                             </form>

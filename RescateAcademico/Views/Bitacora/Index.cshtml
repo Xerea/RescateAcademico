@@ -48,7 +48,7 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table ra-table" id="tablaBitacora">
+            <table class="table ra-table ra-table-cards" id="tablaBitacora">
                 <thead>
                     <tr>
                         <th>Fecha y Hora</th>
@@ -56,28 +56,28 @@
                         <th>Acción</th>
                         <th>Tabla</th>
                         <th>IP</th>
-                        <th>Detalles</th>
+                        <th data-orderable="false">Detalles</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td>
+                            <td data-label="Fecha">
                                 <span class="text-secondary small">@item.FechaHora.ToString("dd/MM/yyyy HH:mm:ss")</span>
                             </td>
-                            <td>@item.UsuarioEmail</td>
-                            <td>
+                            <td data-label="Usuario">@item.UsuarioEmail</td>
+                            <td data-label="Acción">
                                 <span class="ra-badge @(item.Accion == "Crear" ? "ra-badge-success" : item.Accion == "Editar" ? "ra-badge-primary" : item.Accion == "Eliminar" ? "ra-badge-danger" : item.Accion == "Login" ? "ra-badge-info" : "ra-badge-neutral")">
                                     @item.Accion
                                 </span>
                             </td>
-                            <td><span class="text-secondary small">@item.TablaAfectada</span></td>
-                            <td><span class="text-secondary small">@item.IpAddress</span></td>
-                            <td>
+                            <td data-label="Tabla"><span class="text-secondary small">@item.TablaAfectada</span></td>
+                            <td data-label="IP"><span class="text-secondary small">@item.IpAddress</span></td>
+                            <td data-label="Detalles">
                                 @if (!string.IsNullOrEmpty(item.RegistroAnterior) || !string.IsNullOrEmpty(item.RegistroNuevo))
                                 {
-                                    <a asp-action="Detalles" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver detalles">
+                                    <a asp-action="Detalles" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalles del registro" title="Ver detalles">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 }

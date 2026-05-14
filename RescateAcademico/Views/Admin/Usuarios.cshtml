@@ -23,21 +23,21 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaUsuarios">
+                <table class="table ra-table ra-table-cards" id="tablaUsuarios">
                     <thead>
                         <tr>
                             <th>Email</th>
                             <th>Estado</th>
-                            <th>Email Confirmado</th>
-                            <th>Acciones</th>
+                            <th>Email confirmado</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.Email</td>
-                                <td>
+                                <td data-label="Email" class="ra-mono small">@item.Email</td>
+                                <td data-label="Estado">
                                     @if (item.IsActive)
                                     {
                                         <span class="ra-badge ra-badge-success">Activo</span>
@@ -47,17 +47,17 @@
                                         <span class="ra-badge ra-badge-danger">Inactivo</span>
                                     }
                                 </td>
-                                <td>
+                                <td data-label="Confirmado">
                                     @if (item.EmailConfirmed)
                                     {
-                                        <i class="bi bi-check-circle ra-text-success"></i>
+                                        <i class="bi bi-check-circle ra-text-success" aria-label="Sí"></i>
                                     }
                                     else
                                     {
-                                        <i class="bi bi-x-circle ra-text-danger"></i>
+                                        <i class="bi bi-x-circle ra-text-danger" aria-label="No"></i>
                                     }
                                 </td>
-                                <td>
+                                <td data-label="Acciones">
                                     @{
                                         var lockoutEnd = item.LockoutEnd;
                                         var isLocked = lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.Now;

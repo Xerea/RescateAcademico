@@ -73,14 +73,11 @@
 <div class="mb-3">
     @if (!User.IsInRole("Autoridad"))
     {
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-warning">
-            <i class="bi bi-pencil"></i> Actualizar Acciones
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-primary">
+            <i class="bi bi-pencil"></i> Actualizar acciones
         </a>
     }
-    <a asp-action="Detalles" asp-route-id="@Model.Id" class="ra-btn ra-btn-info">
-        <i class="bi bi-eye"></i> Ver Detalles
-    </a>
-    <a asp-action="Index" class="ra-btn ra-btn-ghost">
-        <i class="bi bi-arrow-left"></i> Volver
+    <a asp-action="Detalles" asp-route-id="@Model.Id" class="ra-btn ra-btn-outline">
+        <i class="bi bi-eye"></i> Ver detalles
     </a>
 </div>

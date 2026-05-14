@@ -20,24 +20,24 @@
 <div class="ra-card">
     <div class="ra-card-body">
         <div class="table-responsive">
-            <table class="table ra-table" id="tablaCarreras">
+            <table class="table ra-table ra-table-cards" id="tablaCarreras">
                 <thead>
                     <tr>
                         <th>Clave</th>
                         <th>Nombre</th>
                         <th>Semestres</th>
                         <th>Estado</th>
-                        <th>Acciones</th>
+                        <th data-orderable="false">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td><strong>@item.Clave</strong></td>
-                            <td>@item.Nombre</td>
-                            <td>@item.Semestres</td>
-                            <td>
+                            <td data-label="Clave"><strong class="ra-mono">@item.Clave</strong></td>
+                            <td data-label="Nombre">@item.Nombre</td>
+                            <td data-label="Semestres">@item.Semestres</td>
+                            <td data-label="Estado">
                                 @if (item.EstaActiva)
                                 {
                                     <span class="ra-badge ra-badge-success">Activa</span>
@@ -47,7 +47,7 @@
                                     <span class="ra-badge ra-badge-neutral">Inactiva</span>
                                 }
                             </td>
-                            <td>
+                            <td data-label="Acciones">
                                 <form asp-action="ToggleActivoCarrera" method="post" class="m-0" style="display:inline;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@item.Id" />

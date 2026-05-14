@@ -20,27 +20,27 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table">
+                <table class="table ra-table ra-table-cards">
                     <thead>
                         <tr>
                             <th>Carrera</th>
-                            <th>Total Alumnos</th>
-                            <th>Promedio General</th>
-                            <th>Alumnos en Riesgo</th>
+                            <th>Total</th>
+                            <th>Promedio</th>
+                            <th>En riesgo</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td><strong>@item.Carrera</strong></td>
-                                <td>@item.TotalAlumnos</td>
-                                <td>
+                                <td data-label="Carrera"><strong>@item.Carrera</strong></td>
+                                <td data-label="Total">@item.TotalAlumnos</td>
+                                <td data-label="Promedio">
                                     <span class="ra-badge @(item.PromedioGeneral >= 8 ? "ra-badge-success" : item.PromedioGeneral >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
                                         @item.PromedioGeneral.ToString("F2")
                                     </span>
                                 </td>
-                                <td>
+                                <td data-label="En riesgo">
                                     @if (item.AlumnosEnRiesgo > 0)
                                     {
                                         <span class="ra-badge ra-badge-warning">@item.AlumnosEnRiesgo</span>

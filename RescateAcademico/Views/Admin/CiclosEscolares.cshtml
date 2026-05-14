@@ -28,13 +28,13 @@
         }
 
         <div class="table-responsive">
-            <table class="table ra-table" id="tablaCiclos">
+            <table class="table ra-table ra-table-cards" id="tablaCiclos">
                 <thead>
                     <tr>
                         <th>Nombre</th>
                         <th>Período</th>
-                        <th>Fecha Inicio</th>
-                        <th>Fecha Fin</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
                         <th>Estado</th>
                     </tr>
                 </thead>
@@ -42,17 +42,17 @@
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td>
+                            <td data-label="Nombre">
                                 <strong>@item.Nombre</strong>
                                 @if (item.EsActual)
                                 {
                                     <span class="ra-badge ra-badge-success ms-2">Actual</span>
                                 }
                             </td>
-                            <td>@item.Periodo</td>
-                            <td>@item.FechaInicio.ToString("dd/MM/yyyy")</td>
-                            <td>@item.FechaFin.ToString("dd/MM/yyyy")</td>
-                            <td>
+                            <td data-label="Período">@item.Periodo</td>
+                            <td data-label="Inicio">@item.FechaInicio.ToString("dd/MM/yyyy")</td>
+                            <td data-label="Fin">@item.FechaFin.ToString("dd/MM/yyyy")</td>
+                            <td data-label="Estado">
                                 @if (item.EstaActivo)
                                 {
                                     <span class="ra-badge ra-badge-success">Activo</span>

@@ -41,46 +41,46 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table ra-table" id="tablaAlumnos">
+            <table class="table ra-table ra-table-cards" id="tablaAlumnos">
                 <thead>
                     <tr>
                         <th>Boleta</th>
                         <th>Nombre</th>
                         <th>Carrera</th>
-                        <th>Semestre</th>
+                        <th>Sem</th>
                         <th>Promedio</th>
                         <th>Riesgo</th>
-                        <th>Acciones</th>
+                        <th data-orderable="false">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td><strong>@item.Matricula</strong></td>
-                            <td>@item.Nombre @item.Apellidos</td>
-                            <td>@item.Carrera</td>
-                            <td>@item.SemestreActual</td>
-                            <td>
+                            <td data-label="Boleta"><strong class="ra-mono">@item.Matricula</strong></td>
+                            <td data-label="Nombre">@item.Nombre @item.Apellidos</td>
+                            <td data-label="Carrera">@item.Carrera</td>
+                            <td data-label="Semestre">@item.SemestreActual</td>
+                            <td data-label="Promedio">
                                 <span class="ra-badge @(item.PromedioGlobal >= 8 ? "ra-badge-success" : item.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
                                     @item.PromedioGlobal.ToString("F2")
                                 </span>
                             </td>
-                            <td>
+                            <td data-label="Riesgo">
                                 <ra-semaforo riesgo="@item.RiesgoAcademico" size="sm"></ra-semaforo>
                             </td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <a asp-action="EditarAlumno" asp-route-id="@item.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" title="Editar">
+                            <td data-label="Acciones">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a asp-action="EditarAlumno" asp-route-id="@item.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar @item.Nombre @item.Apellidos" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver">
+                                    <a asp-controller="Alumnos" asp-action="Detalles" asp-route-id="@item.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalles de @item.Nombre @item.Apellidos" title="Ver">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <form asp-action="EliminarAlumno" method="post" class="m-0" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.Matricula" />
-                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Eliminar" onclick="return confirm('¿Eliminar este alumno?')">
+                                        <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Eliminar @item.Nombre @item.Apellidos" title="Eliminar" onclick="return confirm('¿Eliminar este alumno?')">
                                             <i class="bi bi-trash text-danger"></i>
                                         </button>
                                     </form>

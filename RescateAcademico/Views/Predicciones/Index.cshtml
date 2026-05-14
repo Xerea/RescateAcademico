@@ -50,40 +50,40 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table" id="tablaPredicciones">
+                <table class="table ra-table ra-table-cards" id="tablaPredicciones">
                     <thead>
                         <tr>
                             <th>Boleta</th>
                             <th>Nombre</th>
                             <th>Carrera</th>
                             <th>Promedio</th>
-                            <th>Prob. Deserción</th>
+                            <th>Prob. deserción</th>
                             <th>Riesgo</th>
-                            <th>Acciones</th>
+                            <th data-orderable="false">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td><strong>@item.Matricula</strong></td>
-                                <td>@item.Nombre</td>
-                                <td>@item.Carrera</td>
-                                <td>
+                                <td data-label="Boleta"><strong class="ra-mono">@item.Matricula</strong></td>
+                                <td data-label="Nombre">@item.Nombre</td>
+                                <td data-label="Carrera">@item.Carrera</td>
+                                <td data-label="Promedio">
                                     <span class="ra-badge @(item.Promedio >= 8 ? "ra-badge-success" : item.Promedio >= 6 ? "ra-badge-warning" : "ra-badge-danger")">
                                         @item.Promedio.ToString("F2")
                                     </span>
                                 </td>
-                                <td style="min-width: 140px;">
+                                <td data-label="Prob." style="min-width: 140px;">
                                     <div class="progress" style="height: 18px; background: var(--ra-border-subtle);">
                                         <div class="progress-bar" role="progressbar" style="width: @(item.ProbabilidadDesercion * 100)%; background: var(--ra-@(item.Color));" aria-valuenow="@item.ProbabilidadDesercion" aria-valuemin="0" aria-valuemax="1">
                                             @((item.ProbabilidadDesercion * 100).ToString("F0"))%
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="ra-badge ra-badge-@item.Color">@item.Riesgo</span></td>
-                                <td>
-                                    <a asp-action="Detalle" asp-route-matricula="@item.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" title="Ver detalle">
+                                <td data-label="Riesgo"><span class="ra-badge ra-badge-@item.Color">@item.Riesgo</span></td>
+                                <td data-label="Acciones">
+                                    <a asp-action="Detalle" asp-route-matricula="@item.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalle del análisis" title="Ver detalle">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
