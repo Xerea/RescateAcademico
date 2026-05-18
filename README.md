@@ -1,169 +1,216 @@
-# Rescate Académico
+# Rescate Academico
 
-Sistema web institucional para monitoreo de riesgo académico, seguimiento tutorial, planes de mejora, convocatorias y reportes operativos para CECyT No. 13 del Instituto Politécnico Nacional.
+Sistema web institucional para monitoreo de riesgo academico, seguimiento tutorial, planes de mejora, convocatorias y reportes operativos para el CECyT No. 13 del Instituto Politecnico Nacional.
 
-Rescate Académico está construido como una aplicación ASP.NET Core MVC con autenticación por roles, dashboards por perfil de usuario y reglas transparentes para clasificar riesgo académico y probabilidad de deserción.
+Construido como una aplicacion ASP.NET Core MVC con autenticacion por roles, dashboards por perfil de usuario y reglas transparentes para clasificar riesgo academico y probabilidad de desercion.
 
-## Estado del Proyecto
+## Stack Tecnologico
 
-Este repositorio contiene la versión MVC/Razor actualmente preparada para despliegue en Railway.
-
-- Plataforma principal: ASP.NET Core 8 MVC.
-- Base local: SQLite.
-- Base en producción: PostgreSQL vía `DATABASE_URL`.
-- Despliegue: Dockerfile + Railway.
-- Datos iniciales: seeding institucional simulado para demostración y validación funcional.
-- Predicción de deserción: heurística institucional determinística.
-- IA opcional: OpenAI para análisis narrativo, no para decidir el riesgo final.
+| Capa | Tecnologia |
+|------|-----------|
+| Backend | ASP.NET Core 8 MVC con Entity Framework Core |
+| Base de datos local | SQLite |
+| Base de datos produccion | PostgreSQL (Railway) |
+| Autenticacion | ASP.NET Core Identity |
+| Frontend | Bootstrap 5, DataTables, GSAP 3, CountUp.js, Chart.js |
+| IA | Heuristica institucional + OpenAI GPT-4o-mini (opcional) |
+| Despliegue | Railway con Docker y GitHub Actions CI |
 
 ## Funcionalidad Principal
 
-- Autenticación con ASP.NET Identity, bloqueo por intentos fallidos y roles institucionales.
-- Roles: `Administrador`, `Autoridad`, `Tutor`, `Alumno`.
-- Paneles diferenciados por rol.
-- Semáforo de riesgo académico: `Verde`, `Amarillo`, `Rojo`.
-- Probabilidad de deserción calculada con reglas auditables.
-- Seguimiento de estudiantes por grupo asignado al profesor.
-- Intervenciones tutoriales y planes de mejora.
-- Convocatorias, postulaciones y validación de elegibilidad.
-- Notificaciones in-app con panel ligero y soporte opcional para notificaciones del navegador.
-- Reportes, estadísticas, exportaciones CSV y bitácora de auditoría.
-- Dashboard de integridad de datos para detectar inconsistencias operativas.
+### Roles y Autenticacion
+- Cuatro roles institucionales: `Administrador`, `Autoridad`, `Tutor` (Profesor), `Alumno`.
+- Login con bloqueo tras intentos fallidos, recuperacion de contrasena y reCAPTCHA v3.
+- Redireccion por rol: el profesor ingresa directamente a su hub de trabajo.
+
+### Hub del Profesor (Mis Grupos)
+- Pagina unica de trabajo con todos los recursos del profesor en un solo lugar.
+- Tarjetas de grupo con indicadores visuales de riesgo (semaforo por alumno).
+- Distribucion de riesgo con barra proporcional (Verde, Amarillo, Rojo).
+- Prediccion de desercion por grupo: conteo de probabilidad Alta, Media y Baja.
+- Sugerencias inteligentes: muestra los 3 estudiantes en mayor riesgo con botones contextuales ("Crear plan" si no tiene uno, "Ver plan" si ya existe).
+- Acciones rapidas: Materias Reprobadas, Intervenciones, Planes de Mejora, Predicciones.
+
+### Plan de Mejora en Un Click
+- El sistema genera automaticamente un plan de accion basado en los factores de riesgo del alumno.
+- El profesor solo ajusta tipos de intervencion mediante checkboxes (Asesoria academica, Control de ausencias, Regularizacion ETS, Apoyo psicologico, Tutoria personalizada).
+- Los checkboxes se pre-seleccionan segun los factores de riesgo detectados.
+- Opcion "Personalizar" para editar manualmente el texto del plan.
+- Intervenciones vinculadas al plan: cada accion del profesor queda registrada en la linea de tiempo del plan.
+- Prevencion de duplicados: no se permiten multiples planes activos para el mismo alumno.
+
+### Prediccion de Desercion
+- Sistema de dos capas:
+  1. **Heuristica institucional**: reglas deterministicas y auditables que calculan probabilidad en tiempo real.
+  2. **OpenAI GPT-4o-mini** (opcional): genera analisis narrativo personalizado con recomendaciones especificas.
+- Si la clave de OpenAI no esta configurada, el sistema funciona normalmente con la heuristica base.
+- Animacion de tipeo progresivo en la vista de detalle.
+
+### Seguimiento e Intervenciones
+- Registro de intervenciones tutoriales vinculadas a planes de mejora.
+- Intervenciones independientes para acciones rapidas sin plan.
+- Seguimiento con fechas y notas por intervencion.
+- Linea de tiempo integrada en el plan de mejora.
+
+### Convocatorias y Postulaciones
+- Catalogo de convocatorias con filtros por tipo.
+- Validacion de elegibilidad: promedio minimo, semestre, carrera, cupo y carga academica.
+- Postulacion con carga de documentos (validacion MIME y tamano maximo 5 MB).
+- Gestion de estados: En Revision, Aceptado, Rechazado.
+
+### Reportes y Auditoria
+- Tablero estadistico por carrera.
+- Exportacion CSV de alumnos, postulaciones y alumnos en riesgo.
+- Bitacora de auditoria para mutaciones criticas.
+- Reporte institucional imprimible.
+
+### Notificaciones y Diseno
+- Sistema de notificaciones con badge en tiempo real.
+- Toasts animados con GSAP.
+- Componente web `<ra-semaforo>` para indicadores de riesgo.
+- Modo oscuro TRUE BLACK para OLED.
+- Diseno responsivo (desktop y movil).
+- Busqueda global con `Ctrl+K`.
+
+## Reglas de Riesgo y Prediccion
+
+El sistema usa reglas explicables. Los valores exactos estan definidos en `Services/RiskEvaluationService.cs`.
+
+### Riesgo Academico (Verde, Amarillo, Rojo)
+
+Un alumno se clasifica como Rojo si cumple cualquiera de:
+- Promedio global menor a 6.0
+- Dos o mas materias reprobadas
+- Mas de cinco ausencias
+- Dos o mas parciales bajos
+- Dos o mas ETS presentados
+- Dos o mas recursamientos
+
+Amarillo si no es Rojo pero cumple cualquiera de:
+- Promedio global menor a 7.5
+- Una materia reprobada
+- Mas de tres ausencias
+- Un parcial bajo
+- Un ETS presentado
+- Un recursamiento
+
+Verde si no cumple ninguna condicion anterior.
+
+### Probabilidad de Desercion
+
+Inicia en 10% y suma:
+- Promedio menor a 6.0: +45%
+- Promedio entre 6.0 y 6.99: +25%
+- Materias reprobadas: +4% por materia (maximo +20%)
+- Recursamientos: +5% por recursamiento (maximo +15%)
+- Ausencias: +2% por ausencia (maximo +15%)
+- Carga academica de 7 o mas materias: +15%
+
+Resultado redondeado a dos decimales, maximo 95%.
+
+## Cuentas de Demostracion
+
+El sistema incluye datos sembrados con 308 alumnos, 12 profesores y 6 carreras.
+
+| Rol | Correo |
+|-----|--------|
+| Administrador | `admin@ipn.mx` |
+| Autoridad | `autoridad@ipn.mx` |
+| Profesor | `profesor1@ipn.mx` |
+| Alumno | `demo.alumno@alumno.ipn.mx` |
+
+Las contrasenas se configuran mediante variables de entorno:
+- `DEMO_ADMIN_PASSWORD`
+- `DEMO_AUTORIDAD_PASSWORD`
+- `DEMO_TUTOR_PASSWORD`
+- `DEMO_ALUMNO_PASSWORD`
+
+En desarrollo local, los valores por defecto estan en `appsettings.json`. El acordeon de credenciales en la pagina de login se oculta automaticamente en produccion.
+
+## Ejecucion Local
+
+```bash
+git clone https://github.com/Xerea/RescateAcademico.git
+cd RescateAcademico/RescateAcademico
+dotnet run
+```
+
+La aplicacion se abre en `https://localhost:5001`. Para regenerar los datos de demostracion, elimina `app.db` y reinicia.
+
+## Despliegue en Railway
+
+El repositorio incluye `Dockerfile` y `railway.toml` para despliegue automatico en Railway.
+
+Variables de entorno requeridas:
+- `DATABASE_URL` — conexion PostgreSQL proporcionada por Railway.
+- `OPENAI_API_KEY` — clave de API de OpenAI (opcional, el analisis heuristico funciona sin ella).
+- `RECAPTCHA_SITE_KEY` y `RECAPTCHA_SECRET_KEY` — claves de reCAPTCHA v3 (opcional, el login funciona sin ellas).
+
+El primer despliegue siembra aproximadamente 300 alumnos, 12 profesores, calificaciones y predicciones de demostracion. El seeding se omite si la base ya contiene datos.
 
 ## Arquitectura
 
 ```text
 .
-|-- RescateAcademico/       Aplicación ASP.NET Core MVC
+|-- RescateAcademico/
 |   |-- Controllers/        Controladores MVC
 |   |-- Data/               DbContext y seeding inicial
-|   |-- Filters/            Filtros transversales, auditoría
+|   |-- Filters/            Filtros transversales, auditoria
 |   |-- Models/             Entidades de dominio
 |   |-- Services/           Reglas de negocio y servicios internos
-|   |-- ViewModels/         Contratos de presentación
+|   |-- ViewModels/         Contratos de presentacion
 |   |-- Views/              Vistas Razor
-|   `-- wwwroot/            CSS, JavaScript y activos estáticos
-|-- .github/                Workflows y plantillas del repositorio
-|-- docs/                   Documentación complementaria
-|-- Dockerfile              Imagen de producción
-|-- railway.toml            Configuración de Railway
-|-- global.json             Versión del SDK .NET
-`-- RescateAcademico.sln    Solución principal
+|   `-- wwwroot/            CSS, JavaScript y activos estaticos
+|-- .github/                Workflows CI
+|-- docs/                   Documentacion complementaria
+|-- Dockerfile              Imagen de produccion
+|-- railway.toml            Configuracion de Railway
+`-- RescateAcademico.sln    Solucion principal
 ```
 
-## Reglas de Riesgo y Predicción
+### Servicios
 
-El sistema usa reglas explicables, no un modelo opaco.
+| Servicio | Responsabilidad |
+|----------|----------------|
+| `RiskEvaluationService` | Calculo unificado de riesgo, probabilidad y sugerencias |
+| `StudentAccessService` | Control de acceso centralizado por rol y grupo |
+| `ConvocatoriaEligibilityService` | Validacion de requisitos para postulaciones |
+| `DesercionPredictionService` | Heuristica de prediccion + integracion OpenAI |
+| `AlertasService` | Evaluacion masiva y notificaciones por cambio de riesgo |
+| `FileStorageService` | Almacenamiento privado con validacion de archivos |
+| `NotificationService` | Creacion de notificaciones en-app |
+| `CurrentUserContext` | Acceso a ClaimsPrincipal desde servicios |
 
-### Riesgo Académico
+## Seguridad
 
-Un alumno se clasifica como `Rojo` si cumple cualquiera de estas condiciones:
+- AntiForgery Token en todos los formularios POST.
+- Rate limiting: login (10/min), registro (3/5 min), postulacion (5/min), OpenAI (5/min).
+- Cookies HttpOnly, Secure, SameSite=Strict.
+- Headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
+- Proteccion contra Open Redirect con `Url.IsLocalUrl`.
+- CSV injection protection en exportaciones.
+- Control de acceso IDOR centralizado por rol y grupo.
+- Bitacora de auditoria para mutaciones criticas con `[AuditLog]`.
 
-- Promedio global menor a `6.0`.
-- Dos o más materias reprobadas.
-- Más de cinco ausencias.
-- Dos o más parciales bajos.
-- Dos o más ETS presentados.
-- Dos o más recursamientos.
-
-Si no es `Rojo`, se clasifica como `Amarillo` si cumple cualquiera de estas condiciones:
-
-- Promedio global menor a `7.5`.
-- Una materia reprobada.
-- Más de tres ausencias.
-- Un parcial bajo.
-- Un ETS presentado.
-- Un recursamiento.
-
-Si no cumple ninguna condición anterior, se clasifica como `Verde`.
-
-### Probabilidad de Deserción
-
-La probabilidad inicia en `10%` y suma pesos por indicadores académicos:
-
-- Promedio menor a `6.0`: `+45%`.
-- Promedio entre `6.0` y `6.99`: `+25%`.
-- Materias reprobadas: `+4%` por materia, hasta `20%`.
-- Recursamientos: `+5%` por recursamiento, hasta `15%`.
-- Ausencias: `+2%` por ausencia, hasta `15%`.
-- Carga académica de 7 o más materias: `+15%`.
-
-El resultado se redondea a dos decimales y se limita a un máximo de `95%`.
-
-La IA, cuando está configurada, genera una explicación narrativa basada en estos datos. No reemplaza las reglas institucionales.
-
-## Seguridad y Control de Acceso
-
-- Antiforgery global para formularios y endpoints POST.
-- Rate limiting para login, registro, postulaciones y acciones de IA.
-- Cookies `HttpOnly`, `Secure` y `SameSite=Strict`.
-- CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy y Permissions-Policy.
-- Validación de archivos por extensión, MIME type y tamaño máximo.
-- Prevención de open redirects con `Url.IsLocalUrl`.
-- Escapado en exportaciones CSV contra formula injection.
-- Bitácora de auditoría para mutaciones críticas.
-- Acceso a estudiantes centralizado por rol:
-  - Administrador y Autoridad: visibilidad institucional.
-  - Tutor: solo alumnos de sus grupos asignados.
-  - Alumno: solo su propio expediente.
-
-## Despliegue
-
-El despliegue esperado es Railway mediante el `Dockerfile` del repositorio.
-
-Railway debe proveer una base PostgreSQL y la variable `DATABASE_URL`. La aplicación detecta esa variable y usa Npgsql automáticamente. Si `DATABASE_URL` no existe, usa SQLite local configurado en `appsettings.json`.
-
-El primer arranque puede tardar más de lo normal si la base está vacía, porque se crean tablas y se siembran datos de demostración.
-
-## Variables de Entorno
-
-| Variable | Uso |
-| --- | --- |
-| `DATABASE_URL` | Conexión PostgreSQL en Railway. |
-| `OPENAI_API_KEY` | Habilita análisis narrativo con IA. |
-| `RECAPTCHA_SITE_KEY` | Llave pública de reCAPTCHA v3. |
-| `RECAPTCHA_SECRET_KEY` | Llave privada de reCAPTCHA v3. |
-| `ENFORCE_RECAPTCHA` | Si es `true`, reCAPTCHA bloquea login cuando falla. |
-| `SHOW_DEMO_CREDENTIALS` | Si es `true`, muestra credenciales demo en ambientes no locales. |
-| `DEMO_ADMIN_PASSWORD` | Contraseña semilla para administrador demo. |
-| `DEMO_AUTORIDAD_PASSWORD` | Contraseña semilla para autoridad demo. |
-| `DEMO_TUTOR_PASSWORD` | Contraseña semilla para profesores demo. |
-| `DEMO_ALUMNO_PASSWORD` | Contraseña semilla para alumnos demo. |
-| `UPLOADS_PATH` | Ruta alternativa para almacenamiento privado de archivos. |
-| `RAILWAY_VOLUME_MOUNT_PATH` | Volumen persistente en Railway para archivos subidos. |
-
-## Credenciales y Datos de Demostración
-
-Este README no publica credenciales operativas.
-
-Las credenciales de demostración son configurables por variables de entorno y solo deben mostrarse desde la aplicación en ambientes controlados. En producción, el acordeón de credenciales demo debe permanecer oculto salvo que se active explícitamente con `SHOW_DEMO_CREDENTIALS=true`.
-
-Los datos sembrados son simulados y sirven para validar flujos, roles, reportes y comportamiento del sistema. No deben presentarse como datos reales de SAES ni como información académica oficial.
-
-## Verificación de Calidad
-
-Comando principal de validación:
+## Verificacion de Calidad
 
 ```bash
 dotnet build .\RescateAcademico.sln
 ```
 
-El objetivo para cada cambio listo para despliegue es:
+Objetivo: `0 warnings, 0 errors`.
 
-```text
-0 warnings
-0 errors
-```
+GitHub Actions compila automaticamente en cada push y pull request.
 
-El repositorio incluye GitHub Actions para compilar la solución en `master` y en pull requests contra `master`.
+## Equipo
 
-## Consideraciones Operativas
-
-- No se usan migraciones EF en el flujo actual; el esquema se crea con `EnsureCreated`.
-- El seeding se omite si la base ya contiene suficientes alumnos.
-- Los archivos subidos deben almacenarse en ruta privada o volumen persistente, no como activos públicos.
-- Las notificaciones del navegador dependen del permiso otorgado por el usuario y de soporte del navegador.
-- El análisis con OpenAI debe tratarse como apoyo narrativo, no como decisión automática final.
+| Integrante | Responsabilidad |
+|------------|----------------|
+| Sergio | Seguridad, roles, autenticacion y bitacora |
+| Sara | Convocatorias, postulaciones y reportes |
+| Alejandra | Dashboard, perfil academico y estadisticas |
+| Elias | Administracion, seeding y operacion institucional |
+| Buenfil | Inteligencia artificial y predicciones |
 
 ## Licencia
 
