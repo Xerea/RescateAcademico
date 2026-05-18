@@ -441,6 +441,15 @@ namespace RescateAcademico.Controllers
         public string AlumnoRiesgo { get; set; } = "Verde";
         public int AlumnoSemestre { get; set; }
         public int AlumnoPostulaciones { get; set; }
+        public string AlumnoNombre { get; set; } = string.Empty;
+        public string AlumnoMatricula { get; set; } = string.Empty;
+        public string? AlumnoCarrera { get; set; }
+        public string? AlumnoGrupo { get; set; }
+        public int AlumnoMateriasReprobadas { get; set; }
+        public int AlumnoAusencias { get; set; }
+        public int AlumnoConvocatoriasDisponibles { get; set; }
+        public int AlumnoPostulacionesPendientes { get; set; }
+        public int AlumnoPostulacionesAceptadas { get; set; }
 
         // Chart data for dashboard
         public int RiesgoVerde { get; set; }

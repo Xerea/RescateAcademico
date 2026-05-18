@@ -2,10 +2,16 @@
 @{
     ViewData["Title"] = "Mis postulaciones";
     Layout = "_Layout";
+
+    var postulaciones = Model.ToList();
+    var pendientes = postulaciones.Count(p => p.Estado == "En Revisión");
+    var aceptadas = postulaciones.Count(p => p.Estado == "Aceptado");
+    var rechazadas = postulaciones.Count(p => p.Estado == "Rechazado");
+
     var header = new PageHeader
     {
         Title = "Mis postulaciones",
-        Subtitle = "Estado de tus solicitudes a proyectos.",
+        Subtitle = "Seguimiento claro de tus solicitudes activas y resueltas.",
         Icon = "bi-send-check",
         IconVariant = "accent"
     };
@@ -28,77 +34,84 @@
     </div>
 }
 
-<div class="ra-card">
-    <div class="ra-card-body">
-        @if (Model.Any())
+@if (postulaciones.Any())
+{
+    <section class="ra-application-summary mb-4" aria-label="Resumen de postulaciones">
+        <div>
+            <span class="ra-student-eyebrow">Tu seguimiento</span>
+            <h2>@postulaciones.Count solicitudes registradas</h2>
+            <p>Lo importante aquí es saber qué requiere atención y qué ya quedó resuelto.</p>
+        </div>
+        <div class="ra-opportunity-brief-metrics">
+            <span><strong>@pendientes</strong><small>En revisión</small></span>
+            <span><strong>@aceptadas</strong><small>Aceptadas</small></span>
+            <span><strong>@rechazadas</strong><small>Rechazadas</small></span>
+        </div>
+    </section>
+
+    <div class="ra-application-list">
+        @foreach (var item in postulaciones)
         {
-            <div class="table-responsive">
-                <table class="table ra-table ra-table-cards" id="tablaPostulaciones">
-                    <thead>
-                        <tr>
-                            <th>Proyecto</th>
-                            <th>Solicitud</th>
-                            <th>Estado</th>
-                            <th data-orderable="false">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
+            var estadoClass = item.Estado == "Aceptado" ? "is-success" : item.Estado == "Rechazado" ? "is-danger" : "is-warning";
+            var estadoBadge = item.Estado == "Aceptado" ? "ra-badge-success" : item.Estado == "Rechazado" ? "ra-badge-danger" : "ra-badge-warning";
+            var estadoIcon = item.Estado == "Aceptado" ? "bi-check-circle" : item.Estado == "Rechazado" ? "bi-x-circle" : "bi-clock";
+
+            <article class="ra-application-item @estadoClass">
+                <div class="ra-application-status">
+                    <i class="bi @estadoIcon"></i>
+                </div>
+                <div class="ra-application-content">
+                    <div class="ra-application-title-row">
+                        <div>
+                            <h3>@item.Proyecto?.Titulo</h3>
+                            <p>@item.Proyecto?.Tipo</p>
+                        </div>
+                        <span class="ra-badge @estadoBadge">@item.Estado</span>
+                    </div>
+
+                    <div class="ra-application-meta">
+                        <span><i class="bi bi-calendar-event"></i> @item.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</span>
+                        @if (!string.IsNullOrWhiteSpace(item.DocumentoNombre))
                         {
-                            <tr>
-                                <td data-label="Proyecto">
-                                    <strong>@item.Proyecto?.Titulo</strong>
-                                    <br />
-                                    <span class="text-secondary small">@item.Proyecto?.Tipo</span>
-                                </td>
-                                <td data-label="Solicitud">@item.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td data-label="Estado">
-                                    @if (item.Estado == "Aceptado")
-                                    {
-                                        <span class="ra-badge ra-badge-success"><i class="bi bi-check-circle me-1"></i>Aceptado</span>
-                                    }
-                                    else if (item.Estado == "Rechazado")
-                                    {
-                                        <span class="ra-badge ra-badge-danger"><i class="bi bi-x-circle me-1"></i>Rechazado</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="ra-badge ra-badge-warning"><i class="bi bi-clock me-1"></i>En revisión</span>
-                                    }
-                                </td>
-                                <td data-label="Acciones">
-                                    <a asp-controller="Proyectos" asp-action="Details" asp-route-id="@item.ProyectoId" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver proyecto" title="Ver">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                </td>
-                            </tr>
+                            <span><i class="bi bi-paperclip"></i> Documento adjunto</span>
                         }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="ra-empty">
-                <i class="bi bi-inbox"></i>
-                <p>Aún no te has postulado a ningún proyecto.</p>
-                <a asp-controller="Convocatorias" asp-action="Index" class="ra-btn ra-btn-primary mt-2">
-                    <i class="bi bi-search"></i> Ver Convocatorias
-                </a>
-            </div>
+                        else
+                        {
+                            <span><i class="bi bi-file-earmark"></i> Sin documento adjunto</span>
+                        }
+                    </div>
+
+                    <div class="ra-application-next">
+                        @if (item.Estado == "Aceptado")
+                        {
+                            <span>Tu solicitud fue aceptada. Conserva esta postulación para seguimiento institucional.</span>
+                        }
+                        else if (item.Estado == "Rechazado")
+                        {
+                            <span>Esta solicitud no avanzó. Puedes revisar nuevas convocatorias disponibles.</span>
+                        }
+                        else
+                        {
+                            <span>Está en revisión. Te avisaremos cuando cambie el estado.</span>
+                        }
+                    </div>
+                </div>
+                <div class="ra-application-actions">
+                    <a asp-controller="Proyectos" asp-action="Details" asp-route-id="@item.ProyectoId" class="ra-btn ra-btn-sm ra-btn-outline">
+                        <i class="bi bi-eye"></i> Ver proyecto
+                    </a>
+                </div>
+            </article>
         }
     </div>
-</div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            $('#tablaPostulaciones').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
-                },
-                pageLength: 25
-            });
-        });
-    </script>
+}
+else
+{
+    <div class="ra-empty">
+        <i class="bi bi-inbox"></i>
+        <p>Aún no te has postulado a ningún proyecto.</p>
+        <a asp-controller="Convocatorias" asp-action="Index" class="ra-btn ra-btn-primary mt-2">
+            <i class="bi bi-search"></i> Ver convocatorias
+        </a>
+    </div>
 }

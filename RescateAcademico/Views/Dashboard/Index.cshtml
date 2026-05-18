@@ -118,133 +118,179 @@
 
 @if (User.IsInRole("Alumno"))
 {
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="ra-stat ra-stat-accent">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="ra-stat-label">Promedio</div>
-                        <div class="ra-stat-value">@Model.AlumnoPromedio.ToString("F2")</div>
-                    </div>
-                    <i class="bi bi-award ra-stat-icon"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="ra-stat @(Model.AlumnoRiesgo == "Rojo" ? "ra-stat-danger" : Model.AlumnoRiesgo == "Amarillo" ? "ra-stat-warning" : "ra-stat-success")">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="ra-stat-label">Riesgo</div>
-                        <div class="ra-stat-value">@Model.AlumnoRiesgo</div>
-                    </div>
-                    <i class="bi bi-shield-fill ra-stat-icon"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="ra-stat ra-stat-info">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="ra-stat-label">Semestre</div>
-                        <div class="ra-stat-value">@Model.AlumnoSemestre</div>
-                    </div>
-                    <i class="bi bi-layers ra-stat-icon"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="ra-stat ra-stat-primary">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="ra-stat-label">Postulaciones</div>
-                        <div class="ra-stat-value">@Model.AlumnoPostulaciones</div>
-                    </div>
-                    <i class="bi bi-send-check ra-stat-icon"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+    var riesgo = Model.AlumnoRiesgo ?? "Verde";
+    var riesgoClass = riesgo == "Rojo" ? "is-danger" : riesgo == "Amarillo" ? "is-warning" : "is-success";
+    var primerNombre = string.IsNullOrWhiteSpace(Model.AlumnoNombre) ? "Alumno" : Model.AlumnoNombre.Split(' ')[0];
+    var promedioPct = Math.Clamp((double)Model.AlumnoPromedio * 10, 0, 100);
+    var siguienteAccion = riesgo == "Rojo"
+        ? "Prioriza una conversación con tu profesor y revisa tu simulador antes de postularte."
+        : riesgo == "Amarillo"
+            ? "Ajusta tus metas de calificación y elige convocatorias que no sobrecarguen tu semana."
+            : "Tu perfil está estable. Busca una convocatoria que fortalezca tu trayectoria.";
 
-    @* Single, focused CTA band: quick links go where the navbar doesn't *@
-    <div class="ra-card mb-4">
-        <div class="ra-card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div>
-                <div class="ra-heading mb-1">Accesos rápidos</div>
-                <div class="text-secondary small">Abre lo que más consultas esta semana.</div>
+    <section class="ra-student-hero @riesgoClass mb-4" aria-label="Resumen académico del alumno">
+        <div class="ra-student-hero-main">
+            <div class="ra-student-eyebrow">Tu estado académico</div>
+            <h2 class="ra-student-hero-title">Hola, @primerNombre.</h2>
+            <p class="ra-student-hero-copy">@siguienteAccion</p>
+            <div class="ra-student-chip-row" aria-label="Datos del expediente">
+                @if (!string.IsNullOrWhiteSpace(Model.AlumnoMatricula))
+                {
+                    <span class="ra-student-chip"><i class="bi bi-credit-card-2-front"></i>@Model.AlumnoMatricula</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.AlumnoCarrera))
+                {
+                    <span class="ra-student-chip"><i class="bi bi-mortarboard"></i>@Model.AlumnoCarrera</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.AlumnoGrupo))
+                {
+                    <span class="ra-student-chip"><i class="bi bi-people"></i>@Model.AlumnoGrupo</span>
+                }
+                <span class="ra-student-chip"><i class="bi bi-layers"></i>@(Model.AlumnoSemestre)° semestre</span>
             </div>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="ra-student-hero-actions">
                 <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="ra-btn ra-btn-primary">
-                    <i class="bi bi-person-badge"></i> Mi perfil
+                    <i class="bi bi-person-badge"></i> Revisar perfil
                 </a>
                 <a asp-controller="Convocatorias" asp-action="Index" class="ra-btn ra-btn-outline">
-                    <i class="bi bi-megaphone"></i> Convocatorias
-                </a>
-                <a asp-controller="Postulaciones" asp-action="MisPostulaciones" class="ra-btn ra-btn-outline">
-                    <i class="bi bi-send-check"></i> Mis postulaciones
+                    <i class="bi bi-megaphone"></i> Ver convocatorias
                 </a>
             </div>
         </div>
+        <div class="ra-student-status-panel" aria-label="Indicadores principales">
+            <div class="ra-status-ring @riesgoClass">
+                <span>@riesgo</span>
+                <small>riesgo</small>
+            </div>
+            <div class="ra-grade-meter">
+                <div class="d-flex justify-content-between align-items-end gap-3">
+                    <div>
+                        <div class="ra-stat-label">Promedio global</div>
+                        <div class="ra-stat-value">@Model.AlumnoPromedio.ToString("F2")</div>
+                    </div>
+                    <span class="ra-badge @(riesgo == "Rojo" ? "ra-badge-danger" : riesgo == "Amarillo" ? "ra-badge-warning" : "ra-badge-success")">
+                        @Model.AlumnoMateriasReprobadas reprobadas
+                    </span>
+                </div>
+                <div class="ra-meter-track" aria-hidden="true">
+                    <div class="ra-meter-fill @riesgoClass" style="width: @promedioPct.ToString("F0")%;"></div>
+                </div>
+                <div class="ra-meter-caption">Meta recomendada: 7.50 o más</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="ra-student-action-grid mb-4">
+        <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="ra-action-tile">
+            <span class="ra-action-icon"><i class="bi bi-calculator"></i></span>
+            <span>
+                <strong>Simular calificaciones</strong>
+                <small>Calcula impacto en promedio y riesgo.</small>
+            </span>
+            <i class="bi bi-arrow-right-short"></i>
+        </a>
+        <a asp-controller="Convocatorias" asp-action="Index" class="ra-action-tile">
+            <span class="ra-action-icon"><i class="bi bi-stars"></i></span>
+            <span>
+                <strong>@Model.AlumnoConvocatoriasDisponibles oportunidades listas</strong>
+                <small>Filtradas por cupo, promedio y semestre.</small>
+            </span>
+            <i class="bi bi-arrow-right-short"></i>
+        </a>
+        <a asp-controller="Postulaciones" asp-action="MisPostulaciones" class="ra-action-tile">
+            <span class="ra-action-icon"><i class="bi bi-send-check"></i></span>
+            <span>
+                <strong>@Model.AlumnoPostulacionesPendientes en revisión</strong>
+                <small>@Model.AlumnoPostulacionesAceptadas aceptadas · @Model.AlumnoPostulaciones totales</small>
+            </span>
+            <i class="bi bi-arrow-right-short"></i>
+        </a>
     </div>
 
-    @* Highlight: risk + recommendations — the actual useful content *@
     <div class="row g-3">
-        <div class="col-md-7">
+        <div class="col-lg-7">
             <div class="ra-card h-100">
                 <div class="ra-card-header">
-                    <i class="bi bi-lightbulb"></i> Sugerencias para ti
+                    <i class="bi bi-compass"></i> Siguiente mejor paso
                 </div>
                 <div class="ra-card-body">
-                    @{
-                        var riesgo = Model.AlumnoRiesgo ?? "Verde";
-                    }
-                    @if (riesgo == "Rojo")
-                    {
-                        <div class="ra-alert ra-alert-danger mb-3">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                            <div>
-                                Tu promedio y carga académica indican <strong>riesgo alto</strong>. Agenda una tutoría con tu profesor asignado lo antes posible.
+                    <div class="ra-path-list">
+                        @if (riesgo == "Rojo")
+                        {
+                            <div class="ra-path-step is-current">
+                                <span>1</span>
+                                <div><strong>Estabiliza tu carga</strong><small>Revisa materias reprobadas, ausencias y prioridades con tu profesor.</small></div>
                             </div>
-                        </div>
-                    }
-                    else if (riesgo == "Amarillo")
-                    {
-                        <div class="ra-alert ra-alert-warning mb-3">
-                            <i class="bi bi-exclamation-circle-fill"></i>
-                            <div>
-                                Tu desempeño está por debajo del umbral recomendado. Usa el simulador en tu perfil para planear calificaciones objetivo.
+                            <div class="ra-path-step">
+                                <span>2</span>
+                                <div><strong>Simula un escenario realista</strong><small>Define qué calificaciones necesitas para salir de riesgo alto.</small></div>
                             </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="ra-alert ra-alert-success mb-3">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <div>Vas bien. Considera postularte a una convocatoria de investigación o servicio social.</div>
-                        </div>
-                    }
-                    <ul class="list-unstyled mb-0 small text-secondary">
-                        <li class="mb-2"><i class="bi bi-arrow-right-short"></i> Revisa tu <a asp-controller="PerfilAcademico" asp-action="MiPerfil">perfil académico</a> para el desglose por periodo.</li>
-                        <li class="mb-2"><i class="bi bi-arrow-right-short"></i> Explora <a asp-controller="Convocatorias" asp-action="Index">convocatorias abiertas</a> para complementar tu formación.</li>
-                        <li class="mb-0"><i class="bi bi-arrow-right-short"></i> Consulta el estado de tus <a asp-controller="Postulaciones" asp-action="MisPostulaciones">postulaciones</a>.</li>
-                    </ul>
+                            <div class="ra-path-step">
+                                <span>3</span>
+                                <div><strong>Postúlate después</strong><small>Elige convocatorias que no agreguen presión innecesaria.</small></div>
+                            </div>
+                        }
+                        else if (riesgo == "Amarillo")
+                        {
+                            <div class="ra-path-step is-current">
+                                <span>1</span>
+                                <div><strong>Ajusta tu promedio objetivo</strong><small>Usa el simulador para identificar una meta viable esta semana.</small></div>
+                            </div>
+                            <div class="ra-path-step">
+                                <span>2</span>
+                                <div><strong>Elige una oportunidad</strong><small>Prioriza convocatorias con requisitos que ya cumples.</small></div>
+                            </div>
+                            <div class="ra-path-step">
+                                <span>3</span>
+                                <div><strong>Da seguimiento</strong><small>Revisa el estado de tus postulaciones sin perder fechas clave.</small></div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ra-path-step is-current">
+                                <span>1</span>
+                                <div><strong>Aprovecha tu estabilidad</strong><small>Busca proyectos que sumen experiencia, no solo créditos.</small></div>
+                            </div>
+                            <div class="ra-path-step">
+                                <span>2</span>
+                                <div><strong>Postúlate con intención</strong><small>Elige una convocatoria alineada con tu carrera.</small></div>
+                            </div>
+                            <div class="ra-path-step">
+                                <span>3</span>
+                                <div><strong>Mantén el ritmo</strong><small>Revisa tu perfil después de cada periodo de evaluación.</small></div>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-lg-5">
             <div class="ra-card h-100">
                 <div class="ra-card-header">
-                    <i class="bi bi-calculator"></i> Simulador de calificaciones
+                    <i class="bi bi-activity"></i> Señales rápidas
                 </div>
-                <div class="ra-card-body text-center">
-                    <p class="text-secondary small mb-3">Calcula tu promedio proyectado, nivel de riesgo y elegibilidad para convocatorias.</p>
-                    <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="ra-btn ra-btn-accent">
-                        <i class="bi bi-arrow-right"></i> Abrir simulador
-                    </a>
+                <div class="ra-card-body">
+                    <div class="ra-mini-metrics">
+                        <div>
+                            <span>@Model.AlumnoMateriasReprobadas</span>
+                            <small>Materias reprobadas</small>
+                        </div>
+                        <div>
+                            <span>@Model.AlumnoAusencias</span>
+                            <small>Ausencias registradas</small>
+                        </div>
+                        <div>
+                            <span>@Model.AlumnoConvocatoriasDisponibles</span>
+                            <small>Convocatorias viables</small>
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-0 mt-3">Estas señales no sustituyen la revisión con tu profesor, pero ayudan a decidir qué atender primero.</p>
                 </div>
             </div>
         </div>
     </div>
 }
+
 
 @if (User.IsInRole("Autoridad") || User.IsInRole("Administrador"))
 {

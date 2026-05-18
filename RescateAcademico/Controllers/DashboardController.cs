@@ -77,13 +77,36 @@ namespace RescateAcademico.Controllers
             else if (User.IsInRole("Alumno"))
             {
                 var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.UserId == userId);
+                var alumno = await _context.Alumnos
+                    .Include(a => a.Grupo)
+                    .FirstOrDefaultAsync(a => a.UserId == userId);
                 if (alumno != null)
                 {
+                    var now = DateTime.Now;
+
+                    stats.AlumnoNombre = alumno.Nombre;
+                    stats.AlumnoMatricula = alumno.Matricula;
+                    stats.AlumnoCarrera = alumno.Carrera;
+                    stats.AlumnoGrupo = alumno.Grupo?.Clave;
                     stats.AlumnoPromedio = alumno.PromedioGlobal;
                     stats.AlumnoRiesgo = alumno.RiesgoAcademico ?? "Verde";
                     stats.AlumnoSemestre = alumno.SemestreActual;
-                    stats.AlumnoPostulaciones = await _context.Postulaciones.CountAsync(p => p.AlumnoId == alumno.Matricula);
+                    stats.AlumnoMateriasReprobadas = alumno.MateriasReprobadas ?? 0;
+                    stats.AlumnoAusencias = alumno.Ausencias ?? 0;
+
+                    var postulaciones = _context.Postulaciones.Where(p => p.AlumnoId == alumno.Matricula);
+                    stats.AlumnoPostulaciones = await postulaciones.CountAsync();
+                    stats.AlumnoPostulacionesPendientes = await postulaciones.CountAsync(p => p.Estado == "En Revisión");
+                    stats.AlumnoPostulacionesAceptadas = await postulaciones.CountAsync(p => p.Estado == "Aceptado");
+
+                    stats.AlumnoConvocatoriasDisponibles = await _context.Convocatorias.CountAsync(c =>
+                        c.EstaActiva &&
+                        c.ValidadaPorAcademia &&
+                        c.FechaCierre > now &&
+                        c.PostulacionesActuales < c.CupoMaximo &&
+                        (!c.PromedioMinimo.HasValue || alumno.PromedioGlobal >= c.PromedioMinimo.Value) &&
+                        (!c.SemestreMinimo.HasValue || alumno.SemestreActual >= c.SemestreMinimo.Value) &&
+                        (string.IsNullOrEmpty(c.CarreraRequerida) || c.CarreraRequerida == alumno.Carrera));
                 }
             }
 

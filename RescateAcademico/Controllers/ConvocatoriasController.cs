@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Filters;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
 
 namespace RescateAcademico.Controllers
 {
@@ -11,10 +12,17 @@ namespace RescateAcademico.Controllers
     public class ConvocatoriasController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StudentAccessService _studentAccessService;
+        private readonly ConvocatoriaEligibilityService _eligibilityService;
 
-        public ConvocatoriasController(ApplicationDbContext context)
+        public ConvocatoriasController(
+            ApplicationDbContext context,
+            StudentAccessService studentAccessService,
+            ConvocatoriaEligibilityService eligibilityService)
         {
             _context = context;
+            _studentAccessService = studentAccessService;
+            _eligibilityService = eligibilityService;
         }
 
         public async Task<IActionResult> Index(string? tipo, string? area, string? busqueda)
@@ -33,6 +41,35 @@ namespace RescateAcademico.Controllers
                 query = query.Where(c => c.Titulo.Contains(busqueda) || (c.Descripcion != null && c.Descripcion.Contains(busqueda)));
 
             var convocatorias = await query.OrderByDescending(c => c.FechaPublicacion).ToListAsync();
+
+            if (User.IsInRole("Alumno"))
+            {
+                var alumno = await _studentAccessService.GetCurrentAlumnoAsync();
+                if (alumno != null)
+                {
+                    var proyectoIdsPostulados = await _context.Postulaciones
+                        .Where(p => p.AlumnoId == alumno.Matricula)
+                        .Select(p => p.ProyectoId)
+                        .ToListAsync();
+
+                    var elegibles = new HashSet<int>();
+                    foreach (var convocatoria in convocatorias)
+                    {
+                        var resultado = await _eligibilityService.EvaluarAsync(alumno, convocatoria);
+                        if (resultado.IsEligible)
+                        {
+                            elegibles.Add(convocatoria.Id);
+                        }
+                    }
+
+                    ViewBag.AlumnoPromedio = alumno.PromedioGlobal;
+                    ViewBag.AlumnoSemestre = alumno.SemestreActual;
+                    ViewBag.AlumnoCarrera = alumno.Carrera;
+                    ViewBag.ConvocatoriasElegibles = elegibles;
+                    ViewBag.ProyectosPostulados = proyectoIdsPostulados.ToHashSet();
+                }
+            }
+
             return View(convocatorias);
         }
 

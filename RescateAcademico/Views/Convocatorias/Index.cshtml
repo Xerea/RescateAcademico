@@ -2,10 +2,20 @@
 @{
     ViewData["Title"] = "Convocatorias";
     Layout = "_Layout";
+
+    var convocatorias = Model.ToList();
+    var esAlumno = User.IsInRole("Alumno");
+    var elegibles = ViewBag.ConvocatoriasElegibles as HashSet<int> ?? new HashSet<int>();
+    var postulados = ViewBag.ProyectosPostulados as HashSet<int> ?? new HashSet<int>();
+    var alumnoPromedio = ViewBag.AlumnoPromedio as decimal?;
+    var alumnoSemestre = ViewBag.AlumnoSemestre as int?;
+    var alumnoCarrera = ViewBag.AlumnoCarrera as string;
+    var disponibles = convocatorias.Count(c => c.FechaCierre > DateTime.Now && c.PostulacionesActuales < c.CupoMaximo);
+
     var header = new PageHeader
     {
         Title = "Convocatorias disponibles",
-        Subtitle = "Explora y postúlate a proyectos de servicio social, investigación o apoyo académico.",
+        Subtitle = "Elige oportunidades que sí encajen con tu avance académico.",
         Icon = "bi-megaphone",
         IconVariant = "accent"
     };
@@ -13,15 +23,37 @@
 
 <partial name="_PageHeader" model="header" />
 
+@if (esAlumno)
+{
+    <section class="ra-opportunity-brief mb-4" aria-label="Resumen de convocatorias">
+        <div>
+            <span class="ra-student-eyebrow">Tu filtro académico</span>
+            <h2>Convocatorias con intención</h2>
+            <p>Te mostramos señales de cupo, cierre y requisitos para que postularte sea una decisión clara, no una apuesta.</p>
+        </div>
+        <div class="ra-opportunity-brief-metrics">
+            <span><strong>@(alumnoPromedio?.ToString("F2") ?? "N/D")</strong><small>Promedio</small></span>
+            <span><strong>@(alumnoSemestre?.ToString() ?? "N/D")</strong><small>Semestre</small></span>
+            <span><strong>@disponibles</strong><small>Abiertas</small></span>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(alumnoCarrera))
+        {
+            <span class="ra-student-chip"><i class="bi bi-mortarboard"></i>@alumnoCarrera</span>
+        }
+    </section>
+}
+
 <div class="ra-card ra-filter-bar">
     <div class="ra-card-body">
         <form method="get">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
-                    <input type="text" name="busqueda" class="ra-input" placeholder="Buscar por título…" />
+                    <label class="ra-label visually-hidden" for="busqueda">Buscar</label>
+                    <input id="busqueda" type="text" name="busqueda" class="ra-input" placeholder="Buscar por título..." />
                 </div>
                 <div class="col-md-3">
-                    <select name="tipo" class="ra-select">
+                    <label class="ra-label visually-hidden" for="tipo">Tipo</label>
+                    <select id="tipo" name="tipo" class="ra-select">
                         <option value="">Todos los tipos</option>
                         <option value="ServicioSocial">Servicio Social</option>
                         <option value="Investigacion">Investigación</option>
@@ -30,7 +62,8 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" name="area" class="ra-input" placeholder="Área…" />
+                    <label class="ra-label visually-hidden" for="area">Área</label>
+                    <input id="area" type="text" name="area" class="ra-input" placeholder="Área..." />
                 </div>
                 <div class="col-md-2">
                     <button type="submit" class="ra-btn ra-btn-primary w-100">
@@ -57,68 +90,108 @@
     </div>
 }
 
-<div class="row g-3">
-    @if (Model.Any())
-    {
-        @foreach (var item in Model)
+@if (convocatorias.Any())
+{
+    <div class="ra-opportunity-grid">
+        @foreach (var item in convocatorias)
         {
             var diasRestantes = (item.FechaCierre - DateTime.Now).Days;
-            <div class="col-md-6 col-lg-4">
-                <div class="ra-card h-100 @(diasRestantes <= 7 && diasRestantes > 0 ? "ra-card-warning" : "")">
-                    <div class="ra-card-header d-flex justify-content-between align-items-center flex-wrap gap-1">
-                        <span class="ra-badge ra-badge-neutral">@item.Tipo</span>
-                        @if (diasRestantes <= 7 && diasRestantes > 0)
-                        {
-                            <span class="ra-badge ra-badge-warning">Cierra pronto</span>
-                        }
-                        else if (diasRestantes <= 0)
-                        {
-                            <span class="ra-badge ra-badge-danger">Cerrada</span>
-                        }
+            var cupoSeguro = Math.Max(item.CupoMaximo, 1);
+            var cupoPct = Math.Clamp((double)item.PostulacionesActuales / cupoSeguro * 100, 0, 100);
+            var cerrada = diasRestantes <= 0;
+            var sinCupo = item.PostulacionesActuales >= item.CupoMaximo;
+            var cierraPronto = diasRestantes <= 7 && diasRestantes > 0;
+            var esElegible = !esAlumno || elegibles.Contains(item.Id);
+            var yaPostulado = item.ProyectoId.HasValue && postulados.Contains(item.ProyectoId.Value);
+            var statusClass = cerrada || sinCupo || (esAlumno && !esElegible) ? "is-muted" : cierraPronto ? "is-warning" : "is-ready";
+
+            <article class="ra-opportunity-card @statusClass">
+                <div class="ra-opportunity-card-top">
+                    <span class="ra-badge ra-badge-neutral">@item.Tipo</span>
+                    @if (yaPostulado)
+                    {
+                        <span class="ra-badge ra-badge-info">Ya postulada</span>
+                    }
+                    else if (cerrada)
+                    {
+                        <span class="ra-badge ra-badge-danger">Cerrada</span>
+                    }
+                    else if (sinCupo)
+                    {
+                        <span class="ra-badge ra-badge-danger">Sin cupo</span>
+                    }
+                    else if (esAlumno && !esElegible)
+                    {
+                        <span class="ra-badge ra-badge-warning">Requisitos pendientes</span>
+                    }
+                    else if (cierraPronto)
+                    {
+                        <span class="ra-badge ra-badge-warning">Cierra pronto</span>
+                    }
+                    else
+                    {
+                        <span class="ra-badge ra-badge-success">Disponible</span>
+                    }
+                </div>
+
+                <div class="ra-opportunity-card-body">
+                    <h3>@item.Titulo</h3>
+                    <p>@item.Descripcion</p>
+                </div>
+
+                <div class="ra-requirement-row" aria-label="Requisitos">
+                    @if (item.PromedioMinimo.HasValue)
+                    {
+                        <span><i class="bi bi-award"></i> Prom. @item.PromedioMinimo.Value.ToString("F1")+</span>
+                    }
+                    @if (item.SemestreMinimo.HasValue)
+                    {
+                        <span><i class="bi bi-layers"></i> Sem. @(item.SemestreMinimo)+</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(item.Area))
+                    {
+                        <span><i class="bi bi-diagram-3"></i> @item.Area</span>
+                    }
+                </div>
+
+                <div class="ra-cupo-meter">
+                    <div class="d-flex justify-content-between small text-secondary">
+                        <span>@item.PostulacionesActuales de @item.CupoMaximo lugares</span>
+                        <span>@(diasRestantes > 0 ? $"{diasRestantes} días" : "Finalizada")</span>
                     </div>
-                    <div class="ra-card-body">
-                        <h5 class="fw-bold mb-2">@item.Titulo</h5>
-                        <p class="text-secondary small mb-3">@item.Descripcion</p>
-                        <div class="d-flex flex-column gap-1 text-secondary small">
-                            <div><i class="bi bi-calendar-event me-1"></i><strong>Cierre:</strong> @item.FechaCierre.ToString("dd/MM/yyyy") @(diasRestantes > 0 ? $"({diasRestantes} días)" : "")</div>
-                            <div><i class="bi bi-people me-1"></i><strong>Cupo:</strong> @item.PostulacionesActuales / @item.CupoMaximo</div>
-                            @if (item.PromedioMinimo.HasValue)
-                            {
-                                <div><i class="bi bi-star me-1"></i><strong>Promedio mínimo:</strong> @item.PromedioMinimo.Value.ToString("F1")</div>
-                            }
-                        </div>
-                    </div>
-                    <div class="ra-card-footer">
-                        @if (diasRestantes > 0 && item.PostulacionesActuales < item.CupoMaximo)
-                        {
-                            <a asp-controller="Postulaciones" asp-action="Postularse" asp-route-convocatoriaId="@item.Id" class="ra-btn ra-btn-primary w-100">
-                                <i class="bi bi-send"></i> Postularme
-                            </a>
-                        }
-                        else if (diasRestantes <= 0)
-                        {
-                            <button class="ra-btn ra-btn-outline w-100" disabled>
-                                <i class="bi bi-x-circle"></i> Convocatoria Cerrada
-                            </button>
-                        }
-                        else if (item.PostulacionesActuales >= item.CupoMaximo)
-                        {
-                            <button class="ra-btn ra-btn-outline w-100" disabled>
-                                <i class="bi bi-x-circle"></i> Sin Cupo
-                            </button>
-                        }
+                    <div class="ra-meter-track" aria-hidden="true">
+                        <div class="ra-meter-fill @(sinCupo ? "is-danger" : cierraPronto ? "is-warning" : "is-success")" style="width: @cupoPct.ToString("F0")%;"></div>
                     </div>
                 </div>
-            </div>
+
+                <div class="ra-opportunity-card-actions">
+                    @if (yaPostulado)
+                    {
+                        <a asp-controller="Postulaciones" asp-action="MisPostulaciones" class="ra-btn ra-btn-outline w-100">
+                            <i class="bi bi-send-check"></i> Ver seguimiento
+                        </a>
+                    }
+                    else if (!cerrada && !sinCupo && (!esAlumno || esElegible))
+                    {
+                        <a asp-controller="Postulaciones" asp-action="Postularse" asp-route-convocatoriaId="@item.Id" class="ra-btn ra-btn-primary w-100">
+                            <i class="bi bi-send"></i> Postularme
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="ra-btn ra-btn-outline w-100" disabled>
+                            <i class="bi bi-lock"></i> No disponible
+                        </button>
+                    }
+                </div>
+            </article>
         }
-    }
-    else
-    {
-        <div class="col-12">
-            <div class="ra-empty">
-                <i class="bi bi-inbox"></i>
-                <p>No hay convocatorias disponibles en este momento.</p>
-            </div>
-        </div>
-    }
-</div>
+    </div>
+}
+else
+{
+    <div class="ra-empty">
+        <i class="bi bi-inbox"></i>
+        <p>No hay convocatorias disponibles en este momento.</p>
+    </div>
+}
