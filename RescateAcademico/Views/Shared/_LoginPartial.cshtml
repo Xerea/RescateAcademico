@@ -5,14 +5,11 @@
 <ul class="navbar-nav align-items-center gap-1">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item dropdown">
-        <a class="nav-link position-relative px-2" href="#" role="button" data-bs-toggle="dropdown" title="Notificaciones" aria-label="Notificaciones">
+    <li class="nav-item">
+        <button type="button" class="nav-link position-relative px-2 ra-icon-nav-btn" id="raNotifTrigger" title="Notificaciones" aria-label="Abrir notificaciones" aria-expanded="false" aria-controls="raNotifPanel">
             <i class="bi bi-bell fs-5"></i>
             <span class="ra-notif-badge" style="display: none;" id="raNotifBadge">0</span>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" asp-controller="Notificaciones" asp-action="Index"><i class="bi bi-bell"></i> Ver Notificaciones</a></li>
-        </ul>
+        </button>
     </li>
 
     <li class="nav-item dropdown ms-1">

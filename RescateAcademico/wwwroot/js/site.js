@@ -110,10 +110,24 @@
         }
     };
 
-    // --- Notification Badge Polling ---
-    (function initNotificationPolling() {
+    // --- Lightweight Notification Center ---
+    (function initNotificationCenter() {
         var badgeEl = document.getElementById('raNotifBadge');
-        if (!badgeEl) return;
+        var trigger = document.getElementById('raNotifTrigger');
+        var panel = document.getElementById('raNotifPanel');
+        var scrim = document.getElementById('raNotifScrim');
+        var closeBtn = document.getElementById('raNotifClose');
+        var list = document.getElementById('raNotifList');
+        var empty = document.getElementById('raNotifEmpty');
+        var markAllBtn = document.getElementById('raNotifMarkAll');
+        var enableBrowserBtn = document.getElementById('raNotifEnableBrowser');
+        if (!badgeEl || !trigger || !panel || !list) return;
+
+        var pollTimer = null;
+        var inFlight = null;
+        var touchStartY = 0;
+        var lastCount = parseInt(window.localStorage.getItem('ra-last-notif-count') || '0', 10) || 0;
+        var lastNotifiedId = parseInt(window.localStorage.getItem('ra-last-browser-notif-id') || '0', 10) || 0;
 
         function getAntiForgeryToken() {
             var meta = document.querySelector('meta[name="request-verification-token"]');
@@ -123,32 +137,204 @@
             return input ? input.value : '';
         }
 
-        function updateBadge() {
+        function postJson(url, body) {
             var token = getAntiForgeryToken();
-            if (!token) return;
-
-            fetch('/Notificaciones/GetConteoNoLeidas', {
+            if (!token) return Promise.resolve(null);
+            if (inFlight) inFlight.abort();
+            inFlight = new AbortController();
+            return fetch(url, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
                     'X-CSRF-TOKEN': token,
-                    'Accept': 'application/json'
-                }
-            })
-                .then(function(r) { return r.ok ? r.json() : { count: 0 }; })
-                .then(function(data) {
-                    var n = parseInt(data && data.count, 10) || 0;
-                    if (n > 0) {
-                        badgeEl.textContent = n > 99 ? '99+' : n;
-                        badgeEl.style.display = 'inline-flex';
-                    } else {
-                        badgeEl.style.display = 'none';
-                    }
-                })
-                .catch(function() { /* silent */ });
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: body || '',
+                signal: inFlight.signal
+            }).then(function (r) {
+                return r.ok ? r.json() : null;
+            }).catch(function (err) {
+                if (err && err.name === 'AbortError') return null;
+                return null;
+            }).finally(function () {
+                inFlight = null;
+            });
         }
-        updateBadge();
-        setInterval(updateBadge, 30000); // every 30s
+
+        function updateBadge(count) {
+            var n = parseInt(count, 10) || 0;
+            badgeEl.textContent = n > 99 ? '99+' : n;
+            badgeEl.style.display = n > 0 ? 'inline-flex' : 'none';
+            trigger.setAttribute('aria-label', n > 0 ? 'Abrir notificaciones, ' + n + ' sin leer' : 'Abrir notificaciones');
+            window.localStorage.setItem('ra-last-notif-count', String(n));
+        }
+
+        function iconForType(type) {
+            var t = (type || '').toLowerCase();
+            if (t.indexOf('error') >= 0) return 'var(--ra-danger)';
+            if (t.indexOf('advert') >= 0) return 'var(--ra-warning)';
+            if (t.indexOf('exito') >= 0 || t.indexOf('éxito') >= 0) return 'var(--ra-success)';
+            return 'var(--ra-primary)';
+        }
+
+        function renderNotifications(items) {
+            list.replaceChildren();
+            var notifications = Array.isArray(items) ? items : [];
+            if (empty) empty.hidden = notifications.length !== 0;
+            if (!notifications.length) return;
+
+            notifications.forEach(function (item) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ra-notif-item ' + (item.leida ? 'read' : 'unread');
+                btn.dataset.id = item.id;
+                btn.dataset.href = item.enlace || '/Notificaciones';
+
+                var dot = document.createElement('span');
+                dot.className = 'ra-notif-dot';
+                dot.style.background = item.leida ? 'var(--ra-border)' : iconForType(item.tipo);
+                btn.appendChild(dot);
+
+                var content = document.createElement('span');
+                content.style.flex = '1';
+                var title = document.createElement('span');
+                title.className = 'ra-notif-title d-block';
+                title.textContent = item.titulo || 'Notificación';
+                var message = document.createElement('p');
+                message.className = 'ra-notif-message';
+                message.textContent = item.mensaje || '';
+                var time = document.createElement('span');
+                time.className = 'ra-notif-time d-block';
+                time.textContent = item.relativa || item.fecha || '';
+                content.appendChild(title);
+                content.appendChild(message);
+                content.appendChild(time);
+                btn.appendChild(content);
+
+                btn.addEventListener('click', function () {
+                    var id = encodeURIComponent(btn.dataset.id || '');
+                    postJson('/Notificaciones/MarcarLeidaJson', 'id=' + id).then(function (data) {
+                        window.location.href = data && data.enlace ? data.enlace : btn.dataset.href;
+                    });
+                });
+                list.appendChild(btn);
+            });
+        }
+
+        function maybeNotifyBrowser(data) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            var items = data && Array.isArray(data.notifications) ? data.notifications : [];
+            var firstUnread = items.find(function (n) { return !n.leida; });
+            if (!firstUnread || firstUnread.id <= lastNotifiedId) return;
+            lastNotifiedId = firstUnread.id;
+            window.localStorage.setItem('ra-last-browser-notif-id', String(lastNotifiedId));
+            new Notification(firstUnread.titulo || 'Nueva notificación', {
+                body: firstUnread.mensaje || 'Tienes un aviso nuevo en Rescate Académico.',
+                tag: 'rescate-academico-' + firstUnread.id
+            });
+        }
+
+        function refreshCount() {
+            return postJson('/Notificaciones/GetConteoNoLeidas').then(function (data) {
+                if (!data) return;
+                var count = parseInt(data.count, 10) || 0;
+                if (count > lastCount && !document.hidden) {
+                    refreshList(false).then(maybeNotifyBrowser);
+                }
+                lastCount = count;
+                updateBadge(count);
+            });
+        }
+
+        function refreshList(showLoading) {
+            if (showLoading) list.innerHTML = '<div class="ra-notif-loading">Cargando notificaciones...</div>';
+            return postJson('/Notificaciones/Recientes', 'take=8').then(function (data) {
+                if (!data) return data;
+                lastCount = parseInt(data.count, 10) || 0;
+                updateBadge(lastCount);
+                renderNotifications(data.notifications);
+                return data;
+            });
+        }
+
+        function scheduleNextPoll() {
+            clearTimeout(pollTimer);
+            var interval = document.hidden ? 120000 : (lastCount > 0 ? 30000 : 60000);
+            pollTimer = setTimeout(function () {
+                refreshCount().finally(scheduleNextPoll);
+            }, interval);
+        }
+
+        function openPanel() {
+            panel.classList.add('active');
+            panel.setAttribute('aria-hidden', 'false');
+            trigger.setAttribute('aria-expanded', 'true');
+            if (scrim) { scrim.hidden = false; requestAnimationFrame(function () { scrim.classList.add('active'); }); }
+            refreshList(true);
+        }
+
+        function closePanel() {
+            panel.classList.remove('active');
+            panel.setAttribute('aria-hidden', 'true');
+            trigger.setAttribute('aria-expanded', 'false');
+            if (scrim) {
+                scrim.classList.remove('active');
+                setTimeout(function () { scrim.hidden = true; }, 180);
+            }
+        }
+
+        trigger.addEventListener('click', function () {
+            panel.classList.contains('active') ? closePanel() : openPanel();
+        });
+        if (closeBtn) closeBtn.addEventListener('click', closePanel);
+        if (scrim) scrim.addEventListener('click', closePanel);
+        panel.addEventListener('touchstart', function (e) {
+            touchStartY = e.touches && e.touches.length ? e.touches[0].clientY : 0;
+        }, { passive: true });
+        panel.addEventListener('touchend', function (e) {
+            var endY = e.changedTouches && e.changedTouches.length ? e.changedTouches[0].clientY : touchStartY;
+            if (touchStartY && endY - touchStartY > 70 && window.matchMedia('(max-width: 767.98px)').matches) {
+                closePanel();
+            }
+            touchStartY = 0;
+        }, { passive: true });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && panel.classList.contains('active')) closePanel();
+        });
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) refreshCount();
+            scheduleNextPoll();
+        });
+        window.addEventListener('pagehide', function () {
+            clearTimeout(pollTimer);
+            if (inFlight) inFlight.abort();
+        });
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', function () {
+                postJson('/Notificaciones/MarcarTodasLeidasJson').then(function () {
+                    updateBadge(0);
+                    refreshList(false);
+                });
+            });
+        }
+        if (enableBrowserBtn) {
+            if (!('Notification' in window)) {
+                enableBrowserBtn.hidden = true;
+            } else if (Notification.permission === 'granted') {
+                enableBrowserBtn.innerHTML = '<i class="bi bi-check2"></i> Avisos activos';
+            } else {
+                enableBrowserBtn.addEventListener('click', function () {
+                    Notification.requestPermission().then(function (permission) {
+                        if (permission === 'granted') {
+                            enableBrowserBtn.innerHTML = '<i class="bi bi-check2"></i> Avisos activos';
+                        }
+                    });
+                });
+            }
+        }
+
+        refreshCount().finally(scheduleNextPoll);
     })();
 
     // --- CountUp Initialization ---

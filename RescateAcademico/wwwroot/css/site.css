@@ -893,6 +893,147 @@ ra-semaforo:hover .ra-semaforo-tooltip,
   line-height: 1;
   border: 2px solid var(--ra-surface);
 }
+.ra-icon-nav-btn {
+  border: 0;
+  background: transparent;
+}
+.ra-notif-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 2040;
+  background: rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+.ra-notif-scrim.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ra-notif-panel {
+  position: fixed;
+  top: 72px;
+  right: 1rem;
+  width: min(380px, calc(100vw - 2rem));
+  max-height: min(680px, calc(100vh - 96px));
+  display: flex;
+  flex-direction: column;
+  z-index: 2050;
+  background: var(--ra-surface-raised);
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-lg);
+  box-shadow: var(--ra-shadow-xl);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.ra-notif-panel.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.ra-notif-header,
+.ra-notif-actions {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--ra-border-subtle);
+}
+.ra-notif-actions {
+  padding: 0.75rem 1rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.ra-notif-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+}
+.ra-notif-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ra-text);
+  text-align: left;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: var(--ra-radius);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.ra-notif-item:hover,
+.ra-notif-item:focus-visible {
+  background: var(--ra-border-subtle);
+  outline: none;
+}
+.ra-notif-item:active { transform: scale(0.99); }
+.ra-notif-item.unread { background: var(--ra-primary-soft); }
+.ra-notif-dot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-top: 0.35rem;
+  border-radius: 50%;
+  background: var(--ra-primary);
+}
+.ra-notif-item.read .ra-notif-dot { background: var(--ra-border); }
+.ra-notif-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+.ra-notif-message {
+  color: var(--ra-text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin: 0;
+}
+.ra-notif-time {
+  color: var(--ra-text-muted);
+  font-size: 0.72rem;
+  margin-top: 0.35rem;
+}
+.ra-notif-empty,
+.ra-notif-loading {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--ra-text-secondary);
+}
+.ra-notif-empty i {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--ra-text-muted);
+}
+.ra-notif-fallback {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--ra-border-subtle);
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ra-primary);
+}
+@media (max-width: 767.98px) {
+  .ra-notif-scrim { background: rgba(0, 0, 0, 0.4); }
+  .ra-notif-panel {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 82vh;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+  }
+  .ra-notif-panel.active {
+    transform: translateY(0);
+  }
+}
 
 /* ============================================
    FLOATING ACTION BUTTON

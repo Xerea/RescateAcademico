@@ -199,6 +199,41 @@
     <!-- Toast container -->
     <div id="raToastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
 
+    @if (isAuthenticated)
+    {
+        <!-- Lightweight notification center -->
+        <div class="ra-notif-scrim" id="raNotifScrim" hidden></div>
+        <aside class="ra-notif-panel" id="raNotifPanel" aria-label="Centro de notificaciones" aria-hidden="true">
+            <div class="ra-notif-header">
+                <div>
+                    <div class="ra-heading mb-1">Notificaciones</div>
+                    <p class="text-secondary small mb-0">Avisos recientes del sistema.</p>
+                </div>
+                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" id="raNotifClose" aria-label="Cerrar notificaciones">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="ra-notif-actions">
+                <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" id="raNotifEnableBrowser">
+                    <i class="bi bi-phone-vibrate"></i> Activar avisos
+                </button>
+                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" id="raNotifMarkAll">
+                    <i class="bi bi-check2-all"></i> Marcar leídas
+                </button>
+            </div>
+            <div class="ra-notif-list" id="raNotifList">
+                <div class="ra-notif-loading">Cargando notificaciones...</div>
+            </div>
+            <div class="ra-notif-empty" id="raNotifEmpty" hidden>
+                <i class="bi bi-bell"></i>
+                <p>No tienes notificaciones recientes.</p>
+            </div>
+            <a asp-controller="Notificaciones" asp-action="Index" class="ra-notif-fallback">
+                Ver historial completo
+            </a>
+        </aside>
+    }
+
     @if (isAuthenticated && (isAdmin || isAutoridad || isTutor))
     {
         <!-- Global search overlay -->
