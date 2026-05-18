@@ -70,14 +70,9 @@
                             bool isActiveDashboard = routeController == "Dashboard" && routeAction == "Index";
                         }
 
-                        @* Alumno · Dashboard · Mi Perfil · Convocatorias *@
+                        @* Alumno · Mi Perfil · Convocatorias *@
                         @if (isAlumno)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link @(isActiveDashboard ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
-                                    <i class="bi bi-grid-1x2"></i> Inicio
-                                </a>
-                            </li>
                             <li class="nav-item">
                                 <a class="nav-link @(routeController == "PerfilAcademico" ? "active" : "")" asp-controller="PerfilAcademico" asp-action="MiPerfil">
                                     <i class="bi bi-person-badge"></i> Mi Perfil
@@ -90,25 +85,7 @@
                             </li>
                         }
 
-                        @* Tutor · Mis Grupos · Intervenciones · Planes · Predicciones *@
-                        @if (isTutor)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link @(routeController == "Profesor" ? "active" : "")" asp-controller="Profesor" asp-action="Index">
-                                    <i class="bi bi-person-workspace"></i> Mis Grupos
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link @(routeController == "Intervenciones" ? "active" : "")" asp-controller="Intervenciones" asp-action="Index">
-                                    <i class="bi bi-clipboard-pulse"></i> Intervenciones
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link @(routeController == "PlanesMejora" ? "active" : "")" asp-controller="PlanesMejora" asp-action="Index">
-                                    <i class="bi bi-journal-check"></i> Planes
-                                </a>
-                            </li>
-                        }
+                        @* Tutor navigation is intentionally hub-first: brand + breadcrumbs return to Mis Grupos. *@
 
                         @* Autoridad · Panel · Alumnos · Reportes *@
                         @if (isAutoridad)

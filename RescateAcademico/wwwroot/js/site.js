@@ -131,7 +131,7 @@
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
-                    'RequestVerificationToken': token,
+                    'X-CSRF-TOKEN': token,
                     'Accept': 'application/json'
                 }
             })
@@ -331,7 +331,7 @@
                 }
 
                 var cfg = this._cfg || {};
-                ['profile', 'detalle', 'timeline', 'intervencion'].forEach(function (key) {
+                ['profile', 'detalle', 'timeline', 'intervencion', 'plan'].forEach(function (key) {
                     var link = modalEl.querySelector('[data-qv-link="' + key + '"]');
                     if (!link) return;
                     if (cfg[key]) {

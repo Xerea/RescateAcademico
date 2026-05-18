@@ -222,7 +222,7 @@ app.Use(async (context, next) =>
         "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.datatables.net fonts.googleapis.com www.gstatic.com; " +
         "img-src 'self' data: www.gstatic.com; " +
         "font-src 'self' cdn.jsdelivr.net fonts.gstatic.com www.gstatic.com; " +
-        "connect-src 'self' cdn.datatables.net; " +
+        "connect-src 'self' cdn.datatables.net www.google.com; " +
         "frame-src 'self' www.google.com; " +
         "frame-ancestors 'none'; " +
         "base-uri 'self'; " +

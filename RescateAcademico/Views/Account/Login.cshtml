@@ -12,14 +12,16 @@
     var autoridadPw = Configuration["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!";
     var tutorPw = Configuration["DEMO_TUTOR_PASSWORD"] ?? "Demo123!";
     var alumnoPw = Configuration["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!";
+    var recaptchaSiteKey = Configuration["RECAPTCHA_SITE_KEY"] ?? string.Empty;
+    var enforceRecaptcha = string.Equals(Configuration["ENFORCE_RECAPTCHA"], "true", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="ra-auth-bg" aria-hidden="true"></div>
 <div class="ra-auth-grid" aria-hidden="true"></div>
 
-@if (!string.IsNullOrEmpty(Configuration["RECAPTCHA_SITE_KEY"]))
+@if (enforceRecaptcha && !string.IsNullOrEmpty(recaptchaSiteKey))
 {
-    <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["RECAPTCHA_SITE_KEY"]"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=@recaptchaSiteKey"></script>
 }
 
 <div class="row justify-content-center align-items-center position-relative" style="min-height: 82vh; z-index: 1;">
@@ -182,9 +184,10 @@
             pw.addEventListener('blur', function () { hint.style.display = 'none'; });
         })();
 
-        // reCAPTCHA v3 — generate token on submit
-        var siteKey = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Configuration["RECAPTCHA_SITE_KEY"] ?? string.Empty));
-        if (siteKey) {
+        // reCAPTCHA v3 only blocks login when explicitly enforced.
+        var siteKey = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(recaptchaSiteKey));
+        var enforceRecaptcha = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(enforceRecaptcha));
+        if (enforceRecaptcha && siteKey) {
             document.forms[0].addEventListener('submit', function (e) {
                 e.preventDefault();
                 var form = this;
