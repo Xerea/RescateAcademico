@@ -1,183 +1,170 @@
-# Rescate Académico - README
+# Rescate Académico
 
-## Descripción
-Plataforma web institucional para el monitoreo y seguimiento del desempeño estudiantil del IPN. Facilita la asignación de alumnos a proyectos académicos mediante una "radiografía" visual del desempeño.
+Sistema web institucional para monitoreo de riesgo académico, seguimiento tutorial, planes de mejora, convocatorias y reportes operativos para CECyT No. 13 del Instituto Politécnico Nacional.
 
-## Tecnologías
-- ASP.NET Core MVC (.NET 8.0)
-- Entity Framework Core (SQLite local / PostgreSQL para producción)
-- ASP.NET Identity (autenticación y roles)
-- Bootstrap 5 + Bootstrap Icons + DataTables
-- Chart.js (dashboard visualizations)
-- OpenAI GPT-4o-mini (análisis narrativo de riesgo)
+Rescate Académico está construido como una aplicación ASP.NET Core MVC con autenticación por roles, dashboards por perfil de usuario y reglas transparentes para clasificar riesgo académico y probabilidad de deserción.
 
-## Cómo ejecutar localmente
+## Estado del Proyecto
 
-### Prerrequisitos
-- .NET 8.0 SDK instalado
-- Git
+Este repositorio contiene la versión MVC/Razor actualmente preparada para despliegue en Railway.
 
-### Pasos
-```bash
-# Clonar repositorio
-git clone https://github.com/Xerea/RescateAcademico.git
-cd RescateAcademico/RescateAcademico
+- Plataforma principal: ASP.NET Core 8 MVC.
+- Base local: SQLite.
+- Base en producción: PostgreSQL vía `DATABASE_URL`.
+- Despliegue: Dockerfile + Railway.
+- Datos iniciales: seeding institucional simulado para demostración y validación funcional.
+- Predicción de deserción: heurística institucional determinística.
+- IA opcional: OpenAI para análisis narrativo, no para decidir el riesgo final.
 
-# Restaurar paquetes
-dotnet restore
+## Funcionalidad Principal
 
-# Ejecutar
-dotnet run
-```
+- Autenticación con ASP.NET Identity, bloqueo por intentos fallidos y roles institucionales.
+- Roles: `Administrador`, `Autoridad`, `Tutor`, `Alumno`.
+- Paneles diferenciados por rol.
+- Semáforo de riesgo académico: `Verde`, `Amarillo`, `Rojo`.
+- Probabilidad de deserción calculada con reglas auditables.
+- Seguimiento de estudiantes por grupo asignado al profesor.
+- Intervenciones tutoriales y planes de mejora.
+- Convocatorias, postulaciones y validación de elegibilidad.
+- Notificaciones in-app con panel ligero y soporte opcional para notificaciones del navegador.
+- Reportes, estadísticas, exportaciones CSV y bitácora de auditoría.
+- Dashboard de integridad de datos para detectar inconsistencias operativas.
 
-La aplicación estará disponible en `https://localhost:5001` (o el puerto que indique la consola).
+## Arquitectura
 
-### Variables de entorno (opcionales)
-```bash
-# Contraseñas de cuentas demo (si no se establecen, usan valores por defecto)
-DEMO_ADMIN_PASSWORD=Admin123!
-DEMO_AUTORIDAD_PASSWORD=Autoridad123!
-DEMO_TUTOR_PASSWORD=Demo123!
-DEMO_ALUMNO_PASSWORD=Demo123!
-
-# OpenAI API Key para análisis con IA
-OPENAI_API_KEY=sk-...
-```
-
-### Credenciales de prueba (Demo)
-
-> **Nota importante**: Todos los datos en esta demo son **simulados** (mock data) generados para demostrar la funcionalidad del sistema. No provienen de SAES real, pero representan fielmente la estructura y tipos de datos que el sistema procesaría en producción.
-
-#### Roles institucionales
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Administrador | admin@ipn.mx | Admin123! |
-| Autoridad | autoridad@ipn.mx | Autoridad123! |
-| Profesor #1 | profesor1@ipn.mx | Demo123! |
-| Profesor #2 | profesor2@ipn.mx | Demo123! |
-
-> **Tip**: Puedes usar cualquier profesor del rango `profesor1@ipn.mx` a `profesor12@ipn.mx`. Todas las contraseñas son `Demo123!`.
-
-#### Alumnos de demostración (~308 cuentas)
-Cada alumno tiene su propia cuenta de usuario vinculada. El patrón de email sigue el formato IPN: `{inicial_nombre}{apellido_paterno}{inicial_materna}{año}00@alumno.ipn.mx` (ej. `salanisp2300@alumno.ipn.mx`). La boleta sigue el formato: `2023{secuencia:000000}`.
-
-| Boleta | Email | Contraseña | Perfil académico |
-|--------|-------|------------|------------------|
-| 2023000001 | sgarcia2300@alumno.ipn.mx | Demo123! | Verde (buen desempeño) |
-| 2023000002 | llopez2300@alumno.ipn.mx | Demo123! | Verde |
-| 2023000100 | pmartinez2300@alumno.ipn.mx | Demo123! | Amarillo (riesgo moderado) |
-| 2023000200 | jhernandez2300@alumno.ipn.mx | Demo123! | Amarillo |
-| 2023000250 | rgonzalez2300@alumno.ipn.mx | Demo123! | Rojo (alto riesgo) |
-| 2023000300 | mperez2300@alumno.ipn.mx | Demo123! | Rojo |
-
-> **Tip**: Puedes usar cualquier boleta del rango `2023000001` a `2023000308`. Todas las contraseñas son `Demo123!`.
-
-#### Distribución de datos demo
-- **~308 alumnos** en **10 grupos** del CECyT 13 (3ro a 6to semestre)
-- **12 profesores** con especialidades reales del IPN
-- **6 carreras** del CECyT 13: Administración, Contabilidad, Gastronomía, Informática, Seguridad Informática, Turismo
-- **8 proyectos** con convocatorias activas
-- **~100 postulaciones** en varios estados (Aceptado, Rechazado, En Revisión)
-- **~4,200 calificaciones** distribuidas por materia y ciclo
-- **80 intervenciones** registradas
-- **40 planes de mejora** académica
-- **25 dictámenes académicos**
-- **35 reportes COSECOVI**
-- **Predicciones ML.NET** generadas para todos los alumnos
-
-## Configuración de Base de Datos
-
-### Desarrollo local (SQLite)
-Por defecto usa SQLite (`app.db` en la carpeta del proyecto). Los datos persisten entre ejecuciones.
-
-### Producción (Railway - PostgreSQL)
-El proyecto está configurado para desplegarse automáticamente en Railway usando PostgreSQL. Solo necesitas:
-1. Crear un proyecto en Railway y vincular este repositorio de GitHub.
-2. Agregar un servicio **PostgreSQL** desde el dashboard de Railway.
-3. Railway inyectará automáticamente la variable de entorno `DATABASE_URL`.
-4. `Program.cs` detecta `DATABASE_URL` y usa `Npgsql` automáticamente. **No necesitas modificar `appsettings.json` ni `Program.cs`.**
-5. (Opcional) Agrega `OPENAI_API_KEY` en Variables para habilitar el análisis con IA.
-
-> **Nota**: El primer despliegue creará las tablas y sembrará los 300+ registros demo automáticamente. Este proceso puede tardar 8-10 minutos. Se recomienda aumentar el timeout de health checks en Railway.
-
-## Estructura del Proyecto
-```
+```text
 .
-|-- RescateAcademico/      -> Aplicacion ASP.NET Core MVC
-|   |-- Controllers/       -> Controladores MVC
-|   |-- Data/              -> DbContext y seeding demo
-|   |-- Filters/           -> Filtros MVC transversales
-|   |-- Models/            -> Entidades de dominio
-|   |-- Services/          -> Reglas de negocio y servicios internos
-|   |-- ViewModels/        -> Contratos de presentacion para Razor
-|   |-- Views/             -> Vistas Razor (.cshtml)
-|   `-- wwwroot/           -> CSS, JS, favicon y librerias cliente
-|-- docs/                  -> Documentacion, presentaciones y artefactos generados
-|-- .github/               -> Automatizaciones de GitHub
-|-- Dockerfile             -> Build de produccion para Railway
-|-- railway.toml           -> Configuracion de deploy Railway
-|-- global.json            -> Version del SDK .NET
-`-- RescateAcademico.sln   -> Solucion principal
+|-- RescateAcademico/       Aplicación ASP.NET Core MVC
+|   |-- Controllers/        Controladores MVC
+|   |-- Data/               DbContext y seeding inicial
+|   |-- Filters/            Filtros transversales, auditoría
+|   |-- Models/             Entidades de dominio
+|   |-- Services/           Reglas de negocio y servicios internos
+|   |-- ViewModels/         Contratos de presentación
+|   |-- Views/              Vistas Razor
+|   `-- wwwroot/            CSS, JavaScript y activos estáticos
+|-- .github/                Workflows y plantillas del repositorio
+|-- docs/                   Documentación complementaria
+|-- Dockerfile              Imagen de producción
+|-- railway.toml            Configuración de Railway
+|-- global.json             Versión del SDK .NET
+`-- RescateAcademico.sln    Solución principal
 ```
 
-La documentacion extendida vive en `docs/README.md`.
+## Reglas de Riesgo y Predicción
 
-## Roles del Sistema
-1. **Administrador** - Gestión completa: usuarios, alumnos, profesores, proyectos, convocatorias, reportes
-2. **Profesor** - Monitoreo de estudiantes, registro de intervenciones, radiografía académica
-3. **Alumno** - Perfil académico, postulación a convocatorias, notificaciones
-4. **Autoridad** - Estadísticas globales, reportes institucionales, revisión de postulaciones
+El sistema usa reglas explicables, no un modelo opaco.
 
-## Funcionalidades Implementadas
-- Autenticación segura con bloqueo por intentos fallidos y rate limiting
-- Gestión de roles y permisos (Administrador, Profesor, Alumno, Autoridad)
-- Radiografía académica con semáforo de riesgo (Verde/Amarillo/Rojo)
-- Catálogo de convocatorias con filtros y validación por academia
-- Sistema de postulación con validación de elegibilidad automática
-- Notificaciones automáticas en tiempo real
-- Tablero estadístico con Chart.js (distribución por carrera, semestre, riesgo)
-- Bitácora de auditoría completa con IP y user agent
-- Registro de intervenciones y seguimiento por tutor
-- Dashboard de integridad de datos con 14+ checks automáticos
-- Exportación a CSV e impresión de reportes
-- Predicción de deserción con heurísticas + análisis narrativo con OpenAI GPT-4o-mini
-- Planes de mejora académica personalizados
-- Dictámenes académicos y reportes COSECOVI
-- Panel de profesor con grupos, semáforo y historial académico tipo SAES
-- Línea de tiempo cronológica por estudiante
-- Filtros avanzados en listados con DataTables
-- Wizard de registro en 3 pasos
-- Política de privacidad completa
+### Riesgo Académico
 
-## Funcionalidades Pendientes
-- Exportación a PDF/Excel con logo institucional
-- Integración directa con SAES para datos reales
+Un alumno se clasifica como `Rojo` si cumple cualquiera de estas condiciones:
 
-## Equipo
-- Sergio: Autenticación, Roles, Ciclos Escolares, Bitácora
-- Sara: Recuperación de contraseña, Convocatorias, Postulaciones, Estadísticas
-- Alejandra: Dashboard, Perfil Académico, Notificaciones, Reportes
-- Elias: Estudiantes, Carga Masiva, Intervenciones, Integridad
-- Alexis: Seguridad, IA/ML, Alertas
+- Promedio global menor a `6.0`.
+- Dos o más materias reprobadas.
+- Más de cinco ausencias.
+- Dos o más parciales bajos.
+- Dos o más ETS presentados.
+- Dos o más recursamientos.
 
-## Notas para Desarrolladores
-- `ResetOnStartup` está en `false` en producción. No modificar.
-- El seeding de datos ocurre automáticamente al iniciar si las tablas están vacías (< 50 alumnos).
-- Las contraseñas deben cumplir: mínimo 8 caracteres, mayúscula, minúscula, dígito, símbolo, 4 caracteres únicos.
-- `RoleSeeder.cs` fue eliminado; `DemoDataSeeder` maneja todo el seeding.
+Si no es `Rojo`, se clasifica como `Amarillo` si cumple cualquiera de estas condiciones:
 
-## Seguridad Implementada
-- **[ValidateAntiForgeryToken]** en todas las acciones POST + filtro global `AutoValidateAntiforgeryToken`
-- **Rate limiting** en login: 10 intentos/minuto
-- **Security headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
-- **Cookie hardening**: HttpOnly, Secure, SameSite=Strict
-- **Antiforgery cookie**: HttpOnly, Secure, SameSite=Strict
-- **[Bind]** en todas las acciones de creación/edición para prevenir over-posting
-- **Validación de uploads**: extensión, MIME type, tamaño máximo 5 MB
-- **XSS sanitization**: `JsonSerializer.Serialize` en Chart.js, `textContent` en modales AJAX
-- **Open redirect fix**: `Url.IsLocalUrl()` en login
-- **Audit logging**: filtro `[AuditLog]` en mutaciones críticas (eliminar, bloquear, validar, IA)
-- **Contraseñas demo configurables** mediante variables de entorno
+- Promedio global menor a `7.5`.
+- Una materia reprobada.
+- Más de tres ausencias.
+- Un parcial bajo.
+- Un ETS presentado.
+- Un recursamiento.
 
----
-*Proyecto académico - IPN CECyT No. 13 - 2026*
+Si no cumple ninguna condición anterior, se clasifica como `Verde`.
+
+### Probabilidad de Deserción
+
+La probabilidad inicia en `10%` y suma pesos por indicadores académicos:
+
+- Promedio menor a `6.0`: `+45%`.
+- Promedio entre `6.0` y `6.99`: `+25%`.
+- Materias reprobadas: `+4%` por materia, hasta `20%`.
+- Recursamientos: `+5%` por recursamiento, hasta `15%`.
+- Ausencias: `+2%` por ausencia, hasta `15%`.
+- Carga académica de 7 o más materias: `+15%`.
+
+El resultado se redondea a dos decimales y se limita a un máximo de `95%`.
+
+La IA, cuando está configurada, genera una explicación narrativa basada en estos datos. No reemplaza las reglas institucionales.
+
+## Seguridad y Control de Acceso
+
+- Antiforgery global para formularios y endpoints POST.
+- Rate limiting para login, registro, postulaciones y acciones de IA.
+- Cookies `HttpOnly`, `Secure` y `SameSite=Strict`.
+- CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy y Permissions-Policy.
+- Validación de archivos por extensión, MIME type y tamaño máximo.
+- Prevención de open redirects con `Url.IsLocalUrl`.
+- Escapado en exportaciones CSV contra formula injection.
+- Bitácora de auditoría para mutaciones críticas.
+- Acceso a estudiantes centralizado por rol:
+  - Administrador y Autoridad: visibilidad institucional.
+  - Tutor: solo alumnos de sus grupos asignados.
+  - Alumno: solo su propio expediente.
+
+## Despliegue
+
+El despliegue esperado es Railway mediante el `Dockerfile` del repositorio.
+
+Railway debe proveer una base PostgreSQL y la variable `DATABASE_URL`. La aplicación detecta esa variable y usa Npgsql automáticamente. Si `DATABASE_URL` no existe, usa SQLite local configurado en `appsettings.json`.
+
+El primer arranque puede tardar más de lo normal si la base está vacía, porque se crean tablas y se siembran datos de demostración.
+
+## Variables de Entorno
+
+| Variable | Uso |
+| --- | --- |
+| `DATABASE_URL` | Conexión PostgreSQL en Railway. |
+| `OPENAI_API_KEY` | Habilita análisis narrativo con IA. |
+| `RECAPTCHA_SITE_KEY` | Llave pública de reCAPTCHA v3. |
+| `RECAPTCHA_SECRET_KEY` | Llave privada de reCAPTCHA v3. |
+| `ENFORCE_RECAPTCHA` | Si es `true`, reCAPTCHA bloquea login cuando falla. |
+| `SHOW_DEMO_CREDENTIALS` | Si es `true`, muestra credenciales demo en ambientes no locales. |
+| `DEMO_ADMIN_PASSWORD` | Contraseña semilla para administrador demo. |
+| `DEMO_AUTORIDAD_PASSWORD` | Contraseña semilla para autoridad demo. |
+| `DEMO_TUTOR_PASSWORD` | Contraseña semilla para profesores demo. |
+| `DEMO_ALUMNO_PASSWORD` | Contraseña semilla para alumnos demo. |
+| `UPLOADS_PATH` | Ruta alternativa para almacenamiento privado de archivos. |
+| `RAILWAY_VOLUME_MOUNT_PATH` | Volumen persistente en Railway para archivos subidos. |
+
+## Credenciales y Datos de Demostración
+
+Este README no publica credenciales operativas.
+
+Las credenciales de demostración son configurables por variables de entorno y solo deben mostrarse desde la aplicación en ambientes controlados. En producción, el acordeón de credenciales demo debe permanecer oculto salvo que se active explícitamente con `SHOW_DEMO_CREDENTIALS=true`.
+
+Los datos sembrados son simulados y sirven para validar flujos, roles, reportes y comportamiento del sistema. No deben presentarse como datos reales de SAES ni como información académica oficial.
+
+## Verificación de Calidad
+
+Comando principal de validación:
+
+```bash
+dotnet build .\RescateAcademico.sln
+```
+
+El objetivo para cada cambio listo para despliegue es:
+
+```text
+0 warnings
+0 errors
+```
+
+El repositorio incluye GitHub Actions para compilar la solución en `master` y en pull requests contra `master`.
+
+## Consideraciones Operativas
+
+- No se usan migraciones EF en el flujo actual; el esquema se crea con `EnsureCreated`.
+- El seeding se omite si la base ya contiene suficientes alumnos.
+- Los archivos subidos deben almacenarse en ruta privada o volumen persistente, no como activos públicos.
+- Las notificaciones del navegador dependen del permiso otorgado por el usuario y de soporte del navegador.
+- El análisis con OpenAI debe tratarse como apoyo narrativo, no como decisión automática final.
+
+## Licencia
+
+Consulta [LICENSE.txt](LICENSE.txt).
