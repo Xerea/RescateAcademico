@@ -1,0 +1,161 @@
+@using RescateAcademico.Controllers
+@model DashboardStats
+@{
+    var grupos = ViewBag.Grupos as List<string> ?? new List<string>();
+    var grupoSeleccionado = ViewBag.GrupoSeleccionado as string;
+    var scopeLabel = string.IsNullOrWhiteSpace(grupoSeleccionado) ? "Vista institucional" : $"Grupo {grupoSeleccionado}";
+    var totalBase = Math.Max(Model.TotalAlumnos, 1);
+    var riesgoAltoPct = Math.Round((double)Model.RiesgoRojo / totalBase * 100, 0);
+    var riesgoSeguimientoPct = Math.Round((double)(Model.RiesgoRojo + Model.RiesgoAmarillo) / totalBase * 100, 0);
+    var pendientesPct = Math.Round((double)Model.PostulacionesPendientes / Math.Max(Model.TotalPostulaciones, 1) * 100, 0);
+}
+
+<section class="ra-authority-hero mb-4" aria-label="Resumen de administración">
+    <div class="ra-authority-copy">
+        <span class="ra-student-eyebrow">Administración del sistema</span>
+        <h2>@scopeLabel</h2>
+        <p>Supervisión completa: alumnos, profesores, convocatorias y postulaciones. Todo concentrado para decidir con datos.</p>
+    </div>
+    <form method="get" class="ra-authority-scope" aria-label="Filtrar por grupo">
+        <label class="ra-label" for="grupoDashboard">Grupo</label>
+        <div class="d-flex gap-2">
+            <select id="grupoDashboard" name="grupo" class="ra-select" onchange="this.form.submit()">
+                <option value="">Todos los grupos</option>
+                @foreach (var grupo in grupos)
+                {
+                    <option value="@grupo" selected="@(grupoSeleccionado == grupo ? "selected" : null)">@grupo</option>
+                }
+            </select>
+            @if (!string.IsNullOrWhiteSpace(grupoSeleccionado))
+            {
+                <a asp-action="Index" class="ra-btn ra-btn-ghost" title="Limpiar grupo" aria-label="Limpiar grupo">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            }
+        </div>
+    </form>
+</section>
+
+<div class="ra-authority-priority-grid mb-4" aria-label="Prioridades">
+    <a asp-controller="Alumnos" asp-action="Index" asp-route-filtroRiesgo="Rojo" asp-route-grupo="@grupoSeleccionado" class="ra-authority-priority is-danger">
+        <span class="ra-priority-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+        <span>
+            <strong>@Model.RiesgoRojo en riesgo crítico</strong>
+            <small>@riesgoAltoPct% del alumnado necesita atención inmediata.</small>
+        </span>
+        <i class="bi bi-arrow-right-short"></i>
+    </a>
+    <a asp-controller="Postulaciones" asp-action="Todas" asp-route-estado="En Revisión" class="ra-authority-priority is-warning">
+        <span class="ra-priority-icon"><i class="bi bi-hourglass-split"></i></span>
+        <span>
+            <strong>@Model.PostulacionesPendientes postulaciones por revisar</strong>
+            <small>@pendientesPct% del total de solicitudes esperan decisión.</small>
+        </span>
+        <i class="bi bi-arrow-right-short"></i>
+    </a>
+    <a asp-controller="Convocatorias" asp-action="Todas" class="ra-authority-priority is-info">
+        <span class="ra-priority-icon"><i class="bi bi-calendar-event"></i></span>
+        <span>
+            <strong>@Model.ConvocatoriasProximasACerrar cierres próximos</strong>
+            <small>Convocatorias activas que vencen en los siguientes 30 días.</small>
+        </span>
+        <i class="bi bi-arrow-right-short"></i>
+    </a>
+</div>
+
+<div class="ra-authority-board mb-4">
+    <div class="ra-authority-kpis">
+        <a asp-controller="Alumnos" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver todos los alumnos">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-people"></i></span>
+            <strong>@Model.TotalAlumnos</strong>
+            <small>Alumnos registrados</small>
+            <em>Gestionar alumnado</em>
+        </a>
+        <a asp-controller="Estadisticas" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver tablero estadístico">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-graph-up-arrow"></i></span>
+            <strong>@Model.PromedioGeneral.ToString("F2")</strong>
+            <small>Promedio general</small>
+            <em>Ver estadísticas</em>
+        </a>
+        <a asp-controller="Autoridad" asp-action="Profesores" asp-route-estado="activos" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver profesores activos">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-person-badge"></i></span>
+            <strong>@Model.TotalTutores</strong>
+            <small>Profesores activos</small>
+            <em>Ver plantilla</em>
+        </a>
+        <a asp-controller="Postulaciones" asp-action="Todas" class="ra-authority-kpi is-link" aria-label="Revisar postulaciones pendientes">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-send-check"></i></span>
+            <strong>@Model.PostulacionesPendientes</strong>
+            <small>Postulaciones pendientes</small>
+            <em>Revisar solicitudes</em>
+        </a>
+    </div>
+    <div class="ra-authority-chart-card">
+        <div class="ra-card-header">
+            <span><i class="bi bi-pie-chart"></i> Riesgo académico</span>
+            <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" data-bs-toggle="modal" data-bs-target="#riesgoChartModal">
+                <i class="bi bi-arrows-fullscreen"></i> Ver grande
+            </button>
+        </div>
+        <div class="ra-card-body">
+            <div class="ra-chart-frame">
+                <canvas id="chartRiesgo" height="240"></canvas>
+            </div>
+            <div class="ra-risk-legend">
+                <span><i class="is-success"></i> @Model.RiesgoVerde verde</span>
+                <span><i class="is-warning"></i> @Model.RiesgoAmarillo amarillo</span>
+                <span><i class="is-danger"></i> @Model.RiesgoRojo rojo</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="riesgoChartModal" tabindex="-1" aria-labelledby="riesgoChartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content ra-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="riesgoChartModalLabel">Distribución de riesgo académico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ra-chart-modal-canvas">
+                    <canvas id="chartRiesgoGrande"></canvas>
+                </div>
+                <div class="ra-risk-legend mt-3">
+                    <span><i class="is-success"></i> Verde: seguimiento normal</span>
+                    <span><i class="is-warning"></i> Amarillo: requiere observación</span>
+                    <span><i class="is-danger"></i> Rojo: atención inmediata</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a asp-controller="Alumnos" asp-action="Index" asp-route-filtroRiesgo="Rojo" asp-route-grupo="@grupoSeleccionado" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-exclamation-triangle"></i> Ver críticos
+                </a>
+                <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="ra-card h-100">
+            <div class="ra-card-header">
+                <i class="bi bi-bar-chart"></i> Alumnos por carrera
+            </div>
+            <div class="ra-card-body">
+                <canvas id="chartCarrera" height="230"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="ra-card h-100">
+            <div class="ra-card-header">
+                <i class="bi bi-bar-chart-line"></i> Alumnos por semestre
+            </div>
+            <div class="ra-card-body">
+                <canvas id="chartSemestre" height="230"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
