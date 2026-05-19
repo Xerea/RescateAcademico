@@ -29,16 +29,20 @@ namespace RescateAcademico.Controllers
             if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
             {
                 IQueryable<Alumno> alumnoQuery = _context.Alumnos.AsQueryable();
+                IQueryable<Postulacion> postulacionQuery = _context.Postulaciones
+                    .Include(p => p.Alumno)
+                    .AsQueryable();
                 if (!string.IsNullOrEmpty(grupo))
                 {
                     alumnoQuery = alumnoQuery.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
+                    postulacionQuery = postulacionQuery.Where(p => p.Alumno != null && p.Alumno.Grupo != null && p.Alumno.Grupo.Clave == grupo);
                 }
 
                 stats.TotalAlumnos = await alumnoQuery.CountAsync();
                 stats.TotalProyectos = await _context.Proyectos.CountAsync(p => p.EstaActivo);
                 stats.TotalConvocatorias = await _context.Convocatorias.CountAsync(c => c.EstaActiva);
-                stats.TotalPostulaciones = await _context.Postulaciones.CountAsync();
-                stats.PostulacionesPendientes = await _context.Postulaciones.CountAsync(p => p.Estado == "En Revisión");
+                stats.TotalPostulaciones = await postulacionQuery.CountAsync();
+                stats.PostulacionesPendientes = await postulacionQuery.CountAsync(p => p.Estado == "En Revisión");
                 stats.AlumnosEnRiesgo = await alumnoQuery.CountAsync(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo");
                 stats.TotalTutores = await _context.Tutores.CountAsync(t => t.EstaActivo);
 
@@ -61,14 +65,14 @@ namespace RescateAcademico.Controllers
                     .ContinueWith(t => t.Result.Select(x => (x.Semestre, x.Count)).ToList());
 
                 // Autoridad-specific stats
-                stats.PromedioGeneral = alumnoQuery.Any()
+                stats.PromedioGeneral = await alumnoQuery.AnyAsync()
                     ? await alumnoQuery.AverageAsync(a => a.PromedioGlobal)
                     : 0m;
                 stats.ConvocatoriasProximasACerrar = await _context.Convocatorias
                     .CountAsync(c => c.EstaActiva && c.FechaCierre >= DateTime.Now && c.FechaCierre <= DateTime.Now.AddDays(30));
                 stats.IntervencionesRecientes = await _context.IntervencionesTutoria
                     .CountAsync(i => i.Fecha >= DateTime.Now.AddDays(-30));
-                stats.TotalGrupos = await _context.Grupos.CountAsync();
+                stats.TotalGrupos = string.IsNullOrEmpty(grupo) ? await _context.Grupos.CountAsync() : 1;
 
                 ViewBag.Grupos = await _context.Grupos
                     .Select(g => g.Clave)

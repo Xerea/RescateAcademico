@@ -33,9 +33,13 @@
     </div>
 }
 
-@if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
+@if (User.IsInRole("Autoridad"))
 {
-    var isAutoridad = User.IsInRole("Autoridad");
+    <partial name="_AutoridadDashboard" model="Model" />
+}
+else if (User.IsInRole("Administrador"))
+{
+    var isAutoridad = false;
 
     <div class="ra-card ra-card-subtle mb-4">
         <div class="ra-card-body">
@@ -391,53 +395,7 @@
 }
 
 
-@if (User.IsInRole("Autoridad"))
-{
-    <div class="ra-heading mb-3">Acciones rápidas</div>
-    <div class="row g-3">
-        <div class="col-md-3 col-6">
-            <a asp-controller="Alumnos" asp-action="Index" class="ra-action-tile text-decoration-none">
-                <span class="ra-action-icon"><i class="bi bi-people-fill"></i></span>
-                <span>
-                    <strong>Gestionar alumnos</strong>
-                    <small>Filtrar por riesgo, carrera y grupo.</small>
-                </span>
-                <i class="bi bi-arrow-right-short"></i>
-            </a>
-        </div>
-        <div class="col-md-3 col-6">
-            <a asp-controller="Postulaciones" asp-action="Todas" class="ra-action-tile text-decoration-none">
-                <span class="ra-action-icon"><i class="bi bi-send-check"></i></span>
-                <span>
-                    <strong>@Model.PostulacionesPendientes pendientes</strong>
-                    <small>Revisar y decidir postulaciones.</small>
-                </span>
-                <i class="bi bi-arrow-right-short"></i>
-            </a>
-        </div>
-        <div class="col-md-3 col-6">
-            <a asp-controller="Estadisticas" asp-action="Index" class="ra-action-tile text-decoration-none">
-                <span class="ra-action-icon"><i class="bi bi-bar-chart-line"></i></span>
-                <span>
-                    <strong>Estadísticas</strong>
-                    <small>Métricas institucionales.</small>
-                </span>
-                <i class="bi bi-arrow-right-short"></i>
-            </a>
-        </div>
-        <div class="col-md-3 col-6">
-            <a asp-controller="Autoridad" asp-action="Profesores" class="ra-action-tile text-decoration-none">
-                <span class="ra-action-icon"><i class="bi bi-person-badge"></i></span>
-                <span>
-                    <strong>@Model.TotalTutores profesores</strong>
-                    <small>Plantilla docente y grupos.</small>
-                </span>
-                <i class="bi bi-arrow-right-short"></i>
-            </a>
-        </div>
-    </div>
-}
-else if (User.IsInRole("Administrador"))
+@if (User.IsInRole("Administrador"))
 {
     <div class="row g-3">
         <div class="col-md-4">

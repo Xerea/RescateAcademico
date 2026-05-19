@@ -2,10 +2,17 @@
 @{
     ViewData["Title"] = "Postulaciones";
     Layout = "_Layout";
+    var estadoSeleccionado = ViewBag.EstadoSeleccionado as string ?? "Todos";
+    var grupoSeleccionado = ViewBag.GrupoSeleccionado as string;
+    var grupos = ViewBag.Grupos as List<string> ?? new List<string>();
+    var total = ViewBag.TotalPostulaciones as int? ?? Model.Count();
+    var pendientes = ViewBag.PostulacionesPendientes as int? ?? Model.Count(p => p.Estado == "En Revisión");
+    var aceptadas = ViewBag.PostulacionesAceptadas as int? ?? Model.Count(p => p.Estado == "Aceptado");
+    var rechazadas = ViewBag.PostulacionesRechazadas as int? ?? Model.Count(p => p.Estado == "Rechazado");
     var header = new PageHeader
     {
-        Title = "Gestión de postulaciones",
-        Subtitle = "Revisión de solicitudes estudiantiles.",
+        Title = "Postulaciones",
+        Subtitle = "Revisión de solicitudes estudiantiles con estado, grupo y decisión visible.",
         Icon = "bi-clipboard-check",
         IconVariant = "accent"
     };
@@ -13,45 +20,79 @@
 
 <partial name="_PageHeader" model="header" />
 
-<div class="ra-card">
+<section class="ra-review-summary mb-4" aria-label="Resumen de postulaciones">
+    <div>
+        <span class="ra-student-eyebrow">Revisión institucional</span>
+        <h2>@pendientes pendientes</h2>
+        <p>Prioriza solicitudes en revisión. Las decisiones están visibles y no dependen de iconos ambiguos.</p>
+    </div>
+    <div class="ra-opportunity-brief-metrics">
+        <span><strong>@total</strong><small>Total</small></span>
+        <span><strong>@aceptadas</strong><small>Aceptadas</small></span>
+        <span><strong>@rechazadas</strong><small>Rechazadas</small></span>
+    </div>
+</section>
+
+<div class="ra-card ra-filter-bar">
     <div class="ra-card-body">
-        <form method="get" class="mb-3">
-            <div class="row g-2">
+        <form method="get">
+            <div class="row g-2 align-items-end">
                 <div class="col-md-4">
+                    <label class="ra-label">Estado</label>
                     <select name="estado" class="ra-select">
-                        <option value="Todos">Todos los estados</option>
-                        <option value="En Revisión">En Revisión</option>
-                        <option value="Aceptado">Aceptado</option>
-                        <option value="Rechazado">Rechazado</option>
+                        <option value="Todos" selected="@(estadoSeleccionado == "Todos" ? "selected" : null)">Todos los estados</option>
+                        <option value="En Revisión" selected="@(estadoSeleccionado == "En Revisión" ? "selected" : null)">En revisión</option>
+                        <option value="Aceptado" selected="@(estadoSeleccionado == "Aceptado" ? "selected" : null)">Aceptado</option>
+                        <option value="Rechazado" selected="@(estadoSeleccionado == "Rechazado" ? "selected" : null)">Rechazado</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="ra-btn ra-btn-primary w-100">
-                        <i class="bi bi-filter"></i> Filtrar
+                <div class="col-md-4">
+                    <label class="ra-label">Grupo</label>
+                    <select name="grupo" class="ra-select">
+                        <option value="">Todos los grupos</option>
+                        @foreach (var grupo in grupos)
+                        {
+                            <option value="@grupo" selected="@(grupoSeleccionado == grupo ? "selected" : null)">@grupo</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="ra-btn ra-btn-primary flex-fill">
+                        <i class="bi bi-filter"></i> Aplicar
                     </button>
+                    @if (estadoSeleccionado != "Todos" || !string.IsNullOrWhiteSpace(grupoSeleccionado))
+                    {
+                        <a asp-action="Todas" class="ra-btn ra-btn-ghost" title="Limpiar filtros" aria-label="Limpiar filtros">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
                 </div>
             </div>
         </form>
+    </div>
+</div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="ra-alert ra-alert-success mb-3" role="alert">
-                <i class="bi bi-check-circle-fill fs-5"></i>
-                <div>@TempData["Success"]</div>
-            </div>
-        }
+@if (TempData["Success"] != null)
+{
+    <div class="ra-alert ra-alert-success mb-3" role="alert">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div>@TempData["Success"]</div>
+    </div>
+}
 
+<div class="ra-card">
+    <div class="ra-card-body p-0">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table ra-table ra-table-cards" id="tablaPostulaciones">
+                <table class="table ra-table ra-table-cards mb-0" id="tablaPostulaciones">
                     <thead>
                         <tr>
                             <th>Alumno</th>
                             <th>Proyecto</th>
                             <th>Fecha</th>
                             <th>Estado</th>
-                            <th data-orderable="false">Acciones</th>
+                            <th data-orderable="false">Decisión</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,6 +103,10 @@
                                     <strong>@item.Alumno?.Nombre @item.Alumno?.Apellidos</strong>
                                     <br />
                                     <span class="text-secondary small ra-mono">@item.AlumnoId</span>
+                                    @if (item.Alumno?.Grupo != null)
+                                    {
+                                        <span class="ra-badge ra-badge-neutral ms-1">@item.Alumno.Grupo.Clave</span>
+                                    }
                                 </td>
                                 <td data-label="Proyecto">@item.Proyecto?.Titulo</td>
                                 <td data-label="Fecha">@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
@@ -79,31 +124,31 @@
                                         <span class="ra-badge ra-badge-warning">En revisión</span>
                                     }
                                 </td>
-                                <td data-label="Acciones">
+                                <td data-label="Decisión">
                                     @if (item.Estado == "En Revisión")
                                     {
-                                        <div class="d-flex gap-1">
-                                            <form asp-action="CambiarEstado" method="post" class="m-0" style="display:inline;">
+                                        <div class="ra-decision-actions">
+                                            <form asp-action="CambiarEstado" method="post" class="m-0">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
                                                 <input type="hidden" name="estado" value="Aceptado" />
-                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Aceptar postulación" title="Aceptar">
-                                                    <i class="bi bi-check ra-text-success"></i>
+                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-primary">
+                                                    <i class="bi bi-check"></i> Aceptar
                                                 </button>
                                             </form>
-                                            <form asp-action="CambiarEstado" method="post" class="m-0" style="display:inline;">
+                                            <form asp-action="CambiarEstado" method="post" class="m-0">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
                                                 <input type="hidden" name="estado" value="Rechazado" />
-                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Rechazar postulación" title="Rechazar">
-                                                    <i class="bi bi-x ra-text-danger"></i>
+                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline">
+                                                    <i class="bi bi-x"></i> Rechazar
                                                 </button>
                                             </form>
                                         </div>
                                     }
                                     else
                                     {
-                                        <span class="text-secondary small">—</span>
+                                        <span class="text-secondary small">Resuelta</span>
                                     }
                                 </td>
                             </tr>
@@ -116,7 +161,7 @@
         {
             <div class="ra-empty">
                 <i class="bi bi-inbox"></i>
-                <p>No hay postulaciones registradas.</p>
+                <p>No hay postulaciones con los filtros actuales.</p>
             </div>
         }
     </div>
@@ -129,7 +174,8 @@
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
                 },
-                pageLength: 25
+                pageLength: 25,
+                order: [[2, 'desc']]
             });
         });
     </script>

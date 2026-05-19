@@ -153,7 +153,7 @@ namespace RescateAcademico.Controllers
                 Titulo = "Resultado de elegibilidad automatica",
                 Descripcion = $"Postulación enviada a '{convocatoria.Titulo}'. Promedio {alumno.PromedioGlobal:F2}, carga {alumno.CargaAcademicaActual ?? 0} materias, estado inicial En Revisión.",
                 Puntuacion = alumno.PromedioGlobal * 10,
-                Razonamiento = "Reglas aplicadas: promedio minimo, semestre, cupo, carga academica y carrera requerida.",
+                Razonamiento = "Reglas aplicadas: promedio mínimo, semestre, cupo, carga académica y carrera requerida.",
                 Mostrada = true
             });
             await _context.SaveChangesAsync();
@@ -163,18 +163,31 @@ namespace RescateAcademico.Controllers
         }
 
         [Authorize(Roles = "Administrador,Autoridad")]
-        public async Task<IActionResult> Todas(string? estado)
+        public async Task<IActionResult> Todas(string? estado, string? grupo)
         {
             var query = _context.Postulaciones
                 .Include(p => p.Alumno)
+                    .ThenInclude(a => a!.Grupo)
                 .Include(p => p.Proyecto)
                 .AsQueryable();
+
+            if (!string.IsNullOrEmpty(grupo))
+                query = query.Where(p => p.Alumno != null && p.Alumno.Grupo != null && p.Alumno.Grupo.Clave == grupo);
+
+            var scopedQuery = query;
 
             if (!string.IsNullOrEmpty(estado) && estado != "Todos")
                 query = query.Where(p => p.Estado == estado);
 
             var postulaciones = await query.OrderByDescending(p => p.FechaSolicitud).ToListAsync();
             ViewBag.Estados = new[] { "Todos", "En Revisión", "Aceptado", "Rechazado" };
+            ViewBag.EstadoSeleccionado = string.IsNullOrEmpty(estado) ? "Todos" : estado;
+            ViewBag.GrupoSeleccionado = grupo;
+            ViewBag.Grupos = await _context.Grupos.Select(g => g.Clave).Distinct().OrderBy(g => g).ToListAsync();
+            ViewBag.TotalPostulaciones = await scopedQuery.CountAsync();
+            ViewBag.PostulacionesPendientes = await scopedQuery.CountAsync(p => p.Estado == "En Revisión");
+            ViewBag.PostulacionesAceptadas = await scopedQuery.CountAsync(p => p.Estado == "Aceptado");
+            ViewBag.PostulacionesRechazadas = await scopedQuery.CountAsync(p => p.Estado == "Rechazado");
             return View(postulaciones);
         }
 
