@@ -713,7 +713,7 @@ namespace RescateAcademico.Seeders
                         Tipo = "Advertencia",
                         FechaCreacion = DateTime.Now.AddDays(-_rng.Next(1, 5)),
                         Leida = false,
-                        Enlace = "/PerfilAcademico"
+                        Enlace = "/PerfilAcademico/MiPerfil"
                     });
                 }
             }

@@ -47,7 +47,7 @@ namespace RescateAcademico.Services
                         $"Alerta de Riesgo Academico: {riesgoNuevo}",
                         GenerarMensajeRiesgo(alumno, riesgoNuevo, riesgoAnterior),
                         riesgoNuevo == "Rojo" ? "Error" : riesgoNuevo == "Amarillo" ? "Advertencia" : "Exito",
-                        "/PerfilAcademico");
+                        "/PerfilAcademico/MiPerfil");
                 }
 
                 var tutores = await _context.Grupos
