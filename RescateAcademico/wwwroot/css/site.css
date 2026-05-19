@@ -21,6 +21,7 @@
   --ra-bg: #f5f5f7;           /* Apple light gray — softer than pure white */
   --ra-surface: #ffffff;
   --ra-surface-raised: #ffffff;
+  --ra-surface-alt: #f8f8fc;
   --ra-surface-rgb: 255, 255, 255;
   --ra-border: #e5e5ea;       /* Apple system gray 5 */
   --ra-border-subtle: #f2f2f7;/* Apple system gray 6 */
@@ -78,6 +79,7 @@
   --ra-bg: #000000;
   --ra-surface: #0c0c0e;      /* iOS system gray 6 dark */
   --ra-surface-raised: #1c1c1e;/* iOS elevated surface */
+  --ra-surface-alt: #141418;
   --ra-surface-rgb: 12, 12, 14;
   --ra-border: rgba(255,255,255,0.08);
   --ra-border-subtle: rgba(255,255,255,0.04);
@@ -345,6 +347,7 @@ a:hover { color: var(--ra-primary-hover); }
 .ra-card-success { border-left: 3px solid var(--ra-success); }
 .ra-card-warning { border-left: 3px solid var(--ra-warning); }
 .ra-card-danger { border-left: 3px solid var(--ra-danger); }
+.ra-card-subtle { background: var(--ra-surface-alt, var(--ra-surface)); }
 
 /* ============================================
    STAT CARDS

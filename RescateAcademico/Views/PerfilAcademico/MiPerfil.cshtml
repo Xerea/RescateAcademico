@@ -53,12 +53,12 @@
         </div>
     </div>
 
-    <!-- What-If Calculator Trigger -->
+    <!-- Simulador Trigger -->
     <div class="mb-4">
-        <button type="button" class="ra-btn ra-btn-outline w-100 py-3" data-bs-toggle="modal" data-bs-target="#calculadoraModal">
+        <button type="button" class="ra-btn ra-btn-accent w-100 py-3" data-bs-toggle="modal" data-bs-target="#calculadoraModal">
             <i class="bi bi-calculator fs-4 me-2"></i>
-            <span class="fw-semibold">¿Cómo me va? — Simulador de Calificaciones</span>
-            <span class="d-block text-secondary small mt-1">Calcula tu promedio, riesgo y elegibilidad para convocatorias</span>
+            <span class="fw-semibold">Simulador de Impacto Académico</span>
+            <span class="d-block text-white-50 small mt-1">Simula cómo tu promedio, riesgo y elegibilidad cambian al modificar tus calificaciones</span>
         </button>
     </div>
 
@@ -248,58 +248,105 @@
         </div>
     </div>
 
-    <!-- Calculadora Modal -->
+    <div id="simContext" hidden
+         data-suma-previa="@Model.SumaPrevia.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
+         data-total-previas="@Model.TotalMateriasPrevias"
+         data-promedio-actual="@Model.Alumno.PromedioGlobal.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
+         data-riesgo-actual="@Model.NivelRiesgo"
+         data-elegibles-ahora="@Model.ConvocatoriasElegiblesAhora"
+         data-total-convocatorias="@Model.UmbralesPromedio.Count"
+         data-umbrales='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.UmbralesPromedio))'>
+    </div>
+
     <div class="modal fade" id="calculadoraModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="ra-modal-content">
                 <div class="ra-card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-calculator"></i> Simulador de Calificaciones</span>
+                    <span><i class="bi bi-calculator"></i> Simulador de Impacto Académico</span>
                     <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
                 </div>
                 <div class="ra-card-body">
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <div class="ra-heading mb-3">Tus materias actuales</div>
+                            <div class="ra-heading mb-2">Tus materias</div>
+                            <p class="small text-secondary mb-3">Modifica las calificaciones para ver el impacto en tu promedio acumulado.</p>
                             <div id="materiasInputs">
-                                @for (int i = 0; i < (Model.Alumno.CargaAcademicaActual ?? 5); i++)
+                                @foreach (var m in Model.MateriasSimulacion)
                                 {
-                                    <div class="mb-2 d-flex align-items-center gap-2">
-                                        <span class="ra-mono text-secondary small" style="width:24px;">@(i+1)</span>
-                                        <input type="number" class="ra-input calif-input" min="0" max="10" step="0.1" value="7.0" placeholder="0-10" oninput="calcularSimulacion()" />
+                                    <div class="mb-2">
+                                        <label class="small text-secondary d-block text-truncate mb-1">@m.Nombre</label>
+                                        <input type="number" class="ra-input calif-input" min="0" max="10" step="0.1"
+                                               value="@m.CalificacionActual.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                               data-inicial="@m.CalificacionActual.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
+                                               oninput="calcularSimulacion()" />
                                     </div>
                                 }
                             </div>
-                            <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost mt-2" onclick="agregarMateria()">
-                                <i class="bi bi-plus"></i> Agregar materia
-                            </button>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost flex-fill" onclick="restaurarReales()">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Restaurar reales
+                                </button>
+                                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="agregarMateria()">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="ra-card h-100 text-center">
-                                <div class="ra-card-body d-flex flex-column justify-content-center">
-                                    <div class="ra-heading mb-2">Promedio proyectado</div>
-                                    <div class="ra-stat-value" id="simPromedio" style="font-size:3rem;">7.00</div>
-                                    <div class="mb-3">
-                                        <ra-semaforo id="simSemaforo" riesgo="Amarillo" size="lg"></ra-semaforo>
+                            <div class="ra-card ra-card-subtle mb-3">
+                                <div class="ra-card-body text-center">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-5">
+                                            <div class="ra-stat-label mb-1">Promedio Actual</div>
+                                            <div class="fw-bold" style="font-size:1.5rem;" id="simPromActual">@Model.Alumno.PromedioGlobal.ToString("F2")</div>
+                                            <ra-semaforo id="simSemaforoActual" riesgo="@Model.NivelRiesgo" size="sm"></ra-semaforo>
+                                        </div>
+                                        <div class="col-2 text-center">
+                                            <i class="bi bi-arrow-right text-secondary fs-5"></i>
+                                        </div>
+                                        <div class="col-5">
+                                            <div class="ra-stat-label mb-1">Promedio Simulado</div>
+                                            <div class="fw-bold" style="font-size:1.5rem;" id="simPromNuevo">@Model.Alumno.PromedioGlobal.ToString("F2")</div>
+                                            <div class="small" id="simDelta"></div>
+                                            <ra-semaforo id="simSemaforoNuevo" riesgo="@Model.NivelRiesgo" size="sm"></ra-semaforo>
+                                        </div>
                                     </div>
-                                    <div class="ra-heading mb-2">Riesgo estimado</div>
-                                    <div class="fw-semibold mb-3" id="simRiesgoTexto">Amarillo</div>
-
-                                    <div style="height:8px;background:var(--ra-border);border-radius:4px;overflow:hidden;margin-bottom:1rem;">
-                                        <div id="simBarra" style="height:100%;width:70%;background:var(--ra-warning);transition:width 0.3s ease,background 0.3s ease;"></div>
+                                </div>
+                            </div>
+                            <div class="ra-card ra-card-subtle mb-3">
+                                <div class="ra-card-body">
+                                    <div class="ra-heading mb-2">Convocatorias elegibles</div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="small text-secondary">Con promedio actual:</span>
+                                        <span class="fw-semibold" id="simElegiblesAhora">@Model.ConvocatoriasElegiblesAhora / @Model.UmbralesPromedio.Count</span>
                                     </div>
-
-                                    <div class="ra-heading mb-2">Elegibilidad convocatorias</div>
-                                    <p class="small text-secondary mb-0" id="simElegibilidad">Promedio mínimo requerido: 7.5</p>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small text-secondary">Con promedio simulado:</span>
+                                        <span class="fw-semibold" id="simElegiblesNuevo">@Model.ConvocatoriasElegiblesAhora / @Model.UmbralesPromedio.Count</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ra-card ra-card-subtle">
+                                <div class="ra-card-body">
+                                    <div class="ra-heading mb-2">Calculadora de objetivo</div>
+                                    <p class="small text-secondary mb-2">¿Qué promedio necesitas este semestre para alcanzar tu meta?</p>
+                                    <div class="input-group input-group-sm mb-2">
+                                        <span class="input-group-text small">Quiero alcanzar</span>
+                                        <input type="number" id="simObjetivo" class="ra-input" min="0" max="10" step="0.1" value="8.0"
+                                               oninput="calcularObjetivo()" onkeydown="if(event.key==='Enter')calcularObjetivo()" />
+                                    </div>
+                                    <div class="small" id="simObjetivoResultado"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="ra-card-footer d-flex justify-content-between">
-                    <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="ra-btn ra-btn-primary" onclick="resetSimulacion()">
-                        <i class="bi bi-arrow-counterclockwise"></i> Reiniciar
-                    </button>
+                <div class="ra-card-footer d-flex gap-2 flex-wrap">
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(7.0)">7.0</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(7.5)">7.5</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(8.0)">8.0</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(8.5)">8.5</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(9.0)">9.0</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost ms-auto" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -307,6 +354,15 @@
 
     @section Scripts {
         <script>
+            var simContext = document.getElementById('simContext');
+            var sumaPrevia = parseFloat(simContext.dataset.sumaPrevia);
+            var totalPrevias = parseInt(simContext.dataset.totalPrevias);
+            var promedioActual = parseFloat(simContext.dataset.promedioActual);
+            var riesgoActual = simContext.dataset.riesgoActual;
+            var elegiblesAhora = parseInt(simContext.dataset.elegiblesAhora);
+            var totalConvocatorias = parseInt(simContext.dataset.totalConvocatorias);
+            var umbrales = JSON.parse(simContext.dataset.umbrales || '[]');
+
             function calcularSimulacion() {
                 var inputs = document.querySelectorAll('.calif-input');
                 var sum = 0, count = 0;
@@ -314,41 +370,90 @@
                     var v = parseFloat(inp.value);
                     if (!isNaN(v)) { sum += v; count++; }
                 });
-                var promedio = count > 0 ? sum / count : 0;
-                var promedioFixed = promedio.toFixed(2);
-                document.getElementById('simPromedio').textContent = promedioFixed;
+                if (count === 0) return;
 
-                var riesgo = 'Verde', color = 'var(--ra-success)';
-                if (promedio < 6) { riesgo = 'Rojo'; color = 'var(--ra-danger)'; }
-                else if (promedio < 7.5) { riesgo = 'Amarillo'; color = 'var(--ra-warning)'; }
+                var nuevaSuma = sumaPrevia + sum;
+                var nuevasMaterias = totalPrevias + count;
+                var cumulativoNuevo = nuevasMaterias > 0 ? nuevaSuma / nuevasMaterias : 0;
+                var delta = cumulativoNuevo - promedioActual;
 
-                document.getElementById('simRiesgoTexto').textContent = riesgo;
-                document.getElementById('simBarra').style.width = Math.min(promedio * 10, 100) + '%';
-                document.getElementById('simBarra').style.background = color;
+                document.getElementById('simPromNuevo').textContent = cumulativoNuevo.toFixed(2);
 
-                var sem = document.getElementById('simSemaforo');
-                sem.setAttribute('riesgo', riesgo);
+                var deltaEl = document.getElementById('simDelta');
+                if (delta >= 0.01) {
+                    deltaEl.innerHTML = '<span class="ra-text-success">+' + delta.toFixed(2) + ' <i class="bi bi-arrow-up-short"></i></span>';
+                } else if (delta <= -0.01) {
+                    deltaEl.innerHTML = '<span class="ra-text-danger">' + delta.toFixed(2) + ' <i class="bi bi-arrow-down-short"></i></span>';
+                } else {
+                    deltaEl.innerHTML = '<span class="text-secondary">0.00</span>';
+                }
 
-                var eleg = document.getElementById('simElegibilidad');
-                if (promedio >= 8.5) eleg.textContent = 'Elegible para todas las convocatorias';
-                else if (promedio >= 7.5) eleg.textContent = 'Elegible para la mayoría de convocatorias';
-                else if (promedio >= 6) eleg.textContent = 'Elegibilidad limitada — algunas convocatorias requieren 7.5+';
-                else eleg.textContent = 'No elegible para convocatorias con promedio mínimo';
+                var riesgoNuevo = cumulativoNuevo < 6.0 ? 'Rojo' : cumulativoNuevo < 7.5 ? 'Amarillo' : 'Verde';
+                document.getElementById('simSemaforoNuevo').setAttribute('riesgo', riesgoNuevo);
+
+                var elegiblesNuevo = 0;
+                umbrales.forEach(function(u) {
+                    if (u == null || cumulativoNuevo >= u) elegiblesNuevo++;
+                });
+                document.getElementById('simElegiblesNuevo').textContent = elegiblesNuevo + ' / ' + totalConvocatorias;
+
+                if (document.getElementById('simObjetivo').value) {
+                    calcularObjetivo();
+                }
             }
+
+            function calcularObjetivo() {
+                var objetivo = parseFloat(document.getElementById('simObjetivo').value);
+                if (isNaN(objetivo) || objetivo < 0 || objetivo > 10) {
+                    document.getElementById('simObjetivoResultado').innerHTML = '';
+                    return;
+                }
+                var inputs = document.querySelectorAll('.calif-input');
+                var count = inputs.length;
+                if (count === 0) return;
+
+                var targetTotal = objetivo * (totalPrevias + count);
+                var needed = targetTotal - sumaPrevia;
+                var neededAvg = needed / count;
+                var res = document.getElementById('simObjetivoResultado');
+
+                if (promedioActual >= objetivo) {
+                    res.innerHTML = '<span class="ra-text-success"><i class="bi bi-check-circle"></i> Ya tienes un promedio acumulado de ' + promedioActual.toFixed(2) + '.</span>';
+                } else if (neededAvg > 10) {
+                    res.innerHTML = '<span class="ra-text-danger"><i class="bi bi-x-circle"></i> No es posible este semestre. Necesitar&iacute;as ' + neededAvg.toFixed(1) + ' de promedio y el m&aacute;ximo es 10.</span>';
+                } else {
+                    res.innerHTML = '<span class="ra-text-primary"><i class="bi bi-bullseye"></i> Necesitas <strong>' + neededAvg.toFixed(1) + '</strong> de promedio semestral en tus ' + count + ' materias.</span>';
+                }
+            }
+
+            function restaurarReales() {
+                document.querySelectorAll('.calif-input').forEach(function(inp) {
+                    var inicial = inp.getAttribute('data-inicial');
+                    if (inicial) inp.value = inicial;
+                });
+                calcularSimulacion();
+            }
+
             function agregarMateria() {
                 var container = document.getElementById('materiasInputs');
-                var idx = container.children.length + 1;
+                var idx = container.querySelectorAll('.calif-input').length + 1;
                 var div = document.createElement('div');
-                div.className = 'mb-2 d-flex align-items-center gap-2';
-                div.innerHTML = '<span class="ra-mono text-secondary small" style="width:24px;">' + idx + '</span><input type="number" class="ra-input calif-input" min="0" max="10" step="0.1" value="7.0" placeholder="0-10" oninput="calcularSimulacion()" />';
+                div.className = 'mb-2';
+                div.innerHTML = '<label class="small text-secondary d-block text-truncate mb-1">Materia ' + idx + '</label>'
+                    + '<input type="number" class="ra-input calif-input" min="0" max="10" step="0.1" value="7.0" data-inicial="7.0" oninput="calcularSimulacion()" />';
                 container.appendChild(div);
                 calcularSimulacion();
             }
-            function resetSimulacion() {
-                document.querySelectorAll('.calif-input').forEach(function(inp) { inp.value = '7.0'; });
+
+            function aplicarPreset(valor) {
+                document.querySelectorAll('.calif-input').forEach(function(inp) {
+                    inp.value = valor.toFixed(1);
+                });
                 calcularSimulacion();
             }
+
             calcularSimulacion();
+            calcularObjetivo();
         </script>
     }
 }

@@ -124,6 +124,46 @@ namespace RescateAcademico.Controllers
 
         private PerfilAcademicoViewModel BuildPerfilViewModel(Alumno alumno, bool esTutor)
         {
+            var periodosConCalif = alumno.Calificaciones
+                .Select(c => c.Periodo)
+                .Where(p => !string.IsNullOrEmpty(p))
+                .Distinct()
+                .OrderByDescending(p => p)
+                .ToList();
+            var periodoActual = periodosConCalif.FirstOrDefault() ?? "2026-A";
+
+            var materiasPeriodoActual = alumno.Calificaciones
+                .Where(c => c.Periodo == periodoActual)
+                .ToList();
+
+            List<MateriaSimulacion> materiasSimulacion;
+            if (materiasPeriodoActual.Any())
+            {
+                materiasSimulacion = materiasPeriodoActual
+                    .Select(c => new MateriaSimulacion
+                    {
+                        Nombre = c.Materia?.Nombre ?? $"Materia {c.MateriaId}",
+                        CalificacionActual = c.Valor ?? 7.0m,
+                        TieneCalificacion = true
+                    })
+                    .ToList();
+            }
+            else
+            {
+                materiasSimulacion = Enumerable.Range(1, alumno.CargaAcademicaActual ?? 5)
+                    .Select(i => new MateriaSimulacion
+                    {
+                        Nombre = $"Materia {i}",
+                        CalificacionActual = 7.0m,
+                        TieneCalificacion = false
+                    })
+                    .ToList();
+            }
+
+            var califPrevias = alumno.Calificaciones
+                .Where(c => c.Periodo != periodoActual)
+                .ToList();
+
             return new PerfilAcademicoViewModel
             {
                 Alumno = alumno,
@@ -144,7 +184,10 @@ namespace RescateAcademico.Controllers
                     .ToList(),
                 NivelRiesgo = _riskEvaluationService.CalcularRiesgo(alumno),
                 Sugerencias = _riskEvaluationService.GenerarSugerencias(alumno),
-                EsTutor = esTutor
+                EsTutor = esTutor,
+                MateriasSimulacion = materiasSimulacion,
+                SumaPrevia = califPrevias.Sum(c => c.Valor ?? 0),
+                TotalMateriasPrevias = califPrevias.Count
             };
         }
 
@@ -172,6 +215,15 @@ namespace RescateAcademico.Controllers
                 .OrderByDescending(c => c.Puntaje)
                 .Take(3)
                 .ToList();
+
+            viewModel.UmbralesPromedio = convocatorias
+                .Select(c => c.PromedioMinimo)
+                .ToList();
+
+            viewModel.ConvocatoriasElegiblesAhora = convocatorias.Count(c =>
+                (!c.PromedioMinimo.HasValue || alumno.PromedioGlobal >= c.PromedioMinimo.Value) &&
+                (!c.SemestreMinimo.HasValue || alumno.SemestreActual >= c.SemestreMinimo.Value) &&
+                (string.IsNullOrEmpty(c.CarreraRequerida) || c.CarreraRequerida == alumno.Carrera));
         }
 
         private CompatibilidadConvocatoria EvaluarCompatibilidad(Alumno alumno, Convocatoria convocatoria)
@@ -252,6 +304,18 @@ namespace RescateAcademico.Controllers
         public decimal ProbabilidadDesercion { get; set; }
         public string NivelRiesgoPredictivo { get; set; } = "Bajo";
         public List<CompatibilidadConvocatoria> CompatibilidadConvocatorias { get; set; } = new();
+        public List<MateriaSimulacion> MateriasSimulacion { get; set; } = new();
+        public decimal SumaPrevia { get; set; }
+        public int TotalMateriasPrevias { get; set; }
+        public List<decimal?> UmbralesPromedio { get; set; } = new();
+        public int ConvocatoriasElegiblesAhora { get; set; }
+    }
+
+    public class MateriaSimulacion
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public decimal CalificacionActual { get; set; }
+        public bool TieneCalificacion { get; set; }
     }
 
     public class SemestrePromedio
