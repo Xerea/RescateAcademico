@@ -1,11 +1,24 @@
 @model IEnumerable<RescateAcademico.Models.Tutor>
 @{
-    ViewData["Title"] = "Catálogo de profesores";
+    ViewData["Title"] = "Profesores";
     Layout = "_Layout";
+
+    var gruposPorProfesor = ViewBag.GruposPorProfesor as Dictionary<int, List<Grupo>> ?? new Dictionary<int, List<Grupo>>();
+    var alumnosPorProfesor = ViewBag.AlumnosPorProfesor as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var gruposDisponibles = ViewBag.Grupos as List<string> ?? new List<string>();
+    var filtroEstado = ViewBag.FiltroEstado as string ?? "activos";
+    var filtroGrupo = ViewBag.FiltroGrupo as string;
+    var busqueda = ViewBag.Busqueda as string;
+    var totalProfesores = (int)(ViewBag.TotalProfesores ?? 0);
+    var profesoresActivos = (int)(ViewBag.ProfesoresActivos ?? 0);
+    var totalGrupos = (int)(ViewBag.TotalGrupos ?? 0);
+    var profesoresSinGrupo = (int)(ViewBag.ProfesoresSinGrupo ?? 0);
+    var totalAlumnosSupervisados = (int)(ViewBag.TotalAlumnosSupervisados ?? 0);
+    var hayFiltros = !string.IsNullOrWhiteSpace(filtroGrupo) || !string.IsNullOrWhiteSpace(busqueda) || filtroEstado != "activos";
     var header = new PageHeader
     {
-        Title = "Catálogo de profesores",
-        Subtitle = "Plantilla docente y grupos asignados.",
+        Title = "Profesores",
+        Subtitle = "Plantilla docente, cobertura por grupo y alumnos supervisados.",
         Icon = "bi-person-badge",
         IconVariant = "accent"
     };
@@ -13,30 +26,93 @@
 
 <partial name="_PageHeader" model="header" />
 
+<section class="ra-professor-hero mb-4" aria-label="Resumen de profesores">
+    <div>
+        <span class="ra-student-eyebrow">Supervisión académica</span>
+        <h2>@totalProfesores profesores visibles</h2>
+        <p>Filtra por estado o grupo para revisar cobertura docente sin abrir vistas vacías o ambiguas.</p>
+    </div>
+    <div class="ra-professor-hero-metrics">
+        <span><strong>@profesoresActivos</strong> activos</span>
+        <span><strong>@totalGrupos</strong> grupos</span>
+        <span><strong>@totalAlumnosSupervisados</strong> alumnos</span>
+    </div>
+</section>
+
+<div class="ra-card ra-filter-bar">
+    <div class="ra-card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-lg-4">
+                <label class="ra-label" for="busquedaProfesores">Buscar</label>
+                <input id="busquedaProfesores" name="busqueda" class="ra-input" value="@busqueda" placeholder="Nombre, correo, empleado o especialidad" />
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label class="ra-label" for="estadoProfesores">Estado</label>
+                <select id="estadoProfesores" name="estado" class="ra-select">
+                    <option value="activos" selected="@(filtroEstado == "activos" ? "selected" : null)">Activos</option>
+                    <option value="todos" selected="@(filtroEstado == "todos" ? "selected" : null)">Todos</option>
+                    <option value="sin-grupo" selected="@(filtroEstado == "sin-grupo" ? "selected" : null)">Activos sin grupo</option>
+                    <option value="inactivos" selected="@(filtroEstado == "inactivos" ? "selected" : null)">Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label class="ra-label" for="grupoProfesores">Grupo</label>
+                <select id="grupoProfesores" name="grupo" class="ra-select">
+                    <option value="">Todos los grupos</option>
+                    @foreach (var grupo in gruposDisponibles)
+                    {
+                        <option value="@grupo" selected="@(filtroGrupo == grupo ? "selected" : null)">@grupo</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-2 d-flex gap-2">
+                <button type="submit" class="ra-btn ra-btn-primary flex-fill">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+                @if (hayFiltros)
+                {
+                    <a asp-action="Profesores" class="ra-btn ra-btn-ghost" title="Limpiar filtros" aria-label="Limpiar filtros">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+        <div class="ra-filter-bar-footer">
+            <span class="ra-filter-count">@totalProfesores resultado(s) · @profesoresSinGrupo activo(s) sin grupo</span>
+            @if (!string.IsNullOrWhiteSpace(filtroGrupo))
+            {
+                <a asp-controller="Alumnos" asp-action="Index" asp-route-grupo="@filtroGrupo" class="ra-btn ra-btn-sm ra-btn-outline">
+                    <i class="bi bi-people"></i> Ver alumnos de @filtroGrupo
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
 <div class="row g-3 mb-4">
-    <div class="col-md-3 col-6">
-        <div class="ra-stat ra-stat-accent text-center">
-            <div class="ra-stat-label">Total profesores</div>
-            <div class="ra-stat-value">@ViewBag.TotalProfesores</div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="ra-professor-stat">
+            <span class="ra-professor-stat-icon"><i class="bi bi-person-check"></i></span>
+            <div><strong>@profesoresActivos</strong><small>Activos en la selección</small></div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="ra-stat ra-stat-success text-center">
-            <div class="ra-stat-label">Activos</div>
-            <div class="ra-stat-value">@ViewBag.ProfesoresActivos</div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="ra-professor-stat">
+            <span class="ra-professor-stat-icon"><i class="bi bi-diagram-3"></i></span>
+            <div><strong>@totalGrupos</strong><small>Grupos cubiertos</small></div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="ra-stat ra-stat-info text-center">
-            <div class="ra-stat-label">Grupos asignados</div>
-            <div class="ra-stat-value">@ViewBag.TotalGrupos</div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="ra-professor-stat">
+            <span class="ra-professor-stat-icon"><i class="bi bi-people"></i></span>
+            <div><strong>@totalAlumnosSupervisados</strong><small>Alumnos supervisados</small></div>
         </div>
     </div>
-    <div class="col-md-3 col-6">
-        <div class="ra-stat ra-stat-primary text-center">
-            <div class="ra-stat-label">Alumnos supervisados</div>
-            <div class="ra-stat-value">@ViewBag.TotalAlumnosSupervisados</div>
-        </div>
+    <div class="col-sm-6 col-xl-3">
+        <a asp-action="Profesores" asp-route-estado="sin-grupo" class="ra-professor-stat is-link">
+            <span class="ra-professor-stat-icon"><i class="bi bi-exclamation-circle"></i></span>
+            <div><strong>@profesoresSinGrupo</strong><small>Activos sin grupo</small></div>
+        </a>
     </div>
 </div>
 
@@ -48,38 +124,47 @@
                 <table class="table ra-table ra-table-cards mb-0" id="tablaProfesores">
                     <thead>
                         <tr>
-                            <th>Nombre</th>
+                            <th>Profesor</th>
                             <th>No. empleado</th>
-                            <th>Email</th>
                             <th>Especialidad</th>
-                            <th>Grupos</th>
+                            <th>Cobertura</th>
                             <th>Estado</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
+                            var tieneGrupos = gruposPorProfesor.TryGetValue(item.Id, out var gruposProfesor) && gruposProfesor.Any();
+                            var alumnosSupervisados = alumnosPorProfesor.TryGetValue(item.Id, out var totalAlumnos) ? totalAlumnos : 0;
+                            var primerGrupo = tieneGrupos ? gruposProfesor!.First().Clave : null;
                             <tr>
-                                <td data-label="Nombre">@item.Nombre @item.Apellidos</td>
-                                <td data-label="No. empleado"><span class="ra-badge ra-badge-neutral">@item.NumeroEmpleado</span></td>
-                                <td data-label="Email" class="ra-mono small">@item.Email</td>
-                                <td data-label="Especialidad">@item.Especialidad</td>
-                                <td data-label="Grupos">
-                                    @{
-                                        var grupos = ViewBag.GruposPorProfesor.ContainsKey(item.Id) ? ViewBag.GruposPorProfesor[item.Id] : null;
-                                    }
-                                    @if (grupos?.Any() == true)
+                                <td data-label="Profesor">
+                                    <div class="ra-professor-person">
+                                        <span>@($"{item.Nombre} {item.Apellidos}")</span>
+                                        <small>@item.Email</small>
+                                    </div>
+                                </td>
+                                <td data-label="No. empleado"><span class="ra-badge ra-badge-neutral">@(item.NumeroEmpleado ?? "Sin dato")</span></td>
+                                <td data-label="Especialidad">@(string.IsNullOrWhiteSpace(item.Especialidad) ? "Sin especialidad registrada" : item.Especialidad)</td>
+                                <td data-label="Cobertura">
+                                    @if (tieneGrupos)
                                     {
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach (var g in grupos)
-                                            {
-                                                <span class="ra-badge ra-badge-info">@g.Clave</span>
-                                            }
+                                        <div class="ra-professor-coverage">
+                                            <span class="ra-badge ra-badge-info">@alumnosSupervisados alumnos</span>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach (var grupoProfesor in gruposProfesor!)
+                                                {
+                                                    <a asp-controller="Alumnos" asp-action="Index" asp-route-grupo="@grupoProfesor.Clave" class="ra-badge ra-badge-neutral text-decoration-none" title="Ver alumnos de @grupoProfesor.Clave">
+                                                        @grupoProfesor.Clave
+                                                    </a>
+                                                }
+                                            </div>
                                         </div>
                                     }
                                     else
                                     {
-                                        <span class="text-secondary small">Sin grupos</span>
+                                        <span class="ra-badge ra-badge-warning">Sin grupos</span>
                                     }
                                 </td>
                                 <td data-label="Estado">
@@ -92,6 +177,18 @@
                                         <span class="ra-badge ra-badge-danger">Inactivo</span>
                                     }
                                 </td>
+                                <td data-label="Acción">
+                                    @if (primerGrupo != null)
+                                    {
+                                        <a asp-controller="Alumnos" asp-action="Index" asp-route-grupo="@primerGrupo" class="ra-btn ra-btn-sm ra-btn-outline">
+                                            <i class="bi bi-people"></i> Ver grupo
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-secondary small">Asignación pendiente</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -102,7 +199,8 @@
         {
             <div class="ra-empty">
                 <i class="bi bi-person-badge"></i>
-                <p>No hay profesores registrados.</p>
+                <p>No hay profesores que coincidan con los filtros.</p>
+                <a asp-action="Profesores" class="ra-btn ra-btn-outline mt-2">Limpiar filtros</a>
             </div>
         }
     </div>
@@ -113,7 +211,9 @@
         $(document).ready(function () {
             $('#tablaProfesores').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
-                pageLength: 25
+                pageLength: 25,
+                searching: false,
+                order: [[0, 'asc']]
             });
         });
     </script>

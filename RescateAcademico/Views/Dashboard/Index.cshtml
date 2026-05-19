@@ -463,24 +463,45 @@ else if (User.IsInRole("Administrador"))
                 Chart.defaults.borderColor = gridColor;
                 Chart.defaults.font.family = "'Inter', sans-serif";
 
-                new Chart(document.getElementById('chartRiesgo'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Verde', 'Amarillo', 'Rojo'],
-                        datasets: [{
-                            data: [@Model.RiesgoVerde, @Model.RiesgoAmarillo, @Model.RiesgoRojo],
-                            backgroundColor: [palette.success, palette.warning, palette.danger],
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '65%',
-                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } }
+                var renderRiskChart = function (elementId, cutout) {
+                    var element = document.getElementById(elementId);
+                    if (!element) {
+                        return;
                     }
-                });
+
+                    return new Chart(element, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Verde', 'Amarillo', 'Rojo'],
+                            datasets: [{
+                                data: [@Model.RiesgoVerde, @Model.RiesgoAmarillo, @Model.RiesgoRojo],
+                                backgroundColor: [palette.success, palette.warning, palette.danger],
+                                borderWidth: 0,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: cutout,
+                            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } }
+                        }
+                    });
+                };
+
+                renderRiskChart('chartRiesgo', '65%');
+
+                var riskModal = document.getElementById('riesgoChartModal');
+                var largeRiskChart = null;
+                if (riskModal) {
+                    riskModal.addEventListener('shown.bs.modal', function () {
+                        if (!largeRiskChart) {
+                            largeRiskChart = renderRiskChart('chartRiesgoGrande', '58%');
+                        } else {
+                            largeRiskChart.resize();
+                        }
+                    });
+                }
 
                 new Chart(document.getElementById('chartCarrera'), {
                     type: 'bar',

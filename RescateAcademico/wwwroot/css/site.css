@@ -1592,29 +1592,204 @@ ra-semaforo:hover .ra-semaforo-tooltip,
 }
 
 .ra-authority-kpi {
-  display: block;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.75rem;
   padding: 1rem;
   text-decoration: none;
   color: var(--ra-text);
 }
 
-.ra-authority-kpi span {
+.ra-authority-kpi strong {
   display: block;
   font-size: 1.45rem;
   line-height: 1;
   font-weight: 780;
 }
 
-.ra-authority-kpi small {
+.ra-authority-kpi small,
+.ra-authority-kpi em {
   display: block;
   margin-top: 0.3rem;
+  font-style: normal;
+}
+
+.ra-authority-kpi small {
   color: var(--ra-text-secondary);
+}
+
+.ra-authority-kpi em {
+  grid-column: 2;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ra-primary);
+}
+
+.ra-authority-kpi-icon {
+  grid-row: span 2;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ra-primary) 12%, var(--ra-surface-raised));
+  color: var(--ra-primary);
 }
 
 .ra-authority-kpi.is-link:hover {
   color: var(--ra-text);
   border-color: color-mix(in srgb, var(--ra-primary) 45%, var(--ra-border));
   transform: translateY(-1px);
+}
+
+.ra-authority-chart-card .ra-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ra-chart-frame {
+  min-height: 260px;
+}
+
+.ra-risk-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  color: var(--ra-text-secondary);
+}
+
+.ra-risk-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ra-risk-legend i {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.ra-risk-legend .is-success { background: var(--ra-success); }
+.ra-risk-legend .is-warning { background: var(--ra-warning); }
+.ra-risk-legend .is-danger { background: var(--ra-danger); }
+
+.ra-chart-modal-canvas {
+  position: relative;
+  min-height: min(58vh, 460px);
+}
+
+.ra-professor-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-lg);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ra-primary) 10%, transparent), transparent 48%),
+    var(--ra-surface);
+  box-shadow: var(--ra-shadow);
+}
+
+.ra-professor-hero h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
+  font-weight: 760;
+  color: var(--ra-text);
+}
+
+.ra-professor-hero p {
+  margin: 0.5rem 0 0;
+  max-width: 62ch;
+  color: var(--ra-text-secondary);
+}
+
+.ra-professor-hero-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.ra-professor-hero-metrics span,
+.ra-professor-stat {
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius);
+  background: var(--ra-surface-raised);
+  color: var(--ra-text);
+}
+
+.ra-professor-hero-metrics span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.ra-professor-stat {
+  min-height: 98px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  text-decoration: none;
+  box-shadow: var(--ra-shadow);
+}
+
+.ra-professor-stat.is-link:hover {
+  color: var(--ra-text);
+  border-color: color-mix(in srgb, var(--ra-warning) 45%, var(--ra-border));
+  transform: translateY(-1px);
+}
+
+.ra-professor-stat-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ra-accent) 12%, var(--ra-surface));
+  color: var(--ra-accent);
+}
+
+.ra-professor-stat strong {
+  display: block;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.ra-professor-stat small {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--ra-text-secondary);
+}
+
+.ra-professor-person span,
+.ra-professor-person small {
+  display: block;
+}
+
+.ra-professor-person span {
+  font-weight: 700;
+}
+
+.ra-professor-person small {
+  margin-top: 0.15rem;
+  color: var(--ra-text-secondary);
+}
+
+.ra-professor-coverage {
+  display: grid;
+  gap: 0.45rem;
 }
 
 .ra-decision-actions {

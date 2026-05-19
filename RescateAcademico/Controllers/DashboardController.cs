@@ -44,7 +44,12 @@ namespace RescateAcademico.Controllers
                 stats.TotalPostulaciones = await postulacionQuery.CountAsync();
                 stats.PostulacionesPendientes = await postulacionQuery.CountAsync(p => p.Estado == "En Revisión");
                 stats.AlumnosEnRiesgo = await alumnoQuery.CountAsync(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo");
-                stats.TotalTutores = await _context.Tutores.CountAsync(t => t.EstaActivo);
+                var tutoresActivosQuery = _context.Tutores.Where(t => t.EstaActivo);
+                if (!string.IsNullOrEmpty(grupo))
+                {
+                    tutoresActivosQuery = tutoresActivosQuery.Where(t => _context.Grupos.Any(g => g.Clave == grupo && g.ProfesorId == t.Id));
+                }
+                stats.TotalTutores = await tutoresActivosQuery.CountAsync();
 
                 // Chart data
                 stats.RiesgoVerde = await alumnoQuery.CountAsync(a => a.RiesgoAcademico == "Verde" || string.IsNullOrEmpty(a.RiesgoAcademico));

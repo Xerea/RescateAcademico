@@ -13,7 +13,7 @@
     <div class="ra-authority-copy">
         <span class="ra-student-eyebrow">Autoridad académica</span>
         <h2>@scopeLabel</h2>
-        <p>Una lectura rápida del estado académico: riesgo, revisión de solicitudes y cierres próximos. Menos botones, más decisiones.</p>
+        <p>Una lectura rápida del estado académico: riesgo, revisión de solicitudes y cierres próximos. Menos ruido, más decisiones.</p>
     </div>
     <form method="get" class="ra-authority-scope" aria-label="Filtrar por grupo">
         <label class="ra-label" for="grupoDashboard">Grupo</label>
@@ -64,29 +64,74 @@
 
 <div class="ra-authority-board mb-4">
     <div class="ra-authority-kpis">
-        <div class="ra-authority-kpi">
-            <span>@Model.TotalAlumnos</span>
+        <a asp-controller="Alumnos" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver alumnos visibles">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-people"></i></span>
+            <strong>@Model.TotalAlumnos</strong>
             <small>Alumnos visibles</small>
-        </div>
-        <div class="ra-authority-kpi">
-            <span>@Model.PromedioGeneral.ToString("F2")</span>
+            <em>Ver listado</em>
+        </a>
+        <a asp-controller="Estadisticas" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver estadística de promedio general">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-graph-up-arrow"></i></span>
+            <strong>@Model.PromedioGeneral.ToString("F2")</strong>
             <small>Promedio general</small>
-        </div>
-        <div class="ra-authority-kpi">
-            <span>@riesgoSeguimientoPct%</span>
+            <em>Ver desglose</em>
+        </a>
+        <a asp-controller="Estadisticas" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver distribución de seguimiento académico">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-activity"></i></span>
+            <strong>@riesgoSeguimientoPct%</strong>
             <small>Con seguimiento</small>
-        </div>
-        <a asp-controller="Autoridad" asp-action="Profesores" class="ra-authority-kpi is-link">
-            <span>@Model.TotalTutores</span>
+            <em>Ver riesgo</em>
+        </a>
+        <a asp-controller="Autoridad" asp-action="Profesores" asp-route-estado="activos" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver profesores activos">
+            <span class="ra-authority-kpi-icon"><i class="bi bi-person-badge"></i></span>
+            <strong>@Model.TotalTutores</strong>
             <small>Profesores activos</small>
+            <em>Ver plantilla</em>
         </a>
     </div>
     <div class="ra-authority-chart-card">
         <div class="ra-card-header">
-            <i class="bi bi-pie-chart"></i> Riesgo académico
+            <span><i class="bi bi-pie-chart"></i> Riesgo académico</span>
+            <button type="button" class="ra-btn ra-btn-sm ra-btn-outline" data-bs-toggle="modal" data-bs-target="#riesgoChartModal">
+                <i class="bi bi-arrows-fullscreen"></i> Ver grande
+            </button>
         </div>
         <div class="ra-card-body">
-            <canvas id="chartRiesgo" height="240"></canvas>
+            <div class="ra-chart-frame">
+                <canvas id="chartRiesgo" height="240"></canvas>
+            </div>
+            <div class="ra-risk-legend">
+                <span><i class="is-success"></i> @Model.RiesgoVerde verde</span>
+                <span><i class="is-warning"></i> @Model.RiesgoAmarillo amarillo</span>
+                <span><i class="is-danger"></i> @Model.RiesgoRojo rojo</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="riesgoChartModal" tabindex="-1" aria-labelledby="riesgoChartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content ra-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="riesgoChartModalLabel">Distribución de riesgo académico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ra-chart-modal-canvas">
+                    <canvas id="chartRiesgoGrande"></canvas>
+                </div>
+                <div class="ra-risk-legend mt-3">
+                    <span><i class="is-success"></i> Verde: seguimiento normal</span>
+                    <span><i class="is-warning"></i> Amarillo: requiere observación</span>
+                    <span><i class="is-danger"></i> Rojo: atención inmediata</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a asp-controller="Alumnos" asp-action="Index" asp-route-filtroRiesgo="Rojo" asp-route-grupo="@grupoSeleccionado" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-exclamation-triangle"></i> Ver críticos
+                </a>
+                <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
