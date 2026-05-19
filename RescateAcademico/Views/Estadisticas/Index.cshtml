@@ -2,10 +2,17 @@
 @{
     ViewData["Title"] = "Tablero estadístico";
     Layout = "_Layout";
+    var subtitle = Model.Nivel == "Carrera"
+        ? (string.IsNullOrEmpty(Model.CarreraSeleccionada) ? "Vista por carrera" : $"Carrera: {Model.CarreraSeleccionada}")
+        : "Vista institucional";
+    if (!string.IsNullOrEmpty(Model.GrupoSeleccionado))
+    {
+        subtitle += $" · Grupo: {Model.GrupoSeleccionado}";
+    }
     var header = new PageHeader
     {
         Title = "Tablero estadístico",
-        Subtitle = Model.Nivel == "Global" ? "Vista institucional" : "Vista por carrera",
+        Subtitle = subtitle,
         Icon = "bi-bar-chart-line",
         IconVariant = "accent"
     };
@@ -17,7 +24,7 @@
     <div class="ra-card-body">
         <form method="get">
             <div class="row g-2 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="ra-label">Nivel</label>
                     <select name="nivel" class="ra-select" onchange="this.form.submit()">
                         <option value="Global" selected="@(Model.Nivel == "Global" ? "selected" : null)">Global Institucional</option>
@@ -26,7 +33,7 @@
                 </div>
                 @if (Model.Nivel == "Carrera")
                 {
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="ra-label">Carrera</label>
                         <select name="carrera" class="ra-select">
                             <option value="">Seleccionar Carrera</option>
@@ -36,7 +43,20 @@
                             }
                         </select>
                     </div>
-                    <div class="col-md-2">
+                }
+                <div class="col-md-3">
+                    <label class="ra-label">Grupo</label>
+                    <select name="grupo" class="ra-select" onchange="this.form.submit()">
+                        <option value="">— Todos —</option>
+                        @foreach (var g in Model.Grupos)
+                        {
+                            <option value="@g" selected="@(Model.GrupoSeleccionado == g ? "selected" : null)">@g</option>
+                        }
+                    </select>
+                </div>
+                @if (Model.Nivel == "Carrera" || !string.IsNullOrEmpty(Model.GrupoSeleccionado))
+                {
+                    <div class="col-md-3">
                         <button type="submit" class="ra-btn ra-btn-primary w-100">Filtrar</button>
                     </div>
                 }

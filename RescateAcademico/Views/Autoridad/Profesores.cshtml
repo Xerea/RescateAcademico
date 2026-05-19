@@ -13,6 +13,33 @@
 
 <partial name="_PageHeader" model="header" />
 
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="ra-stat ra-stat-accent text-center">
+            <div class="ra-stat-label">Total profesores</div>
+            <div class="ra-stat-value">@ViewBag.TotalProfesores</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="ra-stat ra-stat-success text-center">
+            <div class="ra-stat-label">Activos</div>
+            <div class="ra-stat-value">@ViewBag.ProfesoresActivos</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="ra-stat ra-stat-info text-center">
+            <div class="ra-stat-label">Grupos asignados</div>
+            <div class="ra-stat-value">@ViewBag.TotalGrupos</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="ra-stat ra-stat-primary text-center">
+            <div class="ra-stat-label">Alumnos supervisados</div>
+            <div class="ra-stat-value">@ViewBag.TotalAlumnosSupervisados</div>
+        </div>
+    </div>
+</div>
+
 <div class="ra-card">
     <div class="ra-card-body p-0">
         @if (Model.Any())

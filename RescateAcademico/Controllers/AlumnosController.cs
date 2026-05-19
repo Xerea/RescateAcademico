@@ -20,9 +20,11 @@ namespace RescateAcademico.Controllers
         }
 
         [Authorize(Roles = "Administrador,Tutor,Autoridad")]
-        public async Task<IActionResult> Index(string? busqueda, string? filtroRiesgo, string? carrera, int? semestre)
+        public async Task<IActionResult> Index(string? busqueda, string? filtroRiesgo, string? carrera, int? semestre, string? grupo)
         {
-            var query = _studentAccessService.ApplyVisibleStudents(_context.Alumnos.AsQueryable());
+            var query = _studentAccessService.ApplyVisibleStudents(_context.Alumnos
+                .Include(a => a.Grupo)
+                .AsQueryable());
 
             if (!string.IsNullOrEmpty(busqueda))
             {
@@ -47,13 +49,20 @@ namespace RescateAcademico.Controllers
                 query = query.Where(a => a.SemestreActual == semestre.Value);
             }
 
+            if (!string.IsNullOrEmpty(grupo))
+            {
+                query = query.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
+            }
+
             ViewBag.Busqueda = busqueda;
             ViewBag.FiltroRiesgo = filtroRiesgo;
             ViewBag.FiltroCarrera = carrera;
             ViewBag.FiltroSemestre = semestre;
+            ViewBag.FiltroGrupo = grupo;
             var visibleForFilters = _studentAccessService.ApplyVisibleStudents(_context.Alumnos.AsQueryable());
             ViewBag.Carreras = await visibleForFilters.Select(a => a.Carrera).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c).ToListAsync();
             ViewBag.Semestres = await visibleForFilters.Select(a => a.SemestreActual).Distinct().OrderBy(s => s).ToListAsync();
+            ViewBag.Grupos = await _context.Grupos.Select(g => g.Clave).Distinct().OrderBy(c => c).ToListAsync();
 
             var alumnos = await query.OrderBy(a => a.Apellidos).ToListAsync();
             return View(alumnos);

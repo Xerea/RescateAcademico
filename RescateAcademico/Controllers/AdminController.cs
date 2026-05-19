@@ -457,6 +457,12 @@ namespace RescateAcademico.Controllers
         public int RiesgoRojo { get; set; }
         public List<(string Carrera, int Count)> AlumnosPorCarrera { get; set; } = new();
         public List<(int Semestre, int Count)> AlumnosPorSemestre { get; set; } = new();
+
+        // Autoridad-specific stats
+        public decimal PromedioGeneral { get; set; }
+        public int ConvocatoriasProximasACerrar { get; set; }
+        public int IntervencionesRecientes { get; set; }
+        public int TotalGrupos { get; set; }
     }
 
     public class CrearCuentaViewModel

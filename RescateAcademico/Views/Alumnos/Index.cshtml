@@ -13,6 +13,7 @@
     var filterActive = !string.IsNullOrEmpty(ViewBag.Busqueda as string)
         || !string.IsNullOrEmpty(ViewBag.FiltroRiesgo as string)
         || !string.IsNullOrEmpty(ViewBag.FiltroCarrera as string)
+        || !string.IsNullOrEmpty(ViewBag.FiltroGrupo as string)
         || ViewBag.FiltroSemestre != null;
 }
 
@@ -55,7 +56,17 @@
                         }
                     </select>
                 </div>
-                <div class="col-md-3 d-flex gap-2">
+                <div class="col-md-2">
+                    <label class="ra-label">Grupo</label>
+                    <select name="grupo" class="ra-select">
+                        <option value="">Todos</option>
+                        @foreach (var g in (ViewBag.Grupos as List<string>)!)
+                        {
+                            <option value="@g" selected="@(ViewBag.FiltroGrupo as string == g ? "selected" : null)">@g</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="ra-btn ra-btn-primary flex-fill">
                         <i class="bi bi-search"></i> Filtrar
                     </button>

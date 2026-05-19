@@ -16,7 +16,7 @@ namespace RescateAcademico.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string? nivel)
+        public async Task<IActionResult> Index(string? nivel, string? grupo)
         {
             nivel ??= "Global";
 
@@ -26,12 +26,18 @@ namespace RescateAcademico.Controllers
                 FechaActualizacion = DateTime.Now
             };
 
-            IQueryable<Alumno> queryAlumnos = _context.Alumnos;
+            IQueryable<Alumno> queryAlumnos = _context.Alumnos.Include(a => a.Grupo);
             if (nivel == "Carrera" && !string.IsNullOrEmpty(Request.Query["carrera"]))
             {
                 var carrera = Request.Query["carrera"].ToString();
                 queryAlumnos = queryAlumnos.Where(a => a.Carrera == carrera);
                 stats.CarreraSeleccionada = carrera;
+            }
+
+            if (!string.IsNullOrEmpty(grupo))
+            {
+                queryAlumnos = queryAlumnos.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
+                stats.GrupoSeleccionado = grupo;
             }
 
             var alumnos = await queryAlumnos.ToListAsync();
@@ -50,6 +56,8 @@ namespace RescateAcademico.Controllers
 
             var carreras = await _context.Carreras.Where(c => c.EstaActiva).ToListAsync();
             stats.Carreras = carreras.Select(c => c.Nombre).ToList();
+
+            stats.Grupos = await _context.Grupos.Select(g => g.Clave).Distinct().OrderBy(c => c).ToListAsync();
 
             var ciclos = await _context.CiclosEscolares.Where(c => c.EstaActivo).ToListAsync();
             stats.CiclosActivos = ciclos;
@@ -107,6 +115,7 @@ namespace RescateAcademico.Controllers
     {
         public string Nivel { get; set; } = "Global";
         public string? CarreraSeleccionada { get; set; }
+        public string? GrupoSeleccionado { get; set; }
         public int TotalAlumnos { get; set; }
         public int AlumnosActivos { get; set; }
         public decimal PromedioGeneral { get; set; }
@@ -119,6 +128,7 @@ namespace RescateAcademico.Controllers
         public int PostulacionesPendientes { get; set; }
         public DateTime FechaActualizacion { get; set; }
         public List<string> Carreras { get; set; } = new();
+        public List<string> Grupos { get; set; } = new();
         public List<CicloEscolar> CiclosActivos { get; set; } = new();
     }
 

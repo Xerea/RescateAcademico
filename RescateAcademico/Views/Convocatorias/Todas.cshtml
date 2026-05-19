@@ -2,11 +2,14 @@
 @{
     ViewData["Title"] = "Gestión de convocatorias";
     Layout = "_Layout";
-    var actionsHtml = $"<a href=\"{Url.Action("Create")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nueva convocatoria</a>";
+    var isAdmin = User.IsInRole("Administrador");
+    var actionsHtml = isAdmin
+        ? $"<a href=\"{Url.Action("Create")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nueva convocatoria</a>"
+        : null;
     var header = new PageHeader
     {
         Title = "Gestión de convocatorias",
-        Subtitle = "Publicación, validación y cierre.",
+        Subtitle = isAdmin ? "Publicación, validación y cierre." : "Consulta de convocatorias activas.",
         Icon = "bi-megaphone",
         IconVariant = "accent",
         ActionsHtml = actionsHtml
@@ -35,7 +38,10 @@
                         <th>Cierre</th>
                         <th>Validada</th>
                         <th>Activa</th>
+                        @if (isAdmin)
+                        {
                         <th data-orderable="false">Acciones</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +57,7 @@
                                 {
                                     <span class="ra-badge ra-badge-success"><i class="bi bi-check-circle"></i> Validada</span>
                                 }
-                                else
+                                else if (isAdmin)
                                 {
                                     <form asp-action="Validar" method="post" class="m-0" style="display:inline;">
                                         @Html.AntiForgeryToken()
@@ -60,6 +66,10 @@
                                             <i class="bi bi-check ra-text-success"></i> Validar
                                         </button>
                                     </form>
+                                }
+                                else
+                                {
+                                    <span class="ra-badge ra-badge-warning">Pendiente</span>
                                 }
                             </td>
                             <td data-label="Activa">
@@ -72,6 +82,8 @@
                                     <span class="ra-badge ra-badge-neutral">Inactiva</span>
                                 }
                             </td>
+                            @if (isAdmin)
+                            {
                             <td data-label="Acciones">
                                 <div class="d-flex gap-1 justify-content-end">
                                     <a asp-action="Edit" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar @item.Titulo" title="Editar">
@@ -86,6 +98,11 @@
                                     </form>
                                 </div>
                             </td>
+                            }
+                            else
+                            {
+                            <td></td>
+                            }
                         </tr>
                     }
                 </tbody>
@@ -102,6 +119,10 @@
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
                 },
                 pageLength: 25
+                @if (isAdmin)
+                {
+                <text>, columnDefs: [{ orderable: false, targets: 7 }]</text>
+                }
             });
         });
     </script>

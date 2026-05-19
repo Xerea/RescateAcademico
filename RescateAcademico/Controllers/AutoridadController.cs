@@ -28,6 +28,12 @@ namespace RescateAcademico.Controllers
                 .GroupBy(g => g.ProfesorId!.Value)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
+            ViewBag.TotalProfesores = tutores.Count;
+            ViewBag.ProfesoresActivos = tutores.Count(t => t.EstaActivo);
+            ViewBag.TotalGrupos = grupos.Count;
+            ViewBag.ProfesoresSinGrupo = tutores.Count(t => t.EstaActivo && !grupos.Any(g => g.ProfesorId == t.Id));
+            ViewBag.TotalAlumnosSupervisados = await _context.Alumnos.CountAsync();
+
             return View(tutores);
         }
     }

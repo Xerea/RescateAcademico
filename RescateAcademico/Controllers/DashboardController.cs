@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
+using RescateAcademico.Models;
 
 namespace RescateAcademico.Controllers
 {
@@ -15,7 +16,7 @@ namespace RescateAcademico.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? grupo)
         {
             // Tutors have their own dedicated hub at Profesor/Index
             if (User.IsInRole("Tutor"))
@@ -27,31 +28,53 @@ namespace RescateAcademico.Controllers
 
             if (User.IsInRole("Administrador") || User.IsInRole("Autoridad"))
             {
-                stats.TotalAlumnos = await _context.Alumnos.CountAsync();
+                IQueryable<Alumno> alumnoQuery = _context.Alumnos.AsQueryable();
+                if (!string.IsNullOrEmpty(grupo))
+                {
+                    alumnoQuery = alumnoQuery.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
+                }
+
+                stats.TotalAlumnos = await alumnoQuery.CountAsync();
                 stats.TotalProyectos = await _context.Proyectos.CountAsync(p => p.EstaActivo);
                 stats.TotalConvocatorias = await _context.Convocatorias.CountAsync(c => c.EstaActiva);
                 stats.TotalPostulaciones = await _context.Postulaciones.CountAsync();
                 stats.PostulacionesPendientes = await _context.Postulaciones.CountAsync(p => p.Estado == "En Revisión");
-                stats.AlumnosEnRiesgo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo");
+                stats.AlumnosEnRiesgo = await alumnoQuery.CountAsync(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo");
                 stats.TotalTutores = await _context.Tutores.CountAsync(t => t.EstaActivo);
 
                 // Chart data
-                stats.RiesgoVerde = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Verde" || string.IsNullOrEmpty(a.RiesgoAcademico));
-                stats.RiesgoAmarillo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Amarillo");
-                stats.RiesgoRojo = await _context.Alumnos.CountAsync(a => a.RiesgoAcademico == "Rojo");
-                stats.AlumnosPorCarrera = await _context.Alumnos
+                stats.RiesgoVerde = await alumnoQuery.CountAsync(a => a.RiesgoAcademico == "Verde" || string.IsNullOrEmpty(a.RiesgoAcademico));
+                stats.RiesgoAmarillo = await alumnoQuery.CountAsync(a => a.RiesgoAcademico == "Amarillo");
+                stats.RiesgoRojo = await alumnoQuery.CountAsync(a => a.RiesgoAcademico == "Rojo");
+                stats.AlumnosPorCarrera = await alumnoQuery
                     .Where(a => !string.IsNullOrEmpty(a.Carrera))
                     .GroupBy(a => a.Carrera!)
                     .Select(g => new { Carrera = g.Key, Count = g.Count() })
                     .OrderBy(x => x.Carrera)
                     .ToListAsync()
                     .ContinueWith(t => t.Result.Select(x => (x.Carrera, x.Count)).ToList());
-                stats.AlumnosPorSemestre = await _context.Alumnos
+                stats.AlumnosPorSemestre = await alumnoQuery
                     .GroupBy(a => a.SemestreActual)
                     .Select(g => new { Semestre = g.Key, Count = g.Count() })
                     .OrderBy(x => x.Semestre)
                     .ToListAsync()
                     .ContinueWith(t => t.Result.Select(x => (x.Semestre, x.Count)).ToList());
+
+                // Autoridad-specific stats
+                stats.PromedioGeneral = alumnoQuery.Any()
+                    ? await alumnoQuery.AverageAsync(a => a.PromedioGlobal)
+                    : 0m;
+                stats.ConvocatoriasProximasACerrar = await _context.Convocatorias
+                    .CountAsync(c => c.EstaActiva && c.FechaCierre >= DateTime.Now && c.FechaCierre <= DateTime.Now.AddDays(30));
+                stats.IntervencionesRecientes = await _context.IntervencionesTutoria
+                    .CountAsync(i => i.Fecha >= DateTime.Now.AddDays(-30));
+                stats.TotalGrupos = await _context.Grupos.CountAsync();
+
+                ViewBag.Grupos = await _context.Grupos
+                    .Select(g => g.Clave)
+                    .OrderBy(c => c)
+                    .ToListAsync();
+                ViewBag.GrupoSeleccionado = grupo;
             }
             else if (User.IsInRole("Tutor"))
             {
