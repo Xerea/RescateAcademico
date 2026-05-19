@@ -661,6 +661,7 @@ a:hover { color: var(--ra-primary-hover); }
   border: 1px solid var(--ra-border);
   border-radius: var(--ra-radius-lg);
   box-shadow: var(--ra-shadow-xl);
+  pointer-events: auto;
 }
 
 /* ============================================

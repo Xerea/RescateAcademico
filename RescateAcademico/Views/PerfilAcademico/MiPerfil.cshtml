@@ -258,7 +258,7 @@
          data-umbrales='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.UmbralesPromedio))'>
     </div>
 
-    <div class="modal fade" id="calculadoraModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="calculadoraModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="ra-modal-content">
                 <div class="ra-card-header d-flex justify-content-between align-items-center">
@@ -278,15 +278,15 @@
                                         <input type="number" class="ra-input calif-input" min="0" max="10" step="0.1"
                                                value="@m.CalificacionActual.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
                                                data-inicial="@m.CalificacionActual.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)"
-                                               oninput="calcularSimulacion()" />
+                                               oninput="window.calcularSimulacion()" />
                                     </div>
                                 }
                             </div>
                             <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost flex-fill" onclick="restaurarReales()">
+                                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost flex-fill" onclick="window.restaurarReales()">
                                     <i class="bi bi-arrow-counterclockwise"></i> Restaurar reales
                                 </button>
-                                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="agregarMateria()">
+                                <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="window.agregarMateria()">
                                     <i class="bi bi-plus"></i>
                                 </button>
                             </div>
@@ -332,7 +332,7 @@
                                     <div class="input-group input-group-sm mb-2">
                                         <span class="input-group-text small">Quiero alcanzar</span>
                                         <input type="number" id="simObjetivo" class="ra-input" min="0" max="10" step="0.1" value="8.0"
-                                               oninput="calcularObjetivo()" onkeydown="if(event.key==='Enter')calcularObjetivo()" />
+                                               oninput="window.calcularObjetivo()" onkeydown="if(event.key==='Enter')window.calcularObjetivo()" />
                                     </div>
                                     <div class="small" id="simObjetivoResultado"></div>
                                 </div>
@@ -341,11 +341,11 @@
                     </div>
                 </div>
                 <div class="ra-card-footer d-flex gap-2 flex-wrap">
-                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(7.0)">7.0</button>
-                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(7.5)">7.5</button>
-                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(8.0)">8.0</button>
-                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(8.5)">8.5</button>
-                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="aplicarPreset(9.0)">9.0</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="window.aplicarPreset(7.0)">7.0</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="window.aplicarPreset(7.5)">7.5</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="window.aplicarPreset(8.0)">8.0</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="window.aplicarPreset(8.5)">8.5</button>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" onclick="window.aplicarPreset(9.0)">9.0</button>
                     <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost ms-auto" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
@@ -354,106 +354,129 @@
 
     @section Scripts {
         <script>
-            var simContext = document.getElementById('simContext');
-            var sumaPrevia = parseFloat(simContext.dataset.sumaPrevia);
-            var totalPrevias = parseInt(simContext.dataset.totalPrevias);
-            var promedioActual = parseFloat(simContext.dataset.promedioActual);
-            var riesgoActual = simContext.dataset.riesgoActual;
-            var elegiblesAhora = parseInt(simContext.dataset.elegiblesAhora);
-            var totalConvocatorias = parseInt(simContext.dataset.totalConvocatorias);
-            var umbrales = JSON.parse(simContext.dataset.umbrales || '[]');
+            (function() {
+                var simContext = document.getElementById('simContext');
+                if (!simContext) { console.warn('[Simulador] simContext not found'); return; }
 
-            function calcularSimulacion() {
-                var inputs = document.querySelectorAll('.calif-input');
-                var sum = 0, count = 0;
-                inputs.forEach(function(inp) {
-                    var v = parseFloat(inp.value);
-                    if (!isNaN(v)) { sum += v; count++; }
-                });
-                if (count === 0) return;
+                var sumaPrevia = parseFloat(simContext.dataset.sumaPrevia) || 0;
+                var totalPrevias = parseInt(simContext.dataset.totalPrevias) || 0;
+                var promedioActual = parseFloat(simContext.dataset.promedioActual) || 0;
+                var riesgoActual = simContext.dataset.riesgoActual || 'Verde';
+                var elegiblesAhora = parseInt(simContext.dataset.elegiblesAhora) || 0;
+                var totalConvocatorias = parseInt(simContext.dataset.totalConvocatorias) || 0;
+                var umbrales = [];
+                try { umbrales = JSON.parse(simContext.dataset.umbrales || '[]'); } catch(e) { console.warn('[Simulador] Failed to parse umbrales'); }
 
-                var nuevaSuma = sumaPrevia + sum;
-                var nuevasMaterias = totalPrevias + count;
-                var cumulativoNuevo = nuevasMaterias > 0 ? nuevaSuma / nuevasMaterias : 0;
-                var delta = cumulativoNuevo - promedioActual;
+                function calcularSimulacion() {
+                    try {
+                        var inputs = document.querySelectorAll('.calif-input');
+                        var sum = 0, count = 0;
+                        inputs.forEach(function(inp) {
+                            var v = parseFloat(inp.value);
+                            if (!isNaN(v)) { sum += v; count++; }
+                        });
+                        if (count === 0) return;
 
-                document.getElementById('simPromNuevo').textContent = cumulativoNuevo.toFixed(2);
+                        var nuevaSuma = sumaPrevia + sum;
+                        var nuevasMaterias = totalPrevias + count;
+                        var cumulativoNuevo = nuevasMaterias > 0 ? nuevaSuma / nuevasMaterias : 0;
+                        var delta = cumulativoNuevo - promedioActual;
 
-                var deltaEl = document.getElementById('simDelta');
-                if (delta >= 0.01) {
-                    deltaEl.innerHTML = '<span class="ra-text-success">+' + delta.toFixed(2) + ' <i class="bi bi-arrow-up-short"></i></span>';
-                } else if (delta <= -0.01) {
-                    deltaEl.innerHTML = '<span class="ra-text-danger">' + delta.toFixed(2) + ' <i class="bi bi-arrow-down-short"></i></span>';
-                } else {
-                    deltaEl.innerHTML = '<span class="text-secondary">0.00</span>';
+                        var promNuevoEl = document.getElementById('simPromNuevo');
+                        if (promNuevoEl) promNuevoEl.textContent = cumulativoNuevo.toFixed(2);
+
+                        var deltaEl = document.getElementById('simDelta');
+                        if (deltaEl) {
+                            if (delta >= 0.01) {
+                                deltaEl.innerHTML = '<span class="ra-text-success">+' + delta.toFixed(2) + ' <i class="bi bi-arrow-up-short"></i></span>';
+                            } else if (delta <= -0.01) {
+                                deltaEl.innerHTML = '<span class="ra-text-danger">' + delta.toFixed(2) + ' <i class="bi bi-arrow-down-short"></i></span>';
+                            } else {
+                                deltaEl.innerHTML = '<span class="text-secondary">0.00</span>';
+                            }
+                        }
+
+                        var riesgoNuevo = cumulativoNuevo < 6.0 ? 'Rojo' : cumulativoNuevo < 7.5 ? 'Amarillo' : 'Verde';
+                        var semEl = document.getElementById('simSemaforoNuevo');
+                        if (semEl) semEl.setAttribute('riesgo', riesgoNuevo);
+
+                        var elegiblesNuevo = 0;
+                        umbrales.forEach(function(u) {
+                            if (u == null || cumulativoNuevo >= u) elegiblesNuevo++;
+                        });
+                        var eligEl = document.getElementById('simElegiblesNuevo');
+                        if (eligEl) eligEl.textContent = elegiblesNuevo + ' / ' + totalConvocatorias;
+
+                        if (document.getElementById('simObjetivo').value) {
+                            calcularObjetivo();
+                        }
+                    } catch(e) {
+                        console.error('[Simulador] Error in calcularSimulacion:', e);
+                    }
                 }
 
-                var riesgoNuevo = cumulativoNuevo < 6.0 ? 'Rojo' : cumulativoNuevo < 7.5 ? 'Amarillo' : 'Verde';
-                document.getElementById('simSemaforoNuevo').setAttribute('riesgo', riesgoNuevo);
+                function calcularObjetivo() {
+                    try {
+                        var objetivo = parseFloat(document.getElementById('simObjetivo').value);
+                        if (isNaN(objetivo) || objetivo < 0 || objetivo > 10) {
+                            document.getElementById('simObjetivoResultado').innerHTML = '';
+                            return;
+                        }
+                        var inputs = document.querySelectorAll('.calif-input');
+                        var count = inputs.length;
+                        if (count === 0) return;
 
-                var elegiblesNuevo = 0;
-                umbrales.forEach(function(u) {
-                    if (u == null || cumulativoNuevo >= u) elegiblesNuevo++;
-                });
-                document.getElementById('simElegiblesNuevo').textContent = elegiblesNuevo + ' / ' + totalConvocatorias;
+                        var targetTotal = objetivo * (totalPrevias + count);
+                        var needed = targetTotal - sumaPrevia;
+                        var neededAvg = needed / count;
+                        var res = document.getElementById('simObjetivoResultado');
+                        if (!res) return;
 
-                if (document.getElementById('simObjetivo').value) {
-                    calcularObjetivo();
+                        if (promedioActual >= objetivo) {
+                            res.innerHTML = '<span class="ra-text-success"><i class="bi bi-check-circle"></i> Ya tienes un promedio acumulado de ' + promedioActual.toFixed(2) + '.</span>';
+                        } else if (neededAvg > 10) {
+                            res.innerHTML = '<span class="ra-text-danger"><i class="bi bi-x-circle"></i> No es posible este semestre. Necesitar&iacute;as ' + neededAvg.toFixed(1) + ' de promedio y el m&aacute;ximo es 10.</span>';
+                        } else {
+                            res.innerHTML = '<span class="ra-text-primary"><i class="bi bi-bullseye"></i> Necesitas <strong>' + neededAvg.toFixed(1) + '</strong> de promedio semestral en tus ' + count + ' materias.</span>';
+                        }
+                    } catch(e) {
+                        console.error('[Simulador] Error in calcularObjetivo:', e);
+                    }
                 }
-            }
 
-            function calcularObjetivo() {
-                var objetivo = parseFloat(document.getElementById('simObjetivo').value);
-                if (isNaN(objetivo) || objetivo < 0 || objetivo > 10) {
-                    document.getElementById('simObjetivoResultado').innerHTML = '';
-                    return;
-                }
-                var inputs = document.querySelectorAll('.calif-input');
-                var count = inputs.length;
-                if (count === 0) return;
+                window.restaurarReales = function() {
+                    document.querySelectorAll('.calif-input').forEach(function(inp) {
+                        var inicial = inp.getAttribute('data-inicial');
+                        if (inicial) inp.value = inicial;
+                    });
+                    calcularSimulacion();
+                };
 
-                var targetTotal = objetivo * (totalPrevias + count);
-                var needed = targetTotal - sumaPrevia;
-                var neededAvg = needed / count;
-                var res = document.getElementById('simObjetivoResultado');
+                window.agregarMateria = function() {
+                    var container = document.getElementById('materiasInputs');
+                    if (!container) return;
+                    var idx = container.querySelectorAll('.calif-input').length + 1;
+                    var div = document.createElement('div');
+                    div.className = 'mb-2';
+                    div.innerHTML = '<label class="small text-secondary d-block text-truncate mb-1">Materia ' + idx + '</label>'
+                        + '<input type="number" class="ra-input calif-input" min="0" max="10" step="0.1" value="7.0" data-inicial="7.0" oninput="window.calcularSimulacion()" />';
+                    container.appendChild(div);
+                    calcularSimulacion();
+                };
 
-                if (promedioActual >= objetivo) {
-                    res.innerHTML = '<span class="ra-text-success"><i class="bi bi-check-circle"></i> Ya tienes un promedio acumulado de ' + promedioActual.toFixed(2) + '.</span>';
-                } else if (neededAvg > 10) {
-                    res.innerHTML = '<span class="ra-text-danger"><i class="bi bi-x-circle"></i> No es posible este semestre. Necesitar&iacute;as ' + neededAvg.toFixed(1) + ' de promedio y el m&aacute;ximo es 10.</span>';
-                } else {
-                    res.innerHTML = '<span class="ra-text-primary"><i class="bi bi-bullseye"></i> Necesitas <strong>' + neededAvg.toFixed(1) + '</strong> de promedio semestral en tus ' + count + ' materias.</span>';
-                }
-            }
+                window.aplicarPreset = function(valor) {
+                    document.querySelectorAll('.calif-input').forEach(function(inp) {
+                        inp.value = valor.toFixed(1);
+                    });
+                    calcularSimulacion();
+                };
 
-            function restaurarReales() {
-                document.querySelectorAll('.calif-input').forEach(function(inp) {
-                    var inicial = inp.getAttribute('data-inicial');
-                    if (inicial) inp.value = inicial;
-                });
+                window.calcularSimulacion = calcularSimulacion;
+                window.calcularObjetivo = calcularObjetivo;
+
                 calcularSimulacion();
-            }
-
-            function agregarMateria() {
-                var container = document.getElementById('materiasInputs');
-                var idx = container.querySelectorAll('.calif-input').length + 1;
-                var div = document.createElement('div');
-                div.className = 'mb-2';
-                div.innerHTML = '<label class="small text-secondary d-block text-truncate mb-1">Materia ' + idx + '</label>'
-                    + '<input type="number" class="ra-input calif-input" min="0" max="10" step="0.1" value="7.0" data-inicial="7.0" oninput="calcularSimulacion()" />';
-                container.appendChild(div);
-                calcularSimulacion();
-            }
-
-            function aplicarPreset(valor) {
-                document.querySelectorAll('.calif-input').forEach(function(inp) {
-                    inp.value = valor.toFixed(1);
-                });
-                calcularSimulacion();
-            }
-
-            calcularSimulacion();
-            calcularObjetivo();
+                calcularObjetivo();
+            })();
         </script>
     }
 }
