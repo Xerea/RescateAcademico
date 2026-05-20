@@ -73,9 +73,22 @@ namespace RescateAcademico.Controllers
                 stats.PromedioGeneral = await alumnoQuery.AnyAsync()
                     ? await alumnoQuery.AverageAsync(a => a.PromedioGlobal)
                     : 0m;
+                stats.AlumnosPromedioCritico = await alumnoQuery.CountAsync(a => a.PromedioGlobal < 6m);
+                stats.AlumnosPromedioObservacion = await alumnoQuery.CountAsync(a => a.PromedioGlobal >= 6m && a.PromedioGlobal < 7.5m);
+                stats.AlumnosPromedioSolido = await alumnoQuery.CountAsync(a => a.PromedioGlobal >= 7.5m);
+                stats.AlumnosConMateriasReprobadas = await alumnoQuery.CountAsync(a => (a.MateriasReprobadas ?? 0) > 0);
+                stats.AlumnosConAusencias = await alumnoQuery.CountAsync(a => (a.Ausencias ?? 0) > 0);
                 stats.ConvocatoriasProximasACerrar = await _context.Convocatorias
                     .CountAsync(c => c.EstaActiva && c.FechaCierre >= DateTime.Now && c.FechaCierre <= DateTime.Now.AddDays(30));
-                stats.IntervencionesRecientes = await _context.IntervencionesTutoria
+                var intervencionesQuery = _context.IntervencionesTutoria
+                    .Include(i => i.Alumno)
+                    .AsQueryable();
+                if (!string.IsNullOrEmpty(grupo))
+                {
+                    intervencionesQuery = intervencionesQuery
+                        .Where(i => i.Alumno != null && i.Alumno.Grupo != null && i.Alumno.Grupo.Clave == grupo);
+                }
+                stats.IntervencionesRecientes = await intervencionesQuery
                     .CountAsync(i => i.Fecha >= DateTime.Now.AddDays(-30));
                 stats.TotalGrupos = string.IsNullOrEmpty(grupo) ? await _context.Grupos.CountAsync() : 1;
 

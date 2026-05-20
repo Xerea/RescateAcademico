@@ -326,51 +326,57 @@ else if (User.IsInRole("Administrador"))
                     });
                 }
 
-                new Chart(document.getElementById('chartCarrera'), {
-                    type: 'bar',
-                    data: {
-                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorCarrera.Select(c => c.Carrera))),
-                        datasets: [{
-                            label: 'Alumnos',
-                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorCarrera.Select(c => c.Count))),
-                            backgroundColor: palette.primary,
-                            borderRadius: 6,
-                            barThickness: 24
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: gridColor } },
-                            x: { grid: { display: false } }
+                var chartCarrera = document.getElementById('chartCarrera');
+                if (chartCarrera) {
+                    new Chart(chartCarrera, {
+                        type: 'bar',
+                        data: {
+                            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorCarrera.Select(c => c.Carrera))),
+                            datasets: [{
+                                label: 'Alumnos',
+                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorCarrera.Select(c => c.Count))),
+                                backgroundColor: palette.primary,
+                                borderRadius: 6,
+                                barThickness: 24
+                            }]
                         },
-                        plugins: { legend: { display: false } }
-                    }
-                });
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: gridColor } },
+                                x: { grid: { display: false } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
 
-                new Chart(document.getElementById('chartSemestre'), {
-                    type: 'bar',
-                    data: {
-                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => "Sem " + s.Semestre))),
-                        datasets: [{
-                            label: 'Alumnos',
-                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => s.Count))),
-                            backgroundColor: palette.accent,
-                            borderRadius: 6,
-                            barThickness: 24
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: gridColor } },
-                            x: { grid: { display: false } }
+                var chartSemestre = document.getElementById('chartSemestre');
+                if (chartSemestre) {
+                    new Chart(chartSemestre, {
+                        type: 'bar',
+                        data: {
+                            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => "Sem " + s.Semestre))),
+                            datasets: [{
+                                label: 'Alumnos',
+                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AlumnosPorSemestre.Select(s => s.Count))),
+                                backgroundColor: palette.accent,
+                                borderRadius: 6,
+                                barThickness: 24
+                            }]
                         },
-                        plugins: { legend: { display: false } }
-                    }
-                });
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: gridColor } },
+                                x: { grid: { display: false } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
             })();
             </text>
         }

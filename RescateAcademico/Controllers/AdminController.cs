@@ -460,6 +460,11 @@ namespace RescateAcademico.Controllers
 
         // Autoridad-specific stats
         public decimal PromedioGeneral { get; set; }
+        public int AlumnosPromedioCritico { get; set; }
+        public int AlumnosPromedioObservacion { get; set; }
+        public int AlumnosPromedioSolido { get; set; }
+        public int AlumnosConMateriasReprobadas { get; set; }
+        public int AlumnosConAusencias { get; set; }
         public int ConvocatoriasProximasACerrar { get; set; }
         public int IntervencionesRecientes { get; set; }
         public int TotalGrupos { get; set; }

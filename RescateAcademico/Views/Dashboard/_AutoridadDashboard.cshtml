@@ -7,6 +7,11 @@
     var totalBase = Math.Max(Model.TotalAlumnos, 1);
     var riesgoAltoPct = Math.Round((double)Model.RiesgoRojo / totalBase * 100, 0);
     var riesgoSeguimientoPct = Math.Round((double)(Model.RiesgoRojo + Model.RiesgoAmarillo) / totalBase * 100, 0);
+    var promedioCriticoPct = Math.Round((double)Model.AlumnosPromedioCritico / totalBase * 100, 0);
+    var promedioObservacionPct = Math.Round((double)Model.AlumnosPromedioObservacion / totalBase * 100, 0);
+    var promedioSolidoPct = Math.Round((double)Model.AlumnosPromedioSolido / totalBase * 100, 0);
+    var reprobadasPct = Math.Round((double)Model.AlumnosConMateriasReprobadas / totalBase * 100, 0);
+    var ausenciasPct = Math.Round((double)Model.AlumnosConAusencias / totalBase * 100, 0);
 }
 
 <section class="ra-authority-hero mb-4" aria-label="Resumen institucional">
@@ -70,18 +75,18 @@
             <small>Alumnos visibles</small>
             <em>Ver listado</em>
         </a>
-        <a asp-controller="Estadisticas" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver estadística de promedio general">
+        <button type="button" class="ra-authority-kpi is-link" data-bs-toggle="modal" data-bs-target="#promedioModal" aria-label="Ver detalle de promedio general">
             <span class="ra-authority-kpi-icon"><i class="bi bi-graph-up-arrow"></i></span>
             <strong>@Model.PromedioGeneral.ToString("F2")</strong>
             <small>Promedio general</small>
-            <em>Ver desglose</em>
-        </a>
-        <a asp-controller="Estadisticas" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver distribución de seguimiento académico">
+            <em>Analizar promedio</em>
+        </button>
+        <button type="button" class="ra-authority-kpi is-link" data-bs-toggle="modal" data-bs-target="#seguimientoModal" aria-label="Ver detalle de seguimiento académico">
             <span class="ra-authority-kpi-icon"><i class="bi bi-activity"></i></span>
             <strong>@riesgoSeguimientoPct%</strong>
             <small>Con seguimiento</small>
-            <em>Ver riesgo</em>
-        </a>
+            <em>Ver señales</em>
+        </button>
         <a asp-controller="Autoridad" asp-action="Profesores" asp-route-estado="activos" asp-route-grupo="@grupoSeleccionado" class="ra-authority-kpi is-link" aria-label="Ver profesores activos">
             <span class="ra-authority-kpi-icon"><i class="bi bi-person-badge"></i></span>
             <strong>@Model.TotalTutores</strong>
@@ -136,25 +141,177 @@
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-6">
-        <div class="ra-card h-100">
-            <div class="ra-card-header">
-                <i class="bi bi-bar-chart"></i> Alumnos por carrera
+<div class="modal fade" id="promedioModal" tabindex="-1" aria-labelledby="promedioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content ra-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="promedioModalLabel">Lectura del promedio general</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="ra-card-body">
-                <canvas id="chartCarrera" height="230"></canvas>
+            <div class="modal-body">
+                <div class="ra-authority-insight-hero">
+                    <div>
+                        <span class="ra-student-eyebrow">@scopeLabel</span>
+                        <strong>@Model.PromedioGeneral.ToString("F2")</strong>
+                        <small>Promedio general del alumnado visible</small>
+                    </div>
+                    <a asp-controller="Estadisticas" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-btn ra-btn-outline">
+                        <i class="bi bi-bar-chart"></i> Abrir tablero estadístico
+                    </a>
+                </div>
+                <div class="ra-metric-bars mt-3">
+                    <div class="ra-metric-bar">
+                        <div><span>Promedio crítico</span><strong>@Model.AlumnosPromedioCritico alumnos</strong></div>
+                        <div class="ra-metric-track"><span class="is-danger" style="width:@promedioCriticoPct%"></span></div>
+                        <small>@promedioCriticoPct% con promedio menor a 6.0</small>
+                    </div>
+                    <div class="ra-metric-bar">
+                        <div><span>En observación</span><strong>@Model.AlumnosPromedioObservacion alumnos</strong></div>
+                        <div class="ra-metric-track"><span class="is-warning" style="width:@promedioObservacionPct%"></span></div>
+                        <small>@promedioObservacionPct% entre 6.0 y 7.49</small>
+                    </div>
+                    <div class="ra-metric-bar">
+                        <div><span>Rendimiento sólido</span><strong>@Model.AlumnosPromedioSolido alumnos</strong></div>
+                        <div class="ra-metric-track"><span class="is-success" style="width:@promedioSolidoPct%"></span></div>
+                        <small>@promedioSolidoPct% con 7.5 o más</small>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="ra-card h-100">
-            <div class="ra-card-header">
-                <i class="bi bi-bar-chart-line"></i> Alumnos por semestre
-            </div>
-            <div class="ra-card-body">
-                <canvas id="chartSemestre" height="230"></canvas>
+            <div class="modal-footer">
+                <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="seguimientoModal" tabindex="-1" aria-labelledby="seguimientoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content ra-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="seguimientoModalLabel">Señales de seguimiento académico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ra-insight-grid">
+                    <a asp-controller="Alumnos" asp-action="Index" asp-route-filtroRiesgo="Rojo" asp-route-grupo="@grupoSeleccionado" class="ra-insight-tile is-danger">
+                        <strong>@Model.RiesgoRojo</strong>
+                        <span>Críticos</span>
+                        <small>Requieren atención inmediata</small>
+                    </a>
+                    <a asp-controller="Alumnos" asp-action="Index" asp-route-filtroRiesgo="Amarillo" asp-route-grupo="@grupoSeleccionado" class="ra-insight-tile is-warning">
+                        <strong>@Model.RiesgoAmarillo</strong>
+                        <span>En observación</span>
+                        <small>Necesitan monitoreo cercano</small>
+                    </a>
+                    <div class="ra-insight-tile">
+                        <strong>@Model.IntervencionesRecientes</strong>
+                        <span>Intervenciones</span>
+                        <small>Registradas en los últimos 30 días</small>
+                    </div>
+                </div>
+                <div class="ra-metric-bars mt-3">
+                    <div class="ra-metric-bar">
+                        <div><span>Con materias reprobadas</span><strong>@Model.AlumnosConMateriasReprobadas alumnos</strong></div>
+                        <div class="ra-metric-track"><span class="is-danger" style="width:@reprobadasPct%"></span></div>
+                        <small>@reprobadasPct% del alumnado visible</small>
+                    </div>
+                    <div class="ra-metric-bar">
+                        <div><span>Con ausencias registradas</span><strong>@Model.AlumnosConAusencias alumnos</strong></div>
+                        <div class="ra-metric-track"><span class="is-warning" style="width:@ausenciasPct%"></span></div>
+                        <small>@ausenciasPct% del alumnado visible</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a asp-controller="Estadisticas" asp-action="Index" asp-route-grupo="@grupoSeleccionado" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-bar-chart"></i> Abrir tablero estadístico
+                </a>
+                <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(grupoSeleccionado))
+{
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="ra-card h-100">
+                <div class="ra-card-header">
+                    <i class="bi bi-speedometer2"></i> Pulso académico del grupo
+                </div>
+                <div class="ra-card-body">
+                    <div class="ra-metric-bars">
+                        <div class="ra-metric-bar">
+                            <div><span>Promedio crítico</span><strong>@Model.AlumnosPromedioCritico</strong></div>
+                            <div class="ra-metric-track"><span class="is-danger" style="width:@promedioCriticoPct%"></span></div>
+                            <small>@promedioCriticoPct% del grupo debajo de 6.0</small>
+                        </div>
+                        <div class="ra-metric-bar">
+                            <div><span>En observación</span><strong>@Model.AlumnosPromedioObservacion</strong></div>
+                            <div class="ra-metric-track"><span class="is-warning" style="width:@promedioObservacionPct%"></span></div>
+                            <small>@promedioObservacionPct% entre 6.0 y 7.49</small>
+                        </div>
+                        <div class="ra-metric-bar">
+                            <div><span>Rendimiento sólido</span><strong>@Model.AlumnosPromedioSolido</strong></div>
+                            <div class="ra-metric-track"><span class="is-success" style="width:@promedioSolidoPct%"></span></div>
+                            <small>@promedioSolidoPct% en 7.5 o más</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="ra-card h-100">
+                <div class="ra-card-header">
+                    <i class="bi bi-clipboard-pulse"></i> Señales accionables
+                </div>
+                <div class="ra-card-body">
+                    <div class="ra-signal-list">
+                        <a asp-controller="Alumnos" asp-action="Index" asp-route-filtroRiesgo="Rojo" asp-route-grupo="@grupoSeleccionado">
+                            <span class="is-danger">@Model.RiesgoRojo</span>
+                            <div><strong>Alumnos críticos</strong><small>Atención prioritaria</small></div>
+                        </a>
+                        <a asp-controller="Alumnos" asp-action="Index" asp-route-filtroRiesgo="Amarillo" asp-route-grupo="@grupoSeleccionado">
+                            <span class="is-warning">@Model.RiesgoAmarillo</span>
+                            <div><strong>En observación</strong><small>Seguimiento preventivo</small></div>
+                        </a>
+                        <div>
+                            <span>@Model.IntervencionesRecientes</span>
+                            <div><strong>Intervenciones recientes</strong><small>Últimos 30 días</small></div>
+                        </div>
+                        <div>
+                            <span>@Model.PostulacionesPendientes</span>
+                            <div><strong>Postulaciones pendientes</strong><small>Solicitudes por revisar</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="ra-card h-100">
+                <div class="ra-card-header">
+                    <i class="bi bi-bar-chart"></i> Alumnos por carrera
+                </div>
+                <div class="ra-card-body">
+                    <canvas id="chartCarrera" height="230"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="ra-card h-100">
+                <div class="ra-card-header">
+                    <i class="bi bi-bar-chart-line"></i> Alumnos por semestre
+                </div>
+                <div class="ra-card-body">
+                    <canvas id="chartSemestre" height="230"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+}
