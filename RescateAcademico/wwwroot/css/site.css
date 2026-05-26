@@ -1857,6 +1857,125 @@ button.ra-authority-kpi {
   color: var(--ra-text-secondary);
 }
 
+/* ============================================
+   AI RISK REPORT
+   ============================================ */
+.ra-ai-report .ra-card-body {
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.ra-ai-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ra-primary) 10%, transparent), transparent 52%),
+    var(--ra-surface-raised);
+}
+
+.ra-ai-summary h3 {
+  max-width: 72ch;
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.35;
+  font-weight: 760;
+  color: var(--ra-text);
+}
+
+.ra-ai-section {
+  margin-top: 1.25rem;
+}
+
+.ra-ai-factor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ra-ai-factor {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.9rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius);
+  background: var(--ra-surface-raised);
+  color: var(--ra-text);
+}
+
+.ra-ai-factor i {
+  color: var(--ra-primary);
+}
+
+.ra-ai-analysis {
+  max-width: 86ch;
+  margin: 0;
+  color: var(--ra-text);
+  line-height: 1.75;
+}
+
+.ra-ai-recommendations {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  counter-reset: recommendation;
+  list-style: none;
+}
+
+.ra-ai-recommendations li {
+  counter-increment: recommendation;
+  position: relative;
+  min-height: 56px;
+  padding: 0.9rem 1rem 0.9rem 3.25rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius);
+  background: var(--ra-surface-raised);
+  color: var(--ra-text);
+  line-height: 1.55;
+}
+
+.ra-ai-recommendations li::before {
+  content: counter(recommendation);
+  position: absolute;
+  left: 0.9rem;
+  top: 0.9rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ra-primary-soft);
+  color: var(--ra-primary);
+  font-weight: 800;
+}
+
+.ra-ai-clear {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--ra-success) 24%, var(--ra-border));
+  border-radius: var(--ra-radius);
+  background: var(--ra-success-bg);
+  color: var(--ra-text);
+}
+
+.ra-ai-clear i {
+  color: var(--ra-success);
+}
+
+@media (max-width: 991.98px) {
+  .ra-ai-factor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ra-professor-hero {
   display: flex;
   justify-content: space-between;

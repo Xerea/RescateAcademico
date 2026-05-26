@@ -4,6 +4,7 @@ using RescateAcademico.Models;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace RescateAcademico.Services
 {
@@ -100,11 +101,12 @@ namespace RescateAcademico.Services
                 model = "gpt-4o-mini",
                 messages = new[]
                 {
-                    new { role = "system", content = "Eres un consejero académico experimentado del Instituto Politécnico Nacional (IPN). Analizas perfiles estudiantiles y generas recomendaciones prácticas, empáticas y específicas en español mexicano. Mantén un tono profesional pero cercano." },
+                    new { role = "system", content = "Eres un consejero academico experimentado del Instituto Politecnico Nacional. Devuelve exclusivamente JSON valido, sin markdown, sin bloques de codigo y sin texto adicional. Usa un tono institucional, claro, empatico y accionable en espanol mexicano." },
                     new { role = "user", content = prompt }
                 },
-                temperature = 0.7,
-                max_tokens = 600
+                temperature = 0.25,
+                max_tokens = 700,
+                response_format = new { type = "json_object" }
             };
 
             try
@@ -150,11 +152,16 @@ namespace RescateAcademico.Services
             sb.AppendLine($"- Carga académica actual: {alumno.CargaAcademicaActual ?? 0} materias");
             sb.AppendLine($"- Riesgo académico institucional: {alumno.RiesgoAcademico ?? "No evaluado"}");
             sb.AppendLine();
-            sb.AppendLine("Genera una respuesta estructurada en español con ESTAS SECCIONES EXACTAS:");
-            sb.AppendLine("RESUMEN_RIESGO: Una oración evaluando el nivel de riesgo general.");
-            sb.AppendLine("ANALISIS: 2-3 oraciones explicando los factores clave que influyen en el riesgo.");
-            sb.AppendLine("RECOMENDACIONES: Lista numerada (1, 2, 3) con 3 recomendaciones específicas y accionables.");
-            sb.AppendLine("ALERTAS: Menciona si requiere tutoría, canalización psicológica, o reducción de carga académica. Si no hay alertas, escribe 'Ninguna'.");
+            sb.AppendLine("Devuelve exclusivamente un objeto JSON con esta forma exacta:");
+            sb.AppendLine("{");
+            sb.AppendLine("  \"resumenRiesgo\": \"Una oracion breve que explique el nivel de riesgo general.\",");
+            sb.AppendLine("  \"analisis\": \"Dos o tres oraciones que expliquen por que existe ese riesgo. No uses markdown.\",");
+            sb.AppendLine("  \"factoresClave\": [\"Factor medible 1\", \"Factor medible 2\", \"Factor medible 3\"],");
+            sb.AppendLine("  \"recomendaciones\": [\"Accion concreta 1\", \"Accion concreta 2\", \"Accion concreta 3\"],");
+            sb.AppendLine("  \"alertas\": [\"Alerta si aplica\"],");
+            sb.AppendLine("  \"prioridad\": \"Baja|Media|Alta|Critica\"");
+            sb.AppendLine("}");
+            sb.AppendLine("Reglas: no incluyas diagnosticos medicos, no inventes datos no proporcionados, no uses asteriscos ni etiquetas como RESUMEN_RIESGO.");
             return sb.ToString();
         }
 
@@ -166,51 +173,122 @@ namespace RescateAcademico.Services
                 FechaGeneracion = DateTime.Now
             };
 
-            var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            var buffer = new List<string>();
-
-            foreach (var rawLine in lines)
+            if (TryParseJson(content, resultado))
             {
-                var line = rawLine.Trim();
-                if (line.StartsWith("RESUMEN_RIESGO:", StringComparison.OrdinalIgnoreCase))
-                {
-                    buffer.Clear();
-                    var val = line.Substring("RESUMEN_RIESGO:".Length).Trim();
-                    if (!string.IsNullOrEmpty(val)) resultado.ResumenRiesgo = val;
-                }
-                else if (line.StartsWith("ANALISIS:", StringComparison.OrdinalIgnoreCase))
-                {
-                    buffer.Clear();
-                    var val = line.Substring("ANALISIS:".Length).Trim();
-                    if (!string.IsNullOrEmpty(val)) buffer.Add(val);
-                }
-                else if (line.StartsWith("RECOMENDACIONES:", StringComparison.OrdinalIgnoreCase))
-                {
-                    buffer.Clear();
-                }
-                else if (line.StartsWith("ALERTAS:", StringComparison.OrdinalIgnoreCase))
-                {
-                    buffer.Clear();
-                    var val = line.Substring("ALERTAS:".Length).Trim();
-                    if (!string.IsNullOrEmpty(val)) resultado.Alertas = val;
-                }
-                else
-                {
-                    if (!string.IsNullOrWhiteSpace(line))
-                        buffer.Add(line);
-                }
+                resultado.Normalize();
+                return resultado;
             }
 
-            // Post-process sections that accumulated in buffer
-            // (simplified: just store full text if parsing is ambiguous)
+            var normalizedContent = NormalizeAiText(content);
+            resultado.ResumenRiesgo = ExtractSection(normalizedContent, "RESUMEN_RIESGO", "ANALISIS");
+            resultado.Analisis = ExtractSection(normalizedContent, "ANALISIS", "RECOMENDACIONES");
+            resultado.Recomendaciones = ExtractSection(normalizedContent, "RECOMENDACIONES", "ALERTAS");
+            resultado.Alertas = ExtractSection(normalizedContent, "ALERTAS", null);
+
             if (string.IsNullOrEmpty(resultado.ResumenRiesgo))
                 resultado.ResumenRiesgo = "Análisis de riesgo generado por IA.";
             if (string.IsNullOrEmpty(resultado.Analisis))
-                resultado.Analisis = content;
+                resultado.Analisis = normalizedContent;
             if (string.IsNullOrEmpty(resultado.Alertas))
                 resultado.Alertas = "Ninguna";
 
+            resultado.Normalize();
             return resultado;
+        }
+
+        private static bool TryParseJson(string content, AnalisisIAResultado resultado)
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(content);
+                var root = document.RootElement;
+
+                resultado.ResumenRiesgo = GetString(root, "resumenRiesgo");
+                resultado.Analisis = GetString(root, "analisis");
+                resultado.FactoresClave = GetStringList(root, "factoresClave");
+                resultado.RecomendacionesLista = GetStringList(root, "recomendaciones");
+                resultado.AlertasLista = GetStringList(root, "alertas");
+                resultado.Prioridad = GetString(root, "prioridad");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string GetString(JsonElement root, string propertyName)
+        {
+            if (root.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String)
+                return NormalizeAiText(property.GetString() ?? "");
+            return "";
+        }
+
+        private static List<string> GetStringList(JsonElement root, string propertyName)
+        {
+            if (!root.TryGetProperty(propertyName, out var property))
+                return new List<string>();
+
+            if (property.ValueKind == JsonValueKind.Array)
+            {
+                return property.EnumerateArray()
+                    .Where(item => item.ValueKind == JsonValueKind.String)
+                    .Select(item => NormalizeAiText(item.GetString() ?? ""))
+                    .Where(item => !string.IsNullOrWhiteSpace(item) && !item.Equals("Ninguna", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            if (property.ValueKind == JsonValueKind.String)
+                return SplitList(property.GetString() ?? "");
+
+            return new List<string>();
+        }
+
+        private static string ExtractSection(string content, string startLabel, string? endLabel)
+        {
+            var startMatch = Regex.Match(content, $@"(?i)\b{Regex.Escape(startLabel)}\s*:");
+            if (!startMatch.Success)
+                return "";
+
+            var startIndex = startMatch.Index + startMatch.Length;
+            var endIndex = content.Length;
+            if (!string.IsNullOrEmpty(endLabel))
+            {
+                var endMatch = Regex.Match(content[startIndex..], $@"(?i)\b{Regex.Escape(endLabel)}\s*:");
+                if (endMatch.Success)
+                    endIndex = startIndex + endMatch.Index;
+            }
+
+            return NormalizeAiText(content[startIndex..endIndex]);
+        }
+
+        private static string NormalizeAiText(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return "";
+
+            var cleaned = value
+                .Replace("\r", " ")
+                .Replace("\n", " ")
+                .Replace("**", "")
+                .Replace("__", "")
+                .Replace("`", "")
+                .Trim();
+
+            cleaned = Regex.Replace(cleaned, @"\s+", " ");
+            return cleaned.Trim();
+        }
+
+        private static List<string> SplitList(string value)
+        {
+            var cleaned = NormalizeAiText(value);
+            if (string.IsNullOrWhiteSpace(cleaned) || cleaned.Equals("Ninguna", StringComparison.OrdinalIgnoreCase))
+                return new List<string>();
+
+            return Regex.Split(cleaned, @"(?:^|\s)(?:\d+[\.\)]\s+|[-•]\s+)")
+                .Select(NormalizeAiText)
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .ToList();
         }
 
     }
@@ -242,6 +320,50 @@ namespace RescateAcademico.Services
         public string Analisis { get; set; } = "";
         public string Recomendaciones { get; set; } = "";
         public string Alertas { get; set; } = "";
+        public string Prioridad { get; set; } = "";
+        public List<string> FactoresClave { get; set; } = new();
+        public List<string> RecomendacionesLista { get; set; } = new();
+        public List<string> AlertasLista { get; set; } = new();
         public DateTime FechaGeneracion { get; set; }
+
+        public void Normalize()
+        {
+            ResumenRiesgo = Clean(ResumenRiesgo);
+            Analisis = Clean(Analisis);
+            Recomendaciones = Clean(Recomendaciones);
+            Alertas = Clean(Alertas);
+            Prioridad = Clean(Prioridad);
+            FactoresClave = FactoresClave.Select(Clean).Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
+            RecomendacionesLista = RecomendacionesLista.Select(Clean).Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
+            AlertasLista = AlertasLista.Select(Clean).Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals("Ninguna", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (!RecomendacionesLista.Any())
+                RecomendacionesLista = SplitRecommendations(Recomendaciones);
+            if (!AlertasLista.Any() && !string.IsNullOrWhiteSpace(Alertas) && !Alertas.Equals("Ninguna", StringComparison.OrdinalIgnoreCase))
+                AlertasLista = SplitRecommendations(Alertas);
+            if (string.IsNullOrWhiteSpace(Recomendaciones) && RecomendacionesLista.Any())
+                Recomendaciones = string.Join("\n", RecomendacionesLista.Select((r, i) => $"{i + 1}. {r}"));
+            if (string.IsNullOrWhiteSpace(Alertas))
+                Alertas = AlertasLista.Any() ? string.Join("; ", AlertasLista) : "Ninguna";
+        }
+
+        private static string Clean(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return "";
+            var cleaned = value.Replace("**", "").Replace("__", "").Replace("`", "").Trim();
+            cleaned = Regex.Replace(cleaned, @"\s+", " ");
+            return cleaned.Trim();
+        }
+
+        private static List<string> SplitRecommendations(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return new List<string>();
+            return Regex.Split(value, @"(?:^|\s)(?:\d+[\.\)]\s+|[-•]\s+)")
+                .Select(Clean)
+                .Where(item => !string.IsNullOrWhiteSpace(item) && !item.Equals("Ninguna", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
     }
 }
