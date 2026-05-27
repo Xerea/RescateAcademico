@@ -45,17 +45,23 @@ namespace RescateAcademico.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ModelState.AddModelError(string.Empty, "Debes ingresar tu correo.");
+                return View();
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ModelState.AddModelError(string.Empty, "Debes ingresar tu contrasena.");
+                return View();
+            }
+
             Request.Form.TryGetValue("g-recaptcha-response", out StringValues recaptchaValues);
             var recaptchaResponse = recaptchaValues.ToString();
             if (!await VerifyRecaptchaAsync(recaptchaResponse))
             {
                 ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Por favor intenta de nuevo.");
-                return View();
-            }
-
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                ModelState.AddModelError(string.Empty, "Debes ingresar tu correo.");
                 return View();
             }
 
@@ -137,21 +143,36 @@ namespace RescateAcademico.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
-            if (string.IsNullOrWhiteSpace(model.Matricula))
+
+            model.Email = model.Email.Trim();
+            model.Matricula = model.Matricula.Trim();
+            model.Nombre = model.Nombre.Trim();
+            model.Apellidos = model.Apellidos.Trim();
+            model.Carrera = model.Carrera.Trim();
+            model.CodigoVinculacion = model.CodigoVinculacion?.Trim();
+
+            if (await _userManager.FindByEmailAsync(model.Email) != null)
             {
-                ModelState.AddModelError(nameof(model.Matricula), "La boleta es obligatoria.");
+                ModelState.AddModelError(nameof(model.Email), "Ya existe una cuenta con este correo.");
                 return View(model);
             }
 
             var alumnoExistente = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == model.Matricula);
+            if (alumnoExistente?.UserId != null)
+            {
+                ModelState.AddModelError(nameof(model.Matricula), "Esta boleta ya tiene una cuenta vinculada. Si perdiste acceso, usa recuperacion de contrasena o contacta a coordinacion.");
+                return View(model);
+            }
 
             var isInstitucional = model.Email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase) || model.Email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase);
+            var vinculaConCodigo = false;
             var user = new ApplicationUser
             {
                 UserName = model.Email,
                 Email = model.Email,
                 IsActive = true,
-                PendienteVerificacion = !isInstitucional || alumnoExistente != null
+                EmailConfirmed = isInstitucional,
+                PendienteVerificacion = true
             };
 
             if (alumnoExistente != null && !string.IsNullOrWhiteSpace(model.CodigoVinculacion))
@@ -162,7 +183,8 @@ namespace RescateAcademico.Controllers
                 if (claim != null)
                 {
                     user.PendienteVerificacion = false;
-                    isInstitucional = true;
+                    user.EmailConfirmed = true;
+                    vinculaConCodigo = true;
                 }
                 else
                 {
@@ -175,54 +197,24 @@ namespace RescateAcademico.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "Alumno");
-                if (alumnoExistente != null)
+                if (alumnoExistente != null && vinculaConCodigo)
                 {
                     var claim = await _context.AlumnoClaimCodes
                         .FirstOrDefaultAsync(c => c.Matricula == model.Matricula && c.CodeHash == HashClaimCode(model.CodigoVinculacion ?? "") && c.UsedAt == null && c.ExpiresAt > DateTime.Now);
+                    alumnoExistente.UserId = user.Id;
+                    alumnoExistente.Correo = model.Email;
                     if (claim != null)
                     {
-                        alumnoExistente.UserId = user.Id;
-                        alumnoExistente.Correo = model.Email;
                         claim.UsedAt = DateTime.Now;
                         claim.UsedByUserId = user.Id;
-                    }
-                    else
-                    {
-                        _context.AccountLinkRequests.Add(new AccountLinkRequest
-                        {
-                            UserId = user.Id,
-                            Email = model.Email,
-                            Matricula = model.Matricula,
-                            NombreSolicitado = $"{model.Nombre} {model.Apellidos}"
-                        });
                     }
                 }
                 else
                 {
-                    var riesgo = new RescateAcademico.Services.RiskEvaluationService().CalcularRiesgo(new Alumno
-                    {
-                        Matricula = model.Matricula,
-                        PromedioGlobal = 0,
-                        MateriasReprobadas = 0,
-                        Ausencias = 0,
-                        ParcialesBajos = 0,
-                        EtsPresentados = 0,
-                        Recursamientos = 0
-                    });
-                    _context.Alumnos.Add(new Alumno
-                    {
-                        Matricula = model.Matricula,
-                        Nombre = model.Nombre,
-                        Apellidos = model.Apellidos,
-                        Carrera = model.Carrera,
-                        SemestreActual = model.SemestreActual,
-                        Correo = model.Email,
-                        UserId = user.Id,
-                        PromedioGlobal = 0,
-                        Estatus = "Activo",
-                        RiesgoAcademico = riesgo
-                    });
-                    if (user.PendienteVerificacion)
+                    var solicitudDuplicada = await _context.AccountLinkRequests.AnyAsync(r =>
+                        r.Estado == "Pendiente" &&
+                        (r.Email == model.Email || r.Matricula == model.Matricula));
+                    if (!solicitudDuplicada)
                     {
                         _context.AccountLinkRequests.Add(new AccountLinkRequest
                         {
@@ -237,7 +229,9 @@ namespace RescateAcademico.Controllers
 
                 if (user.PendienteVerificacion)
                 {
-                    TempData["Success"] = "Cuenta creada correctamente. Tu cuenta está pendiente de validación institucional. Contacta a tu coordinador académico.";
+                    TempData["Success"] = alumnoExistente == null
+                        ? "Solicitud creada. Tu cuenta queda pendiente porque la boleta aun no existe en la base academica. Coordinacion debe importar o crear tu expediente antes de aprobarla."
+                        : "Solicitud creada. Tu cuenta queda pendiente de validacion para vincularla con tu expediente academico.";
                     return RedirectToAction("Login");
                 }
                 await _signInManager.SignInAsync(user, isPersistent: false);
@@ -470,29 +464,41 @@ namespace RescateAcademico.Controllers
 
     public class RegisterViewModel
     {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "El correo es obligatorio.")]
+        [EmailAddress(ErrorMessage = "Ingresa un correo valido.")]
+        [StringLength(120, ErrorMessage = "El correo no puede superar 120 caracteres.")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(100, MinimumLength = 8)]
+        [Required(ErrorMessage = "La contrasena es obligatoria.")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "La contrasena debe tener entre 8 y 100 caracteres.")]
         public string Password { get; set; } = string.Empty;
 
-        [Compare("Password")]
+        [Required(ErrorMessage = "Confirma tu contrasena.")]
+        [Compare("Password", ErrorMessage = "Las contrasenas no coinciden.")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "La boleta es obligatoria.")]
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "La boleta debe tener exactamente 10 digitos.")]
         public string Matricula { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(80, MinimumLength = 2, ErrorMessage = "El nombre debe tener entre 2 y 80 caracteres.")]
+        [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s'.-]+$", ErrorMessage = "El nombre solo puede contener letras y espacios.")]
         public string Nombre { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Los apellidos son obligatorios.")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Los apellidos deben tener entre 2 y 100 caracteres.")]
+        [RegularExpression(@"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s'.-]+$", ErrorMessage = "Los apellidos solo pueden contener letras y espacios.")]
         public string Apellidos { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "La carrera es obligatoria.")]
+        [RegularExpression(@"^(Técnico en Administración|Técnico en Administración de Empresas Turísticas|Técnico en Contaduría|Técnico en Gastronomía|Técnico en Gestión de la Ciberseguridad|Técnico en Informática)$", ErrorMessage = "Selecciona una carrera valida.")]
         public string Carrera { get; set; } = string.Empty;
+
+        [Range(1, 6, ErrorMessage = "El semestre debe estar entre 1 y 6.")]
         public int SemestreActual { get; set; } = 1;
+
+        [StringLength(40, ErrorMessage = "El codigo de vinculacion no puede superar 40 caracteres.")]
         public string? CodigoVinculacion { get; set; }
     }
 }

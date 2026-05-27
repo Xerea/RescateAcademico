@@ -74,6 +74,16 @@
         transform: translateY(-2px);
         box-shadow: var(--ra-shadow-lg);
     }
+    .ra-hero-cta-secondary {
+        background: transparent;
+        color: var(--ra-text);
+        border: 1px solid var(--ra-border);
+    }
+    .ra-hero-cta-secondary:hover {
+        background: var(--ra-surface-raised);
+        color: var(--ra-text);
+        border-color: var(--ra-primary);
+    }
     .ra-hero-features {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -169,8 +179,8 @@
             <a asp-controller="Account" asp-action="Login" class="ra-hero-cta">
                 <i class="bi bi-box-arrow-in-right"></i> Acceder al Sistema
             </a>
-            <a asp-controller="Account" asp-action="Register" class="ra-btn ra-btn-outline" style="padding:0.85rem 1.25rem;">
-                <i class="bi bi-person-plus"></i> Crear cuenta
+            <a asp-controller="Account" asp-action="Register" class="ra-hero-cta ra-hero-cta-secondary">
+                <i class="bi bi-person-plus"></i> Solicitar acceso
             </a>
         </div>
     }

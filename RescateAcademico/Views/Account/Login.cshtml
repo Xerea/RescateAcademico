@@ -36,7 +36,7 @@
 
         <div class="ra-card" style="backdrop-filter: blur(12px); background: rgba(var(--ra-surface-rgb), 0.85);">
             <div class="ra-card-body">
-                <form asp-controller="Account" asp-action="Login" method="post" novalidate>
+                <form asp-controller="Account" asp-action="Login" method="post">
                     @if (ViewData["ReturnUrl"] != null)
                     {
                         <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
@@ -91,9 +91,13 @@
                         <i class="bi bi-box-arrow-in-right"></i> Acceder
                     </button>
 
-                    <div class="text-center">
-                        <span class="small text-secondary">¿Sin cuenta? Contacta a la <a asp-controller="Home" asp-action="Privacy" style="color: var(--ra-primary);">coordinación académica</a>.</span>
+                    <div class="text-center d-grid gap-2">
+                        <a asp-controller="Account" asp-action="Register" class="ra-btn ra-btn-outline w-100">
+                            <i class="bi bi-person-plus"></i> Solicitar acceso
+                        </a>
+                        <span class="small text-secondary">Tu cuenta se vincula con un expediente existente antes de mostrar datos academicos.</span>
                     </div>
+
                 </form>
             </div>
         </div>

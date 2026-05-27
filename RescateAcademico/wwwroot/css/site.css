@@ -536,6 +536,8 @@ a:hover { color: var(--ra-primary-hover); }
 .ra-input, .ra-select {
   display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 0.55rem 0.875rem;
   font-size: 0.9375rem;
   font-weight: 400;
@@ -1007,6 +1009,15 @@ ra-semaforo:hover .ra-semaforo-tooltip,
   padding: 2rem 1rem;
   text-align: center;
   color: var(--ra-text-secondary);
+}
+
+.field-validation-error,
+.validation-summary-errors {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--ra-danger);
+  font-size: 0.8125rem;
+  line-height: 1.35;
 }
 .ra-notif-empty i {
   display: block;
@@ -2335,6 +2346,12 @@ button.ra-authority-kpi {
   .ra-page-title i { font-size: 1.1rem; }
   .ra-page-header-row { gap: 0.75rem; }
   .ra-page-header-actions { width: 100%; }
+  .ra-page-header-actions .ra-btn,
+  .ra-page-header-actions form,
+  .ra-page-header-actions a {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* ============================================
@@ -2385,6 +2402,8 @@ button.ra-authority-kpi {
     padding: 0.35rem 0 !important;
     border: 0 !important;
     font-size: 0.875rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .ra-table-cards td::before {
     content: attr(data-label);
@@ -2394,6 +2413,10 @@ button.ra-authority-kpi {
     color: var(--ra-text-muted);
     font-weight: 600;
     flex-shrink: 0;
+  }
+  .ra-table-cards td > * {
+    max-width: 100%;
+    min-width: 0;
   }
   .ra-table-cards td[data-label="Acciones"] {
     justify-content: flex-end;
@@ -2505,6 +2528,37 @@ button.ra-authority-kpi {
 @media (max-width: 767.98px) {
   .ra-search-trigger { min-width: 0; padding: 0.35rem; }
   .ra-search-trigger span, .ra-search-trigger kbd { display: none; }
+}
+
+@media (max-width: 575.98px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .container,
+  .container-fluid {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+  .ra-card,
+  .ra-alert,
+  .ra-empty {
+    max-width: 100%;
+  }
+  .ra-card-body,
+  .ra-card-header,
+  .ra-card-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .ra-btn {
+    min-width: 0;
+    white-space: normal;
+  }
+  .d-flex {
+    min-width: 0;
+  }
 }
 
 .ra-search-backdrop {

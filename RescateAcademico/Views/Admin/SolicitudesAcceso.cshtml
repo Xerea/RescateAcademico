@@ -11,6 +11,7 @@
         BackUrl = Url.Action("Gestion"),
         BackLabel = "Gestión"
     };
+    var expedientesExistentes = ViewBag.ExpedientesExistentes as HashSet<string> ?? new HashSet<string>();
 }
 
 <partial name="_PageHeader" model="header" />
@@ -41,6 +42,7 @@
                             <th>Fecha</th>
                             <th>Correo</th>
                             <th>Boleta</th>
+                            <th>Expediente</th>
                             <th>Nombre declarado</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -53,6 +55,17 @@
                                 <td data-label="Fecha">@item.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td data-label="Correo">@item.Email</td>
                                 <td data-label="Boleta"><span class="ra-badge ra-badge-neutral">@item.Matricula</span></td>
+                                <td data-label="Expediente">
+                                    @if (expedientesExistentes.Contains(item.Matricula))
+                                    {
+                                        <span class="ra-badge ra-badge-success">Encontrado</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ra-badge ra-badge-warning">Sin expediente</span>
+                                        <div class="text-secondary small mt-1">Importa o crea el alumno antes de aprobar.</div>
+                                    }
+                                </td>
                                 <td data-label="Nombre">@item.NombreSolicitado</td>
                                 <td data-label="Estado">
                                     <span class="ra-badge @(item.Estado == "Pendiente" ? "ra-badge-warning" : item.Estado == "Aprobada" ? "ra-badge-success" : "ra-badge-danger")">@item.Estado</span>
@@ -63,7 +76,7 @@
                                         <div class="d-flex flex-wrap gap-2">
                                             <form asp-action="AprobarSolicitudAcceso" method="post" class="m-0">
                                                 <input type="hidden" name="id" value="@item.Id" />
-                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-primary">
+                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-primary" disabled="@(!expedientesExistentes.Contains(item.Matricula))">
                                                     <i class="bi bi-check2"></i> Aprobar
                                                 </button>
                                             </form>

@@ -48,6 +48,12 @@ namespace RescateAcademico.Controllers
             var solicitudes = await _context.AccountLinkRequests
                 .OrderByDescending(r => r.FechaSolicitud)
                 .ToListAsync();
+            var matriculas = solicitudes.Select(s => s.Matricula).Distinct().ToList();
+            var expedientesExistentes = await _context.Alumnos
+                .Where(a => matriculas.Contains(a.Matricula))
+                .Select(a => a.Matricula)
+                .ToListAsync();
+            ViewBag.ExpedientesExistentes = expedientesExistentes.ToHashSet();
             return View(solicitudes);
         }
 
@@ -63,7 +69,12 @@ namespace RescateAcademico.Controllers
             var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == solicitud.Matricula);
             if (user == null || alumno == null)
             {
-                TempData["Error"] = "No se pudo aprobar: falta el usuario o el alumno.";
+                TempData["Error"] = "No se pudo aprobar: falta el usuario o el expediente academico. Importa o crea el alumno antes de vincular la cuenta.";
+                return RedirectToAction(nameof(SolicitudesAcceso));
+            }
+            if (!string.IsNullOrWhiteSpace(alumno.UserId) && alumno.UserId != user.Id)
+            {
+                TempData["Error"] = $"No se pudo aprobar: la boleta {alumno.Matricula} ya esta vinculada a otra cuenta.";
                 return RedirectToAction(nameof(SolicitudesAcceso));
             }
 
