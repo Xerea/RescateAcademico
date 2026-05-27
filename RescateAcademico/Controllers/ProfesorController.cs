@@ -208,20 +208,41 @@ namespace RescateAcademico.Controllers
             if (profesor == null) return NotFound();
 
             var grupos = await _context.Grupos
+                .AsNoTracking()
                 .Where(g => g.ProfesorId == profesor.Id)
-                .Include(g => g.Alumnos)
+                .OrderBy(g => g.Clave)
                 .ToListAsync();
 
-            var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
-            var califReprobadas = await _context.Calificaciones
-                .Where(c => !c.Aprobada && alumnosIds.Contains(c.AlumnoMatricula))
-                .Where(c => string.IsNullOrEmpty(grupo) || grupo == "Todos" || (c.Alumno != null && c.Alumno.Grupo != null && c.Alumno.Grupo.Clave == grupo))
-                .Include(c => c.Alumno)
-                .Include(c => c.Materia)
+            var query = _context.Calificaciones
+                .AsNoTracking()
+                .Where(c => !c.Aprobada
+                    && c.Alumno != null
+                    && c.Alumno.Grupo != null
+                    && c.Alumno.Grupo.ProfesorId == profesor.Id);
+
+            if (!string.IsNullOrWhiteSpace(grupo) && grupo != "Todos")
+            {
+                query = query.Where(c => c.Alumno!.Grupo != null && c.Alumno.Grupo.Clave == grupo);
+            }
+
+            var califReprobadas = await query
                 .OrderBy(c => c.Alumno!.Apellidos)
+                .ThenBy(c => c.Alumno!.Nombre)
+                .ThenBy(c => c.Materia!.Clave)
+                .Select(c => new MateriaReprobadaViewModel
+                {
+                    AlumnoMatricula = c.AlumnoMatricula,
+                    AlumnoNombre = c.Alumno != null ? c.Alumno.Nombre + " " + c.Alumno.Apellidos : "",
+                    Grupo = c.Alumno != null && c.Alumno.Grupo != null ? c.Alumno.Grupo.Clave : "",
+                    MateriaClave = c.Materia != null ? c.Materia.Clave : "",
+                    MateriaNombre = c.Materia != null ? c.Materia.Nombre : "",
+                    Calificacion = c.Valor ?? 0,
+                    VecesCursada = c.VecesCursada ?? 0
+                })
                 .ToListAsync();
 
             ViewBag.Grupos = grupos.Select(g => g.Clave).ToList();
+            ViewBag.GrupoSeleccionado = grupo;
             return View(califReprobadas);
         }
     }
@@ -282,6 +303,17 @@ namespace RescateAcademico.Controllers
         public decimal Calificacion { get; set; }
         public bool Aprobada { get; set; }
         public string? Tipo { get; set; }
+        public int VecesCursada { get; set; }
+    }
+
+    public class MateriaReprobadaViewModel
+    {
+        public string AlumnoMatricula { get; set; } = "";
+        public string AlumnoNombre { get; set; } = "";
+        public string Grupo { get; set; } = "";
+        public string MateriaClave { get; set; } = "";
+        public string MateriaNombre { get; set; } = "";
+        public decimal Calificacion { get; set; }
         public int VecesCursada { get; set; }
     }
 }

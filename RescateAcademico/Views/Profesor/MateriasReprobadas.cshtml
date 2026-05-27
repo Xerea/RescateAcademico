@@ -1,8 +1,9 @@
-@model List<RescateAcademico.Models.Calificacion>
+@model List<RescateAcademico.Controllers.MateriaReprobadaViewModel>
 @{
     ViewData["Title"] = "Materias reprobadas";
     Layout = "_Layout";
     var grupos = ViewBag.Grupos as List<string> ?? new List<string>();
+    var grupoSeleccionado = ViewBag.GrupoSeleccionado as string;
     var header = new PageHeader
     {
         Title = "Materias reprobadas",
@@ -15,6 +16,34 @@
 }
 
 <partial name="_PageHeader" model="header" />
+
+<div class="ra-card ra-filter-bar">
+    <div class="ra-card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="ra-label" for="grupoReprobadas">Grupo</label>
+                <select id="grupoReprobadas" name="grupo" class="ra-select" onchange="this.form.submit()">
+                    <option value="Todos">Todos mis grupos</option>
+                    @foreach (var grupo in grupos)
+                    {
+                        <option value="@grupo" selected="@(grupoSeleccionado == grupo ? "selected" : null)">@grupo</option>
+                    }
+                </select>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(grupoSeleccionado) && grupoSeleccionado != "Todos")
+            {
+                <div class="col-md-auto">
+                    <a asp-action="MateriasReprobadas" class="ra-btn ra-btn-ghost">
+                        <i class="bi bi-x-lg"></i> Limpiar
+                    </a>
+                </div>
+            }
+            <div class="col-md">
+                <span class="ra-filter-count">@Model.Count registro(s) encontrados</span>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div class="ra-card">
     <div class="ra-card-body">
@@ -38,10 +67,10 @@
                         {
                             <tr>
                                 <td data-label="Boleta"><strong class="ra-mono">@c.AlumnoMatricula</strong></td>
-                                <td data-label="Estudiante">@(c.Alumno?.Nombre) @(c.Alumno?.Apellidos)</td>
-                                <td data-label="Grupo">@(c.Alumno?.Grupo?.Clave ?? "—")</td>
-                                <td data-label="Materia"><span class="ra-badge ra-badge-neutral">@c.Materia?.Clave</span> @c.Materia?.Nombre</td>
-                                <td data-label="Calificación"><span class="ra-badge ra-badge-danger">@((c.Valor ?? 0).ToString("F1"))</span></td>
+                                <td data-label="Estudiante">@c.AlumnoNombre</td>
+                                <td data-label="Grupo">@(string.IsNullOrWhiteSpace(c.Grupo) ? "—" : c.Grupo)</td>
+                                <td data-label="Materia"><span class="ra-badge ra-badge-neutral">@c.MateriaClave</span> @c.MateriaNombre</td>
+                                <td data-label="Calificación"><span class="ra-badge ra-badge-danger">@c.Calificacion.ToString("F1")</span></td>
                                 <td data-label="Veces">@c.VecesCursada</td>
                                 <td data-label="Acciones">
                                     <a asp-action="HistorialAcademico" asp-route-boleta="@c.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver historial">
@@ -68,7 +97,8 @@
     <script>
         $(document).ready(function () {
             $('#tablaReprobadas').DataTable({
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
+                language: window.RaDataTablesEs || undefined,
+                deferRender: true,
                 pageLength: 25
             });
         });

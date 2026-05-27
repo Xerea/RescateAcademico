@@ -163,7 +163,7 @@
         tiempo y coordinar intervenciones entre profesores, autoridades y alumnos.
     </p>
 
-    @if (!isAuth && demoAccessEnabled)
+    @if (!isAuth)
     {
         <div class="d-flex flex-wrap justify-content-center gap-2">
             <a asp-controller="Account" asp-action="Login" class="ra-hero-cta">
@@ -199,7 +199,7 @@
         </div>
     </div>
 
-    @if (!isAuth)
+    @if (!isAuth && demoAccessEnabled)
     {
         <section class="ra-demo-access" aria-label="Acceso demo">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
