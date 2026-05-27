@@ -159,7 +159,10 @@ namespace RescateAcademico.Services
             sb.AppendLine("  \"factoresClave\": [\"Factor medible 1\", \"Factor medible 2\", \"Factor medible 3\"],");
             sb.AppendLine("  \"recomendaciones\": [\"Accion concreta 1\", \"Accion concreta 2\", \"Accion concreta 3\"],");
             sb.AppendLine("  \"alertas\": [\"Alerta si aplica\"],");
-            sb.AppendLine("  \"prioridad\": \"Baja|Media|Alta|Critica\"");
+            sb.AppendLine("  \"prioridad\": \"Baja|Media|Alta|Critica\",");
+            sb.AppendLine("  \"intervencionSugerida\": \"Acercamiento|Tutoria|Canalizacion|Otro\",");
+            sb.AppendLine("  \"fechaSeguimientoSugerida\": \"YYYY-MM-DD\",");
+            sb.AppendLine("  \"mensajeSugerido\": \"Texto breve que el profesor puede usar como nota inicial\"");
             sb.AppendLine("}");
             sb.AppendLine("Reglas: no incluyas diagnosticos medicos, no inventes datos no proporcionados, no uses asteriscos ni etiquetas como RESUMEN_RIESGO.");
             return sb.ToString();
@@ -209,6 +212,9 @@ namespace RescateAcademico.Services
                 resultado.RecomendacionesLista = GetStringList(root, "recomendaciones");
                 resultado.AlertasLista = GetStringList(root, "alertas");
                 resultado.Prioridad = GetString(root, "prioridad");
+                resultado.IntervencionSugerida = GetString(root, "intervencionSugerida");
+                resultado.FechaSeguimientoSugerida = GetString(root, "fechaSeguimientoSugerida");
+                resultado.MensajeSugerido = GetString(root, "mensajeSugerido");
                 return true;
             }
             catch
@@ -324,6 +330,9 @@ namespace RescateAcademico.Services
         public List<string> FactoresClave { get; set; } = new();
         public List<string> RecomendacionesLista { get; set; } = new();
         public List<string> AlertasLista { get; set; } = new();
+        public string IntervencionSugerida { get; set; } = "";
+        public string FechaSeguimientoSugerida { get; set; } = "";
+        public string MensajeSugerido { get; set; } = "";
         public DateTime FechaGeneracion { get; set; }
 
         public void Normalize()
@@ -333,6 +342,9 @@ namespace RescateAcademico.Services
             Recomendaciones = Clean(Recomendaciones);
             Alertas = Clean(Alertas);
             Prioridad = Clean(Prioridad);
+            IntervencionSugerida = Clean(IntervencionSugerida);
+            FechaSeguimientoSugerida = Clean(FechaSeguimientoSugerida);
+            MensajeSugerido = Clean(MensajeSugerido);
             FactoresClave = FactoresClave.Select(Clean).Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
             RecomendacionesLista = RecomendacionesLista.Select(Clean).Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
             AlertasLista = AlertasLista.Select(Clean).Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals("Ninguna", StringComparison.OrdinalIgnoreCase)).ToList();

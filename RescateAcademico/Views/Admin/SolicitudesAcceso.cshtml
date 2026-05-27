@@ -1,0 +1,98 @@
+@model List<RescateAcademico.Models.AccountLinkRequest>
+@{
+    ViewData["Title"] = "Solicitudes de acceso";
+    Layout = "_Layout";
+    var header = new PageHeader
+    {
+        Title = "Solicitudes de acceso",
+        Subtitle = "Vinculación de cuentas no institucionales con expedientes académicos.",
+        Icon = "bi-person-check",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Gestion"),
+        BackLabel = "Gestión"
+    };
+}
+
+<partial name="_PageHeader" model="header" />
+
+@if (TempData["Success"] != null)
+{
+    <div class="ra-alert ra-alert-success mb-3" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <div>@TempData["Success"]</div>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="ra-alert ra-alert-danger mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>@TempData["Error"]</div>
+    </div>
+}
+
+<div class="ra-card">
+    <div class="ra-card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table ra-table ra-table-cards mb-0">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Correo</th>
+                            <th>Boleta</th>
+                            <th>Nombre declarado</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td data-label="Fecha">@item.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td data-label="Correo">@item.Email</td>
+                                <td data-label="Boleta"><span class="ra-badge ra-badge-neutral">@item.Matricula</span></td>
+                                <td data-label="Nombre">@item.NombreSolicitado</td>
+                                <td data-label="Estado">
+                                    <span class="ra-badge @(item.Estado == "Pendiente" ? "ra-badge-warning" : item.Estado == "Aprobada" ? "ra-badge-success" : "ra-badge-danger")">@item.Estado</span>
+                                </td>
+                                <td data-label="Acciones">
+                                    @if (item.Estado == "Pendiente")
+                                    {
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <form asp-action="AprobarSolicitudAcceso" method="post" class="m-0">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-primary">
+                                                    <i class="bi bi-check2"></i> Aprobar
+                                                </button>
+                                            </form>
+                                            <form asp-action="RechazarSolicitudAcceso" method="post" class="m-0 d-flex gap-1">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <input type="hidden" name="motivo" value="No fue posible validar la identidad." />
+                                                <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline">
+                                                    <i class="bi bi-x-lg"></i> Rechazar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-secondary small">Revisada el @item.FechaRevision?.ToString("dd/MM/yyyy HH:mm")</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="ra-empty">
+                <i class="bi bi-person-check"></i>
+                <p>No hay solicitudes pendientes.</p>
+            </div>
+        }
+    </div>
+</div>

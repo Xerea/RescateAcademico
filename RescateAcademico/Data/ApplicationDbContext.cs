@@ -33,6 +33,8 @@ namespace RescateAcademico.Data
         public DbSet<Grupo> Grupos { get; set; }
         public DbSet<DictamenAcademico> DictamenesAcademicos { get; set; }
         public DbSet<ReporteCosecovi> ReportesCosecovi { get; set; }
+        public DbSet<AlumnoClaimCode> AlumnoClaimCodes { get; set; }
+        public DbSet<AccountLinkRequest> AccountLinkRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -146,6 +148,12 @@ namespace RescateAcademico.Data
                 .HasForeignKey(r => r.AlumnoMatricula)
                 .HasPrincipalKey(a => a.Matricula)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<AlumnoClaimCode>()
+                .HasIndex(c => c.Matricula);
+
+            builder.Entity<AccountLinkRequest>()
+                .HasIndex(r => new { r.Matricula, r.Email });
         }
     }
 }

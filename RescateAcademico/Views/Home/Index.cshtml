@@ -1,7 +1,12 @@
+@inject IWebHostEnvironment Env
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Rescate Académico";
     Layout = "_Layout";
     var isAuth = User.Identity?.IsAuthenticated == true;
+    var demoAccessEnabled = Env.IsDevelopment()
+        || string.Equals(Configuration["SHOW_DEMO_ACCESS"], "true", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(Configuration["SHOW_DEMO_CREDENTIALS"], "true", StringComparison.OrdinalIgnoreCase);
 }
 
 <style>
@@ -104,6 +109,42 @@
         color: var(--ra-text-secondary);
         font-size: 0.8125rem;
     }
+    .ra-demo-access {
+        max-width: 900px;
+        width: 100%;
+        margin: 2rem auto 0;
+        padding: 1rem;
+        border: 1px solid var(--ra-border);
+        border-radius: var(--ra-radius-lg);
+        background: color-mix(in srgb, var(--ra-surface) 88%, transparent);
+        box-shadow: var(--ra-shadow);
+    }
+    .ra-demo-access-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+    .ra-demo-persona {
+        display: grid;
+        gap: 0.5rem;
+        padding: 1rem;
+        border: 1px solid var(--ra-border);
+        border-radius: var(--ra-radius);
+        background: var(--ra-surface-raised);
+        text-align: left;
+    }
+    .ra-demo-persona strong,
+    .ra-demo-persona small {
+        display: block;
+    }
+    .ra-demo-persona small {
+        color: var(--ra-text-secondary);
+    }
+    @@media (max-width: 767.98px) {
+        .ra-demo-access-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 <div class="ra-auth-bg" aria-hidden="true"></div>
@@ -122,11 +163,16 @@
         tiempo y coordinar intervenciones entre profesores, autoridades y alumnos.
     </p>
 
-    @if (!isAuth)
+    @if (!isAuth && demoAccessEnabled)
     {
-        <a asp-controller="Account" asp-action="Login" class="ra-hero-cta">
-            <i class="bi bi-box-arrow-in-right"></i> Acceder al Sistema
-        </a>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a asp-controller="Account" asp-action="Login" class="ra-hero-cta">
+                <i class="bi bi-box-arrow-in-right"></i> Acceder al Sistema
+            </a>
+            <a asp-controller="Account" asp-action="Register" class="ra-btn ra-btn-outline" style="padding:0.85rem 1.25rem;">
+                <i class="bi bi-person-plus"></i> Crear cuenta
+            </a>
+        </div>
     }
     else
     {
@@ -152,4 +198,47 @@
             <p>Dashboards de desempeño por carrera, grupo y semestre.</p>
         </div>
     </div>
+
+    @if (!isAuth)
+    {
+        <section class="ra-demo-access" aria-label="Acceso demo">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div class="text-start">
+                    <div class="ra-heading mb-1">Modo demo guiado</div>
+                    <p class="text-secondary small mb-0">Explora el producto con personas seguras para presentación pública.</p>
+                </div>
+                <span class="ra-badge ra-badge-info">Sin credenciales visibles</span>
+            </div>
+            <div class="ra-demo-access-grid">
+                <form asp-controller="Account" asp-action="DemoLogin" method="post" class="ra-demo-persona">
+                    <input type="hidden" name="role" value="alumno" />
+                    <i class="bi bi-person-badge fs-4" style="color:var(--ra-primary);"></i>
+                    <strong>Alumno</strong>
+                    <small>Perfil académico, convocatorias y postulaciones.</small>
+                    <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline">Entrar como alumno</button>
+                </form>
+                <form asp-controller="Account" asp-action="DemoLogin" method="post" class="ra-demo-persona">
+                    <input type="hidden" name="role" value="tutor" />
+                    <i class="bi bi-person-workspace fs-4" style="color:var(--ra-accent);"></i>
+                    <strong>Profesor</strong>
+                    <small>Grupos, riesgo, copilotaje e intervenciones.</small>
+                    <button type="submit" class="ra-btn ra-btn-sm ra-btn-primary">Entrar como profesor</button>
+                </form>
+                <form asp-controller="Account" asp-action="DemoLogin" method="post" class="ra-demo-persona">
+                    <input type="hidden" name="role" value="autoridad" />
+                    <i class="bi bi-bar-chart-line fs-4" style="color:var(--ra-info);"></i>
+                    <strong>Autoridad</strong>
+                    <small>Panel institucional y seguimiento agregado.</small>
+                    <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline">Entrar como autoridad</button>
+                </form>
+            </div>
+            <div class="ra-alert ra-alert-info mt-3 mb-0 text-start">
+                <i class="bi bi-qr-code"></i>
+                <div>
+                    <strong>Prueba de registro público:</strong>
+                    usa la boleta <code>2024000001</code> con el código <code>RESCATE-1</code> para simular la vinculación inmediata de un expediente.
+                </div>
+            </div>
+        </section>
+    }
 </div>

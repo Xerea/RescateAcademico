@@ -8,6 +8,9 @@ using RescateAcademico.Data;
 using RescateAcademico.Models;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Primitives;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace RescateAcademico.Controllers
 {
@@ -50,13 +53,19 @@ namespace RescateAcademico.Controllers
                 return View();
             }
 
-            if (string.IsNullOrWhiteSpace(email) || (!email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) && !email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase)))
+            if (string.IsNullOrWhiteSpace(email))
             {
-                ModelState.AddModelError(string.Empty, "Debes iniciar sesión con tu correo institucional (@ipn.mx o @alumno.ipn.mx).");
+                ModelState.AddModelError(string.Empty, "Debes ingresar tu correo.");
                 return View();
             }
 
             var user = await _userManager.FindByEmailAsync(email);
+            var isInstitutionalEmail = email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) || email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase);
+            if (user == null && !isInstitutionalEmail)
+            {
+                ModelState.AddModelError(string.Empty, "El correo no institucional debe estar registrado y validado antes de iniciar sesión.");
+                return View();
+            }
             if (user != null && !user.IsActive)
             {
                 ModelState.AddModelError(string.Empty, "Esta cuenta no está activa.");
@@ -134,11 +143,7 @@ namespace RescateAcademico.Controllers
                 return View(model);
             }
 
-            if (await _context.Alumnos.AnyAsync(a => a.Matricula == model.Matricula))
-            {
-                ModelState.AddModelError(nameof(model.Matricula), "Ya existe un alumno con esta boleta.");
-                return View(model);
-            }
+            var alumnoExistente = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == model.Matricula);
 
             var isInstitucional = model.Email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase) || model.Email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase);
             var user = new ApplicationUser
@@ -146,36 +151,88 @@ namespace RescateAcademico.Controllers
                 UserName = model.Email,
                 Email = model.Email,
                 IsActive = true,
-                PendienteVerificacion = !isInstitucional
+                PendienteVerificacion = !isInstitucional || alumnoExistente != null
             };
+
+            if (alumnoExistente != null && !string.IsNullOrWhiteSpace(model.CodigoVinculacion))
+            {
+                var codeHash = HashClaimCode(model.CodigoVinculacion);
+                var claim = await _context.AlumnoClaimCodes
+                    .FirstOrDefaultAsync(c => c.Matricula == model.Matricula && c.CodeHash == codeHash && c.UsedAt == null && c.ExpiresAt > DateTime.Now);
+                if (claim != null)
+                {
+                    user.PendienteVerificacion = false;
+                    isInstitucional = true;
+                }
+                else
+                {
+                    ModelState.AddModelError(nameof(model.CodigoVinculacion), "El código de vinculación no es válido o ya expiró.");
+                    return View(model);
+                }
+            }
 
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "Alumno");
-                var riesgo = new RescateAcademico.Services.RiskEvaluationService().CalcularRiesgo(new Alumno
+                if (alumnoExistente != null)
                 {
-                    Matricula = model.Matricula,
-                    PromedioGlobal = 0,
-                    MateriasReprobadas = 0,
-                    Ausencias = 0,
-                    ParcialesBajos = 0,
-                    EtsPresentados = 0,
-                    Recursamientos = 0
-                });
-                _context.Alumnos.Add(new Alumno
+                    var claim = await _context.AlumnoClaimCodes
+                        .FirstOrDefaultAsync(c => c.Matricula == model.Matricula && c.CodeHash == HashClaimCode(model.CodigoVinculacion ?? "") && c.UsedAt == null && c.ExpiresAt > DateTime.Now);
+                    if (claim != null)
+                    {
+                        alumnoExistente.UserId = user.Id;
+                        alumnoExistente.Correo = model.Email;
+                        claim.UsedAt = DateTime.Now;
+                        claim.UsedByUserId = user.Id;
+                    }
+                    else
+                    {
+                        _context.AccountLinkRequests.Add(new AccountLinkRequest
+                        {
+                            UserId = user.Id,
+                            Email = model.Email,
+                            Matricula = model.Matricula,
+                            NombreSolicitado = $"{model.Nombre} {model.Apellidos}"
+                        });
+                    }
+                }
+                else
                 {
-                    Matricula = model.Matricula,
-                    Nombre = model.Nombre,
-                    Apellidos = model.Apellidos,
-                    Carrera = model.Carrera,
-                    SemestreActual = model.SemestreActual,
-                    Correo = model.Email,
-                    UserId = user.Id,
-                    PromedioGlobal = 0,
-                    Estatus = "Activo",
-                    RiesgoAcademico = riesgo
-                });
+                    var riesgo = new RescateAcademico.Services.RiskEvaluationService().CalcularRiesgo(new Alumno
+                    {
+                        Matricula = model.Matricula,
+                        PromedioGlobal = 0,
+                        MateriasReprobadas = 0,
+                        Ausencias = 0,
+                        ParcialesBajos = 0,
+                        EtsPresentados = 0,
+                        Recursamientos = 0
+                    });
+                    _context.Alumnos.Add(new Alumno
+                    {
+                        Matricula = model.Matricula,
+                        Nombre = model.Nombre,
+                        Apellidos = model.Apellidos,
+                        Carrera = model.Carrera,
+                        SemestreActual = model.SemestreActual,
+                        Correo = model.Email,
+                        UserId = user.Id,
+                        PromedioGlobal = 0,
+                        Estatus = "Activo",
+                        RiesgoAcademico = riesgo
+                    });
+                    if (user.PendienteVerificacion)
+                    {
+                        _context.AccountLinkRequests.Add(new AccountLinkRequest
+                        {
+                            UserId = user.Id,
+                            Email = model.Email,
+                            Matricula = model.Matricula,
+                            NombreSolicitado = $"{model.Nombre} {model.Apellidos}"
+                        });
+                    }
+                }
                 await _context.SaveChangesAsync();
 
                 if (user.PendienteVerificacion)
@@ -192,6 +249,39 @@ namespace RescateAcademico.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
             return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> DemoLogin(string role)
+        {
+            var demoEnabled = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment()
+                || string.Equals(_configuration["SHOW_DEMO_ACCESS"], "true", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(_configuration["SHOW_DEMO_CREDENTIALS"], "true", StringComparison.OrdinalIgnoreCase);
+            if (!demoEnabled)
+                return NotFound();
+
+            var normalizedRole = (role ?? string.Empty).Trim().ToLowerInvariant();
+            var (email, password, controller) = normalizedRole switch
+            {
+                "alumno" => ("demo.alumno@alumno.ipn.mx", _configuration["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!", "Dashboard"),
+                "tutor" => ("profesor1@ipn.mx", _configuration["DEMO_TUTOR_PASSWORD"] ?? "Demo123!", "Profesor"),
+                "autoridad" => ("autoridad@ipn.mx", _configuration["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!", "Dashboard"),
+                _ => ("", "", "")
+            };
+
+            if (string.IsNullOrEmpty(email))
+                return BadRequest();
+
+            var result = await _signInManager.PasswordSignInAsync(email, password, false, lockoutOnFailure: false);
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = "No se pudo abrir el modo demo. Verifica que la base demo esté sembrada.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            return RedirectToAction("Index", controller);
         }
 
         [Authorize]
@@ -362,6 +452,12 @@ namespace RescateAcademico.Controllers
             }
         }
 
+        private static string HashClaimCode(string code)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes((code ?? string.Empty).Trim().ToUpperInvariant()));
+            return Convert.ToHexString(bytes);
+        }
+
     }
 
     public class ResetPasswordViewModel
@@ -397,5 +493,6 @@ namespace RescateAcademico.Controllers
         [Required]
         public string Carrera { get; set; } = string.Empty;
         public int SemestreActual { get; set; } = 1;
+        public string? CodigoVinculacion { get; set; }
     }
 }

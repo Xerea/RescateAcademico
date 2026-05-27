@@ -1970,8 +1970,130 @@ button.ra-authority-kpi {
   color: var(--ra-success);
 }
 
+.ra-ai-action-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--ra-primary) 24%, var(--ra-border));
+  border-radius: var(--ra-radius);
+  background: var(--ra-primary-soft);
+}
+
+.ra-ai-action-box strong,
+.ra-ai-action-box small {
+  display: block;
+}
+
+.ra-ai-action-box small {
+  margin-top: 0.2rem;
+  color: var(--ra-text-secondary);
+}
+
+.ra-ai-action-box p {
+  max-width: 72ch;
+  margin: 0.65rem 0 0;
+  color: var(--ra-text);
+}
+
+.ra-copilot-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.ra-copilot-card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background:
+    radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--ra-primary) 18%, transparent), transparent 28%),
+    radial-gradient(circle at 86% 10%, color-mix(in srgb, var(--ra-accent) 16%, transparent), transparent 30%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.ra-copilot-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.ra-copilot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.ra-copilot-head h2 {
+  margin: 0.15rem 0 0.35rem;
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  font-weight: 800;
+  color: var(--ra-text);
+}
+
+.ra-copilot-head p {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--ra-text-secondary);
+}
+
+.ra-copilot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.ra-copilot-case {
+  padding: 1rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius);
+  background: color-mix(in srgb, var(--ra-surface) 92%, transparent);
+  box-shadow: var(--ra-shadow);
+}
+
+.ra-copilot-case strong,
+.ra-copilot-case small {
+  display: block;
+}
+
+.ra-copilot-case small {
+  margin-top: 0.15rem;
+  color: var(--ra-text-secondary);
+}
+
+.ra-copilot-case-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.ra-copilot-case-meta span {
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--ra-radius-full);
+  background: var(--ra-surface-raised);
+  color: var(--ra-text-secondary);
+  font-size: 0.78rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ra-copilot-card::before {
+    animation: raCopilotGlow 16s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes raCopilotGlow {
+  from { transform: translate3d(-2%, -1%, 0) rotate(0deg); }
+  to { transform: translate3d(2%, 1%, 0) rotate(4deg); }
+}
+
 @media (max-width: 991.98px) {
-  .ra-ai-factor-grid {
+  .ra-ai-factor-grid,
+  .ra-copilot-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -5,6 +5,7 @@ using RescateAcademico.Data;
 using RescateAcademico.Models;
 using RescateAcademico.Services;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace RescateAcademico.Seeders
@@ -38,7 +39,7 @@ namespace RescateAcademico.Seeders
         };
 
         private static readonly string[] Carreras = new[] {
-            "Técnico en Administración","Técnico en Contabilidad","Técnico en Gastronomía","Técnico en Informática","Técnico en Seguridad Informática","Técnico en Turismo"
+            "Técnico en Administración","Técnico en Contaduría","Técnico en Gastronomía","Técnico en Informática","Técnico en Gestión de la Ciberseguridad","Técnico en Administración de Empresas Turísticas"
         };
         private static readonly string[] CarreraClaves = new[] { "A","C","G","I","S","T" };
         private static readonly string[] Turnos = new[] { "Matutino","Vespertino" };
@@ -154,6 +155,7 @@ namespace RescateAcademico.Seeders
             var profesores = await SeedProfesoresAsync(userManager, context, tutorPassword);
             var grupos = await SeedGruposAsync(context, profesores);
             var alumnos = await SeedAlumnosAsync(userManager, context, grupos, alumnoPassword);
+            await SeedAlumnoClaimCodesAsync(context, alumnos);
             await SeedMateriasAsync(context);
             await SeedCalificacionesAsync(context, alumnos);
             await SeedAsignacionesTutorAsync(context, profesores, alumnos);
@@ -275,18 +277,18 @@ namespace RescateAcademico.Seeders
             var config = new[]
             {
                 (3, "Técnico en Informática", "Matutino", 1),
-                (3, "Técnico en Contabilidad", "Matutino", 2),
+                (3, "Técnico en Contaduría", "Matutino", 2),
                 (3, "Técnico en Administración", "Vespertino", 1),
                 (3, "Técnico en Informática", "Vespertino", 2),
-                (4, "Técnico en Seguridad Informática", "Matutino", 1),
-                (4, "Técnico en Turismo", "Vespertino", 1),
+                (4, "Técnico en Gestión de la Ciberseguridad", "Matutino", 1),
+                (4, "Técnico en Administración de Empresas Turísticas", "Vespertino", 1),
                 (4, "Técnico en Gastronomía", "Vespertino", 2),
                 (5, "Técnico en Informática", "Vespertino", 1),
                 (5, "Técnico en Administración", "Vespertino", 2),
                 (6, "Técnico en Informática", "Vespertino", 1),
             };
 
-            int profIdx = 0;
+            int profIdx = 1;
             foreach (var (sem, carrera, turno, num) in config)
             {
                 var turnoAbrev = turno == "Matutino" ? "IM" : "IV";
@@ -299,9 +301,8 @@ namespace RescateAcademico.Seeders
                     Semestre = sem,
                     Turno = turno,
                     NumeroGrupo = num,
-                    ProfesorId = profesores[profIdx % profesores.Count].Id
+                    ProfesorId = grupos.Count < 3 ? profesores[0].Id : profesores[profIdx++ % profesores.Count].Id
                 });
-                profIdx++;
             }
             context.Grupos.AddRange(grupos);
             await context.SaveChangesAsync();
@@ -421,6 +422,39 @@ namespace RescateAcademico.Seeders
                 await context.SaveChangesAsync();
             }
             return alumnos;
+        }
+
+        private static async Task SeedAlumnoClaimCodesAsync(ApplicationDbContext context, List<Alumno> alumnos)
+        {
+            if (await context.AlumnoClaimCodes.AnyAsync()) return;
+
+            var claimables = alumnos
+                .Where(a => a.Matricula != "2023000001")
+                .OrderBy(a => a.Matricula)
+                .Take(3)
+                .ToList();
+
+            var codes = new[] { "RESCATE-1", "RESCATE-2", "RESCATE-3" };
+            for (var i = 0; i < claimables.Count; i++)
+            {
+                claimables[i].UserId = null;
+                claimables[i].Correo = null;
+                context.AlumnoClaimCodes.Add(new AlumnoClaimCode
+                {
+                    Matricula = claimables[i].Matricula,
+                    CodeHash = HashClaimCode(codes[i]),
+                    ExpiresAt = DateTime.Now.AddMonths(6),
+                    CreatedBy = "DemoDataSeeder"
+                });
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        private static string HashClaimCode(string code)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes((code ?? string.Empty).Trim().ToUpperInvariant()));
+            return Convert.ToHexString(bytes);
         }
 
         private static readonly string[] NombresTutorLegal = new[] {

@@ -34,7 +34,17 @@ namespace RescateAcademico.Controllers
 
             var alumnosIds = grupos.SelectMany(g => g.Alumnos).Select(a => a.Matricula).ToList();
             var alumnos = await _context.Alumnos
+                .Include(a => a.Grupo)
                 .Where(a => alumnosIds.Contains(a.Matricula))
+                .ToListAsync();
+            var activePlanMatriculas = await _context.PlanesMejora
+                .Where(p => alumnosIds.Contains(p.AlumnoMatricula) && p.Estado == "Activo")
+                .Select(p => p.AlumnoMatricula)
+                .ToListAsync();
+            var intervencionesRecientes = await _context.IntervencionesTutoria
+                .Where(i => i.TutorId == profesor.Id && i.Fecha >= DateTime.Now.AddDays(-30))
+                .Select(i => i.AlumnoMatricula)
+                .Distinct()
                 .ToListAsync();
 
             var vm = new ProfesorDashboardViewModel
@@ -56,7 +66,8 @@ namespace RescateAcademico.Controllers
                     TotalAlumnos = g.Alumnos.Count,
                     EnRiesgo = g.Alumnos.Count(a => a.RiesgoAcademico == "Rojo" || a.RiesgoAcademico == "Amarillo")
                 }).ToList(),
-                Estudiantes = alumnos.OrderBy(a => a.Apellidos).ToList()
+                Estudiantes = alumnos.OrderBy(a => a.Apellidos).ToList(),
+                ExistingPlanMatriculas = activePlanMatriculas
             };
 
             int predAlta = 0, predMedia = 0, predBaja = 0;
@@ -66,15 +77,36 @@ namespace RescateAcademico.Controllers
                 if (prob >= 0.55m) predAlta++;
                 else if (prob >= 0.35m) predMedia++;
                 else predBaja++;
+
+                if (prob >= 0.35m)
+                {
+                    vm.CopilotoCasos.Add(new CopilotoCaso
+                    {
+                        Matricula = a.Matricula,
+                        Nombre = $"{a.Nombre} {a.Apellidos}",
+                        Grupo = a.Grupo?.Clave ?? "",
+                        Carrera = a.Carrera ?? "",
+                        Promedio = a.PromedioGlobal,
+                        Probabilidad = prob,
+                        Riesgo = a.RiesgoAcademico ?? "Verde",
+                        TienePlanActivo = activePlanMatriculas.Contains(a.Matricula),
+                        TieneIntervencionReciente = intervencionesRecientes.Contains(a.Matricula),
+                        SiguienteAccion = activePlanMatriculas.Contains(a.Matricula)
+                            ? "Revisar avance del plan"
+                            : intervencionesRecientes.Contains(a.Matricula)
+                                ? "Programar seguimiento"
+                                : "Generar análisis y abrir intervención"
+                    });
+                }
             }
             vm.PrediccionesAltas = predAlta;
             vm.PrediccionesMedias = predMedia;
             vm.PrediccionesBajas = predBaja;
-
-            vm.ExistingPlanMatriculas = await _context.PlanesMejora
-                .Where(p => alumnosIds.Contains(p.AlumnoMatricula) && p.Estado == "Activo")
-                .Select(p => p.AlumnoMatricula)
-                .ToListAsync();
+            vm.CopilotoCasos = vm.CopilotoCasos
+                .OrderByDescending(c => c.Probabilidad)
+                .ThenBy(c => c.Promedio)
+                .Take(4)
+                .ToList();
 
             return View(vm);
         }
@@ -210,6 +242,21 @@ namespace RescateAcademico.Controllers
         public List<GrupoResumen> Grupos { get; set; } = new();
         public List<string> ExistingPlanMatriculas { get; set; } = new();
         public List<Alumno> Estudiantes { get; set; } = new();
+        public List<CopilotoCaso> CopilotoCasos { get; set; } = new();
+    }
+
+    public class CopilotoCaso
+    {
+        public string Matricula { get; set; } = "";
+        public string Nombre { get; set; } = "";
+        public string Grupo { get; set; } = "";
+        public string Carrera { get; set; } = "";
+        public decimal Promedio { get; set; }
+        public decimal Probabilidad { get; set; }
+        public string Riesgo { get; set; } = "";
+        public string SiguienteAccion { get; set; } = "";
+        public bool TienePlanActivo { get; set; }
+        public bool TieneIntervencionReciente { get; set; }
     }
 
     public class GrupoResumen

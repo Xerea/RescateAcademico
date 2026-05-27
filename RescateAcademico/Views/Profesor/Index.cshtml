@@ -19,6 +19,57 @@
 
 <partial name="_PageHeader" model="header" />
 
+@if (Model.CopilotoCasos.Any())
+{
+    <section class="ra-card ra-copilot-card mb-4" aria-label="Copiloto académico">
+        <div class="ra-card-body">
+            <div class="ra-copilot-head">
+                <div>
+                    <span class="ra-student-eyebrow">Copiloto académico</span>
+                    <h2>Casos que necesitan decisión docente</h2>
+                    <p>Prioriza estudiantes con riesgo predictivo, revisa el análisis IA y convierte la recomendación en intervención o plan.</p>
+                </div>
+                <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-stars"></i> Abrir IA
+                </a>
+            </div>
+            <div class="ra-copilot-grid">
+                @foreach (var caso in Model.CopilotoCasos)
+                {
+                    var color = caso.Probabilidad >= 0.55m ? "danger" : "warning";
+                    <article class="ra-copilot-case">
+                        <div class="d-flex justify-content-between gap-2 align-items-start">
+                            <div>
+                                <strong>@caso.Nombre</strong>
+                                <small>@caso.Matricula · @caso.Grupo · @caso.Carrera</small>
+                            </div>
+                            <span class="ra-badge ra-badge-@color">@((caso.Probabilidad * 100).ToString("F0"))%</span>
+                        </div>
+                        <div class="ra-copilot-case-meta">
+                            <span>Promedio @caso.Promedio.ToString("F2")</span>
+                            <span>@caso.SiguienteAccion</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-primary">
+                                <i class="bi bi-brain"></i> Analizar
+                            </a>
+                            <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
+                                <i class="bi bi-clipboard-pulse"></i> Intervenir
+                            </a>
+                            @if (!caso.TienePlanActivo)
+                            {
+                                <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
+                                    <i class="bi bi-journal-check"></i> Plan
+                                </a>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+}
+
 <!-- Smart Suggestions -->
 @{
     var topRiesgo = Model.Estudiantes

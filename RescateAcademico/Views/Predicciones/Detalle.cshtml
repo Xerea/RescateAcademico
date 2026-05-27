@@ -140,6 +140,29 @@
                         }
                     </div>
 
+                    @if (!string.IsNullOrWhiteSpace(analisisIA.IntervencionSugerida) || !string.IsNullOrWhiteSpace(analisisIA.MensajeSugerido))
+                    {
+                        <div class="ra-ai-section">
+                            <div class="ra-heading mb-2">Siguiente acción docente</div>
+                            <div class="ra-ai-action-box">
+                                <div>
+                                    <strong>@(string.IsNullOrWhiteSpace(analisisIA.IntervencionSugerida) ? "Intervención sugerida" : analisisIA.IntervencionSugerida)</strong>
+                                    <small>@(string.IsNullOrWhiteSpace(analisisIA.FechaSeguimientoSugerida) ? "Definir seguimiento según disponibilidad del profesor." : $"Seguimiento sugerido: {analisisIA.FechaSeguimientoSugerida}")</small>
+                                    @if (!string.IsNullOrWhiteSpace(analisisIA.MensajeSugerido))
+                                    {
+                                        <p>@analisisIA.MensajeSugerido</p>
+                                    }
+                                </div>
+                                @if (!User.IsInRole("Autoridad"))
+                                {
+                                    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-primary">
+                                        <i class="bi bi-clipboard-pulse"></i> Registrar intervención
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+
                     <div class="ra-ai-section mb-0">
                         @if (alertasIA.Any())
                         {

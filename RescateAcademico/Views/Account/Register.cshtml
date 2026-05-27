@@ -42,7 +42,7 @@
                                 <i class="bi bi-eye" id="regPassIcon"></i>
                             </button>
                             <span asp-validation-for="Password" class="text-danger"></span>
-                            <div class="form-text">Mínimo 6 caracteres.</div>
+                            <div class="form-text">Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.</div>
                         </div>
                         <div class="mb-3 position-relative">
                             <label asp-for="ConfirmPassword" class="ra-label">Confirmar Contraseña <span class="text-danger">*</span></label>
@@ -66,6 +66,12 @@
                             <label asp-for="Matricula" class="ra-label">Boleta <span class="text-danger">*</span></label>
                             <input asp-for="Matricula" class="ra-input" placeholder="Boleta" required />
                             <span asp-validation-for="Matricula" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="CodigoVinculacion" class="ra-label">Código de vinculación</label>
+                            <input asp-for="CodigoVinculacion" class="ra-input" placeholder="Opcional para reclamar expediente existente" />
+                            <span asp-validation-for="CodigoVinculacion" class="text-danger"></span>
+                            <div class="form-text">Si tu expediente ya existe, este código permite vincularlo de inmediato. Sin código, la solicitud queda para revisión.</div>
                         </div>
                         <div class="mb-3">
                             <label asp-for="Nombre" class="ra-label">Nombre <span class="text-danger">*</span></label>
@@ -92,7 +98,15 @@
                         <h5 class="text-secondary mb-3"><span class="badge bg-secondary">3/3</span> Información Académica</h5>
                         <div class="mb-3">
                             <label asp-for="Carrera" class="ra-label">Carrera</label>
-                            <input asp-for="Carrera" class="ra-input" placeholder="Carrera" />
+                            <select asp-for="Carrera" class="ra-select">
+                                <option value="">Selecciona tu carrera</option>
+                                <option>Técnico en Administración</option>
+                                <option>Técnico en Administración de Empresas Turísticas</option>
+                                <option>Técnico en Contaduría</option>
+                                <option>Técnico en Gastronomía</option>
+                                <option>Técnico en Gestión de la Ciberseguridad</option>
+                                <option>Técnico en Informática</option>
+                            </select>
                             <span asp-validation-for="Carrera" class="text-danger"></span>
                         </div>
                         <div class="mb-3">

@@ -75,9 +75,14 @@
                         <span class="text-secondary small">
                             <i class="bi bi-plus-circle me-1"></i> ¿Necesitas crear una nueva cuenta?
                         </span>
-                        <a asp-action="CrearCuenta" class="ra-btn ra-btn-primary ra-btn-sm">
-                            <i class="bi bi-person-plus"></i> Crear cuenta
-                        </a>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a asp-action="SolicitudesAcceso" class="ra-btn ra-btn-outline ra-btn-sm">
+                                <i class="bi bi-person-check"></i> Revisar solicitudes
+                            </a>
+                            <a asp-action="CrearCuenta" class="ra-btn ra-btn-primary ra-btn-sm">
+                                <i class="bi bi-person-plus"></i> Crear cuenta
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

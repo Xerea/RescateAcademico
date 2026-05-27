@@ -7,6 +7,7 @@ using RescateAcademico.Filters;
 using RescateAcademico.Models;
 using RescateAcademico.Services;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace RescateAcademico.Controllers
 {
@@ -40,6 +41,61 @@ namespace RescateAcademico.Controllers
         {
             var usuarios = await _context.Users.ToListAsync();
             return View(usuarios);
+        }
+
+        public async Task<IActionResult> SolicitudesAcceso()
+        {
+            var solicitudes = await _context.AccountLinkRequests
+                .OrderByDescending(r => r.FechaSolicitud)
+                .ToListAsync();
+            return View(solicitudes);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Aprobar Vinculacion", Tabla = "AccountLinkRequests")]
+        public async Task<IActionResult> AprobarSolicitudAcceso(int id)
+        {
+            var solicitud = await _context.AccountLinkRequests.FirstOrDefaultAsync(r => r.Id == id);
+            if (solicitud == null) return NotFound();
+
+            var user = await _userManager.FindByIdAsync(solicitud.UserId);
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == solicitud.Matricula);
+            if (user == null || alumno == null)
+            {
+                TempData["Error"] = "No se pudo aprobar: falta el usuario o el alumno.";
+                return RedirectToAction(nameof(SolicitudesAcceso));
+            }
+
+            alumno.UserId = user.Id;
+            alumno.Correo = user.Email;
+            user.PendienteVerificacion = false;
+            solicitud.Estado = "Aprobada";
+            solicitud.RevisadoPorUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            solicitud.FechaRevision = DateTime.Now;
+            await _userManager.UpdateAsync(user);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Cuenta vinculada con la boleta {alumno.Matricula}.";
+            return RedirectToAction(nameof(SolicitudesAcceso));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Rechazar Vinculacion", Tabla = "AccountLinkRequests")]
+        public async Task<IActionResult> RechazarSolicitudAcceso(int id, string? motivo)
+        {
+            var solicitud = await _context.AccountLinkRequests.FirstOrDefaultAsync(r => r.Id == id);
+            if (solicitud == null) return NotFound();
+
+            solicitud.Estado = "Rechazada";
+            solicitud.MotivoRechazo = string.IsNullOrWhiteSpace(motivo) ? "No fue posible validar la identidad." : motivo.Trim();
+            solicitud.RevisadoPorUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            solicitud.FechaRevision = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Solicitud rechazada.";
+            return RedirectToAction(nameof(SolicitudesAcceso));
         }
 
         public async Task<IActionResult> Alumnos()
