@@ -56,7 +56,7 @@
 
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm ra-navbar">
-            <div class="container-fluid px-4 px-lg-5">
+            <div class="ra-container">
                 <a class="navbar-brand ra-navbar-brand" asp-area="" asp-controller="@homeController" asp-action="Index">
                     <i class="bi bi-mortarboard-fill"></i>
                     <span>Rescate Académico</span>
@@ -157,7 +157,7 @@
     </header>
 
     <main id="mainContent" role="main" class="pb-4">
-        <div class="container-fluid px-4 px-lg-5">
+        <div class="ra-container">
             @if (!suppressBreadcrumb)
             {
                 <nav aria-label="breadcrumb" class="ra-breadcrumb mt-3">
@@ -200,7 +200,7 @@
     </main>
 
     <footer class="ra-footer">
-        <div class="container-fluid px-4 px-lg-5 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="ra-container d-flex flex-wrap justify-content-between align-items-center gap-2">
             <span>Rescate Académico IPN — CECyT No. 13</span>
             <a asp-controller="Home" asp-action="Privacy" class="text-decoration-none">Política de Privacidad</a>
         </div>

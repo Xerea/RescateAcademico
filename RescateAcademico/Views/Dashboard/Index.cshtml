@@ -7,6 +7,9 @@
     var userName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
     var today = DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX"));
 
+    // Autoridad/Admin render their own shader hero (which carries the title),
+    // so we skip the generic page header to avoid a redundant double-title.
+    var showPageHeader = !(User.IsInRole("Autoridad") || User.IsInRole("Administrador"));
     var header = new PageHeader
     {
         Title = "Panel de control",
@@ -16,7 +19,10 @@
     };
 }
 
-<partial name="_PageHeader" model="header" />
+@if (showPageHeader)
+{
+    <partial name="_PageHeader" model="header" />
+}
 
 @if (TempData["Success"] != null)
 {
