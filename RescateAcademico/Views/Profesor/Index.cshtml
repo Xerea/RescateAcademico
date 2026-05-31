@@ -8,16 +8,24 @@
     var pctRojo = total > 0 ? (Model.EnRiesgoRojo * 100.0 / total) : 0;
 
     var hoy = DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX"));
-    var header = new PageHeader
+    var nombre = string.IsNullOrWhiteSpace(Model.ProfesorNombre) ? "Profesor" : Model.ProfesorNombre;
+
+    var heroLead = Model.EnRiesgoRojo > 0
+        ? $"Tienes {Model.EnRiesgoRojo} estudiante(s) en riesgo alto. Empieza por ellos: revisa, decide y registra una intervención."
+        : "Todo tu alumnado está estable. Revisa tus grupos y mantén el seguimiento al día.";
+
+    var hero = new HeroBand
     {
-        Title = "Mis Grupos",
-        SubtitleHtml = new Microsoft.AspNetCore.Html.HtmlString($"Bienvenido, <strong>{System.Net.WebUtility.HtmlEncode(Model.ProfesorNombre ?? "")}</strong> · {hoy}"),
-        Icon = "bi-person-workspace",
-        IconVariant = "accent"
+        Eyebrow = "Mis grupos · " + hoy,
+        Title = "Hola, " + nombre.Split(' ')[0] + ".",
+        Lead = heroLead,
+        ActionsHtml =
+            $"<a href='{Url.Action("Index", "Predicciones")}' class='ra-btn ra-btn-primary ra-btn-lg'><i class='bi bi-stars'></i> Análisis IA</a>" +
+            $"<a href='{Url.Action("Index", "Intervenciones")}' class='ra-btn ra-btn-outline ra-btn-lg'><i class='bi bi-clipboard-pulse'></i> Intervenciones</a>"
     };
 }
 
-<partial name="_PageHeader" model="header" />
+<partial name="_Hero" model="hero" />
 
 @if (Model.CopilotoCasos.Any())
 {

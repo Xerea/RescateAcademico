@@ -14,30 +14,36 @@
     var ausenciasPct = Math.Round((double)Model.AlumnosConAusencias / totalBase * 100, 0);
 }
 
-<section class="ra-authority-hero mb-4" aria-label="Resumen institucional">
-    <div class="ra-authority-copy">
-        <span class="ra-student-eyebrow">Autoridad académica</span>
-        <h2>@scopeLabel</h2>
-        <p>Una lectura rápida del estado académico: riesgo, revisión de solicitudes y cierres próximos. Menos ruido, más decisiones.</p>
-    </div>
-    <form method="get" class="ra-authority-scope" aria-label="Filtrar por grupo">
-        <label class="ra-label" for="grupoDashboard">Grupo</label>
-        <div class="d-flex gap-2">
-            <select id="grupoDashboard" name="grupo" class="ra-select" onchange="this.form.submit()">
-                <option value="">Todos los grupos</option>
-                @foreach (var grupo in grupos)
-                {
-                    <option value="@grupo" selected="@(grupoSeleccionado == grupo ? "selected" : null)">@grupo</option>
-                }
-            </select>
-            @if (!string.IsNullOrWhiteSpace(grupoSeleccionado))
-            {
-                <a asp-action="Index" class="ra-btn ra-btn-ghost" title="Limpiar grupo" aria-label="Limpiar grupo">
-                    <i class="bi bi-x-lg"></i>
-                </a>
-            }
+<section class="ra-hero mb-4" aria-label="Resumen institucional">
+    <div class="ra-hero-canvas-wrap" aria-hidden="true"><canvas class="ra-hero-shader"></canvas></div>
+    <div class="ra-hero-scrim" aria-hidden="true"></div>
+    <div class="ra-hero-content">
+        <div class="ra-hero-text">
+            <span class="ra-hero-eyebrow"><i class="bi bi-building"></i> Autoridad académica</span>
+            <h1 class="ra-hero-title">@scopeLabel</h1>
+            <p class="ra-hero-lead">Una lectura clara del estado académico: riesgo, solicitudes por revisar y cierres próximos. Menos ruido, mejores decisiones.</p>
         </div>
-    </form>
+        <div class="ra-hero-aside">
+            <form method="get" class="ra-authority-scope" aria-label="Filtrar por grupo">
+                <label class="ra-label" for="grupoDashboard">Grupo</label>
+                <div class="d-flex gap-2">
+                    <select id="grupoDashboard" name="grupo" class="ra-select" onchange="this.form.submit()">
+                        <option value="">Todos los grupos</option>
+                        @foreach (var grupo in grupos)
+                        {
+                            <option value="@grupo" selected="@(grupoSeleccionado == grupo ? "selected" : null)">@grupo</option>
+                        }
+                    </select>
+                    @if (!string.IsNullOrWhiteSpace(grupoSeleccionado))
+                    {
+                        <a asp-action="Index" class="ra-btn ra-btn-ghost" title="Limpiar grupo" aria-label="Limpiar grupo">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
 </section>
 
 <div class="ra-authority-priority-grid mb-4" aria-label="Prioridades">

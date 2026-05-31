@@ -13,8 +13,9 @@
   /* Typography */
   --ra-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --ra-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
-  --ra-font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --ra-text-base: 0.9375rem;
+  --ra-font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --ra-font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --ra-text-base: 1rem;          /* larger base for clarity (audience-friendly) */
   --ra-line-height: 1.6;
 
   /* Surfaces */
@@ -2721,3 +2722,210 @@ button.ra-authority-kpi {
   color: var(--ra-text-muted);
   vertical-align: middle;
 }
+
+
+/* ════════════════════════════════════════════════════════════════
+   DESIGN ELEVATION LAYER (v2)
+   Goal: one unified, calm, elegant language across every view.
+   - Literary serif (Newsreader) for titles → understated gravitas
+   - Larger, clearer type for the audience (profesores / autoridades)
+   - A single signature "hero band" with an optional WebGL shader
+   - Consistent rhythm, softer surfaces, fewer competing accents
+   ════════════════════════════════════════════════════════════════ */
+
+/* --- Display serif on every title surface (auto-unifies all views) --- */
+.ra-page-title,
+.ra-student-hero-title,
+.ra-authority-copy h2,
+.ra-review-summary h2,
+.ra-opportunity-brief h2,
+.ra-application-summary h2,
+.ra-copilot-head h2,
+.ra-hero-title,
+.ra-section-serif {
+  font-family: var(--ra-font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Page titles: bigger and clearer for the primary audience */
+.ra-page-title {
+  font-size: clamp(1.7rem, 2.4vw, 2.25rem);
+  line-height: 1.15;
+}
+.ra-page-title i {
+  font-size: 0.85em;          /* icon tracks the serif optically */
+  color: var(--ra-accent);
+}
+.ra-page-subtitle {
+  font-size: 0.975rem;
+  color: var(--ra-text-secondary);
+}
+
+/* Card headers: a hair larger, calmer weight, optical alignment */
+.ra-card-header {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.ra-card-header i { color: var(--ra-primary); opacity: 0.9; }
+
+/* Body links inside content read as serif-adjacent (kept sans for UI clarity) */
+.ra-stat-value { letter-spacing: -0.02em; }
+
+/* Slightly more generous default control sizing for touch + low vision */
+.ra-btn { font-size: 0.95rem; padding: 0.6rem 1.05rem; }
+.ra-btn-sm { font-size: 0.85rem; padding: 0.4rem 0.7rem; }
+.ra-btn-lg { font-size: 1.05rem; padding: 0.8rem 1.6rem; }
+.ra-input, .ra-select { font-size: 1rem; padding: 0.6rem 0.9rem; }
+.ra-label { font-size: 0.85rem; }
+.ra-badge { font-size: 0.78rem; }
+.ra-table tbody td { font-size: 0.925rem; }
+
+/* Softer card hover — calmer, less "jumpy" so the app feels composed */
+.ra-card { transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease; }
+.ra-card:hover { transform: translateY(-2px); box-shadow: var(--ra-shadow-md); }
+
+/* ════════════════════════════════════════════════════════════════
+   SIGNATURE HERO BAND  (the "visual candy")
+   <div class="ra-hero"> with an optional <canvas class="ra-hero-shader">
+   Falls back to an animated CSS gradient if WebGL is unavailable.
+   ════════════════════════════════════════════════════════════════ */
+.ra-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--ra-radius-xl);
+  border: 1px solid var(--ra-border);
+  background: var(--ra-surface);
+  box-shadow: var(--ra-shadow-md);
+  margin-bottom: 1.75rem;
+  isolation: isolate;
+}
+.ra-hero-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.ra-hero-shader { display: block; width: 100%; height: 100%; }
+
+/* CSS fallback / base wash that always renders under the canvas */
+.ra-hero-canvas-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  background:
+    radial-gradient(40% 55% at 18% 25%, color-mix(in srgb, var(--ra-primary) 55%, transparent), transparent 70%),
+    radial-gradient(45% 60% at 82% 30%, color-mix(in srgb, var(--ra-accent) 48%, transparent), transparent 72%),
+    radial-gradient(60% 70% at 60% 95%, color-mix(in srgb, var(--ra-primary) 30%, transparent), transparent 75%);
+  filter: blur(20px) saturate(115%);
+  animation: raHeroDrift 26s ease-in-out infinite alternate;
+}
+@keyframes raHeroDrift {
+  0%   { transform: translate3d(-3%, -2%, 0) scale(1.05); }
+  50%  { transform: translate3d(4%, 3%, 0) scale(1.12); }
+  100% { transform: translate3d(-2%, 4%, 0) scale(1.06); }
+}
+/* When the real shader is painting, hide the CSS fallback wash */
+.ra-hero.is-shading .ra-hero-canvas-wrap::before { opacity: 0; transition: opacity 0.6s ease; }
+
+/* Legibility scrim so serif text always reads on top of the shader */
+.ra-hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(105deg,
+    color-mix(in srgb, var(--ra-surface) 92%, transparent) 0%,
+    color-mix(in srgb, var(--ra-surface) 78%, transparent) 42%,
+    color-mix(in srgb, var(--ra-surface) 30%, transparent) 100%);
+}
+[data-bs-theme="dark"] .ra-hero-scrim {
+  background: linear-gradient(105deg,
+    color-mix(in srgb, var(--ra-surface) 90%, transparent) 0%,
+    color-mix(in srgb, var(--ra-surface) 70%, transparent) 45%,
+    color-mix(in srgb, var(--ra-surface) 20%, transparent) 100%);
+}
+
+.ra-hero-content {
+  position: relative;
+  z-index: 2;
+  padding: clamp(1.5rem, 3.5vw, 2.75rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+.ra-hero-text { min-width: 0; flex: 1 1 340px; }
+.ra-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ra-accent);
+  margin-bottom: 0.6rem;
+}
+.ra-hero-title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 1.05;
+  color: var(--ra-text);
+}
+.ra-hero-lead {
+  margin: 0.7rem 0 0;
+  max-width: 56ch;
+  font-size: clamp(1.02rem, 1.4vw, 1.2rem);
+  line-height: 1.55;
+  color: var(--ra-text-secondary);
+}
+.ra-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+.ra-hero-aside {
+  position: relative;
+  z-index: 2;
+  flex: 0 1 auto;
+}
+
+@media (max-width: 575.98px) {
+  .ra-hero-content { padding: 1.25rem; }
+  .ra-hero-title { font-size: 1.85rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ra-hero-canvas-wrap::before { animation: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   POLISH: refined focus, calmer dividers, elegant scrollbar
+   ════════════════════════════════════════════════════════════════ */
+:root { scrollbar-color: var(--ra-border) transparent; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb {
+  background: var(--ra-border);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ra-text-muted); background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Quiet, consistent section label used across hubs */
+.ra-section-label {
+  font-family: var(--ra-font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ra-text);
+  margin: 0 0 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ra-section-label i { color: var(--ra-accent); font-size: 0.95em; }

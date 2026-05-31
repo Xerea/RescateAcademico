@@ -1,4 +1,4 @@
-@inject IWebHostEnvironment Env
+﻿@inject IWebHostEnvironment Env
 @inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Rescate Académico";
@@ -10,7 +10,7 @@
 }
 
 <style>
-    .ra-hero {
+    .ra-landing {
         min-height: calc(100vh - 160px);
         display: flex;
         flex-direction: column;
@@ -21,7 +21,7 @@
         position: relative;
         z-index: 1;
     }
-    .ra-hero-icon {
+    .ra-landing-icon {
         width: 84px;
         height: 84px;
         border-radius: 22px;
@@ -33,7 +33,7 @@
         font-size: 2.5rem;
         margin-bottom: 1.75rem;
     }
-    .ra-hero h1 {
+    .ra-landing h1 {
         font-size: clamp(2.2rem, 5vw, 3.75rem);
         font-weight: 800;
         letter-spacing: -0.03em;
@@ -41,20 +41,20 @@
         margin-bottom: 1.1rem;
         color: var(--ra-text);
     }
-    .ra-hero h1 .ra-hero-accent {
+    .ra-landing h1 .ra-landing-accent {
         background: linear-gradient(120deg, var(--ra-primary), var(--ra-accent));
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
     }
-    .ra-hero-lead {
+    .ra-landing-lead {
         font-size: clamp(1rem, 2vw, 1.2rem);
         color: var(--ra-text-secondary);
         max-width: 560px;
         margin: 0 auto 2rem;
         line-height: 1.5;
     }
-    .ra-hero-cta {
+    .ra-landing-cta {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -68,23 +68,23 @@
         text-decoration: none;
         transition: var(--ra-transition);
     }
-    .ra-hero-cta:hover {
+    .ra-landing-cta:hover {
         background: var(--ra-accent-hover);
         color: #fff;
         transform: translateY(-2px);
         box-shadow: var(--ra-shadow-lg);
     }
-    .ra-hero-cta-secondary {
+    .ra-landing-cta-secondary {
         background: transparent;
         color: var(--ra-text);
         border: 1px solid var(--ra-border);
     }
-    .ra-hero-cta-secondary:hover {
+    .ra-landing-cta-secondary:hover {
         background: var(--ra-surface-raised);
         color: var(--ra-text);
         border-color: var(--ra-primary);
     }
-    .ra-hero-features {
+    .ra-landing-features {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1rem;
@@ -92,29 +92,29 @@
         margin: 3.5rem auto 0;
         text-align: left;
     }
-    .ra-hero-feature {
+    .ra-landing-feature {
         background: var(--ra-surface);
         border: 1px solid var(--ra-border);
         border-radius: var(--ra-radius-lg);
         padding: 1.25rem 1.5rem;
         transition: var(--ra-transition);
     }
-    .ra-hero-feature:hover {
+    .ra-landing-feature:hover {
         border-color: var(--ra-primary);
         box-shadow: var(--ra-shadow-md);
     }
-    .ra-hero-feature i {
+    .ra-landing-feature i {
         font-size: 1.4rem;
         color: var(--ra-primary);
         margin-bottom: 0.5rem;
         display: block;
     }
-    .ra-hero-feature h5 {
+    .ra-landing-feature h5 {
         font-weight: 600;
         font-size: 0.975rem;
         margin: 0 0 0.25rem;
     }
-    .ra-hero-feature p {
+    .ra-landing-feature p {
         margin: 0;
         color: var(--ra-text-secondary);
         font-size: 0.8125rem;
@@ -159,15 +159,15 @@
 
 <div class="ra-auth-bg" aria-hidden="true"></div>
 
-<div class="ra-hero">
-    <div class="ra-hero-icon">
+<div class="ra-landing">
+    <div class="ra-landing-icon">
         <i class="bi bi-mortarboard-fill"></i>
     </div>
     <h1>
         Rescate<br>
-        <span class="ra-hero-accent">Académico.</span>
+        <span class="ra-landing-accent">Académico.</span>
     </h1>
-    <p class="ra-hero-lead">
+    <p class="ra-landing-lead">
         Sigue tu progreso. Recupera estudiantes. Plataforma del
         <strong>CECyT No. 13</strong>, IPN, para detectar riesgo académico a
         tiempo y coordinar intervenciones entre profesores, autoridades y alumnos.
@@ -176,33 +176,33 @@
     @if (!isAuth)
     {
         <div class="d-flex flex-wrap justify-content-center gap-2">
-            <a asp-controller="Account" asp-action="Login" class="ra-hero-cta">
+            <a asp-controller="Account" asp-action="Login" class="ra-landing-cta">
                 <i class="bi bi-box-arrow-in-right"></i> Acceder al Sistema
             </a>
-            <a asp-controller="Account" asp-action="Register" class="ra-hero-cta ra-hero-cta-secondary">
+            <a asp-controller="Account" asp-action="Register" class="ra-landing-cta ra-landing-cta-secondary">
                 <i class="bi bi-person-plus"></i> Solicitar acceso
             </a>
         </div>
     }
     else
     {
-        <a asp-controller="Dashboard" asp-action="Index" class="ra-hero-cta">
+        <a asp-controller="Dashboard" asp-action="Index" class="ra-landing-cta">
             <i class="bi bi-grid-1x2"></i> Ir al Panel
         </a>
     }
 
-    <div class="ra-hero-features">
-        <div class="ra-hero-feature">
+    <div class="ra-landing-features">
+        <div class="ra-landing-feature">
             <i class="bi bi-shield-check"></i>
             <h5>Cuenta institucional</h5>
             <p>Acceso con tu correo @@ipn.mx o @@alumno.ipn.mx.</p>
         </div>
-        <div class="ra-hero-feature">
+        <div class="ra-landing-feature">
             <i class="bi bi-cpu"></i>
             <h5>Alertas tempranas</h5>
             <p>Modelo predictivo que identifica alumnos en riesgo.</p>
         </div>
-        <div class="ra-hero-feature">
+        <div class="ra-landing-feature">
             <i class="bi bi-graph-up-arrow"></i>
             <h5>Indicadores en vivo</h5>
             <p>Dashboards de desempeño por carrera, grupo y semestre.</p>
@@ -252,3 +252,4 @@
         </section>
     }
 </div>
+

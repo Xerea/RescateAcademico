@@ -1,0 +1,45 @@
+@*
+    Signature hero band with optional WebGL shader backdrop.
+    Usage:
+        <partial name="_Hero" model="new HeroBand {
+            Eyebrow = "Autoridad académica",
+            Title = "Vista institucional",
+            Lead = "...",
+            ActionsHtml = "<a class='ra-btn ra-btn-primary'>...</a>"
+        }" />
+    The shader is dependency-free and falls back to a CSS gradient.
+*@
+@model RescateAcademico.ViewModels.HeroBand
+@if (Model != null)
+{
+    <section class="ra-hero" aria-label="@Model.Title">
+        <div class="ra-hero-canvas-wrap" aria-hidden="true">
+            @if (Model.Shader)
+            {
+                <canvas class="ra-hero-shader"></canvas>
+            }
+        </div>
+        <div class="ra-hero-scrim" aria-hidden="true"></div>
+        <div class="ra-hero-content">
+            <div class="ra-hero-text">
+                @if (!string.IsNullOrEmpty(Model.Eyebrow))
+                {
+                    <span class="ra-hero-eyebrow">@Model.Eyebrow</span>
+                }
+                <h1 class="ra-hero-title">@Model.Title</h1>
+                @if (!string.IsNullOrEmpty(Model.Lead))
+                {
+                    <p class="ra-hero-lead">@Model.Lead</p>
+                }
+                @if (Model.ActionsHtml != null)
+                {
+                    <div class="ra-hero-actions">@Html.Raw(Model.ActionsHtml)</div>
+                }
+            </div>
+            @if (Model.AsideHtml != null)
+            {
+                <div class="ra-hero-aside">@Model.AsideHtml</div>
+            }
+        </div>
+    </section>
+}
