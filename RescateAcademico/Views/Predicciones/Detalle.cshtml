@@ -37,36 +37,47 @@
 
 @if (alumno != null)
 {
-    <div class="ra-card mb-4">
-        <div class="ra-card-header">
-            <h5 class="mb-0"><i class="bi bi-person-badge"></i> @alumno.Nombre @alumno.Apellidos (@alumno.Matricula)</h5>
-        </div>
-        <div class="ra-card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Carrera:</strong> @alumno.Carrera</p>
-                    <p><strong>Semestre:</strong> @alumno.SemestreActual</p>
-                    <p><strong>Promedio Global:</strong> <span class="ra-badge @(alumno.PromedioGlobal >= 8 ? "ra-badge-success" : alumno.PromedioGlobal >= 6 ? "ra-badge-warning" : "ra-badge-danger")">@alumno.PromedioGlobal.ToString("F2")</span></p>
-                    <p><strong>Carga Académica:</strong> @(alumno.CargaAcademicaActual ?? 0) materias</p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Materias Reprobadas:</strong> @(alumno.MateriasReprobadas ?? 0)</p>
-                    <p><strong>Ausencias:</strong> @(alumno.Ausencias ?? 0)</p>
-                    <p><strong>Parciales Bajos:</strong> @(alumno.ParcialesBajos ?? 0)</p>
-                    <p><strong>ETS Presentados:</strong> @(alumno.EtsPresentados ?? 0)</p>
-                </div>
+    var pct = (double)(Model.Probabilidad * 100);
+    var riskColor = Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning" : Model.Probabilidad > 0.3m ? "info" : "success";
+    var riskLevel = Model.Probabilidad > 0.7m ? "Crítico" : Model.Probabilidad > 0.5m ? "Alto" : Model.Probabilidad > 0.3m ? "Medio" : "Bajo";
+    var factores = ViewBag.Factores as List<string> ?? new List<string>();
+
+    <section class="ra-ai-hero mb-4" aria-label="Riesgo de deserción">
+        <div class="ra-ai-gauge is-@riskColor" style="--ra-gauge: @pct.ToString("F0", System.Globalization.CultureInfo.InvariantCulture);">
+            <div class="ra-ai-gauge-inner">
+                <span class="ra-ai-gauge-num" data-countup="@pct.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)" data-countup-suffix="%">@pct.ToString("F0")%</span>
+                <span class="ra-ai-gauge-label">probabilidad</span>
             </div>
-            <hr />
-            <div class="text-center">
-                <h4 class="mb-2">Probabilidad de Deserción: <span class="ra-text-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning" : Model.Probabilidad > 0.3m ? "info" : "success")">@((Model.Probabilidad * 100).ToString("F1"))%</span></h4>
-                <span class="ra-badge ra-badge-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning" : Model.Probabilidad > 0.3m ? "info" : "success") fs-6">Nivel: @(Model.Probabilidad > 0.7m ? "Crítico" : Model.Probabilidad > 0.5m ? "Alto" : Model.Probabilidad > 0.3m ? "Medio" : "Bajo")</span>
-                <p class="text-secondary mt-2"><small>Método: Heurística Institucional (basada en promedio, reprobadas, ausencias, recursamientos)</small></p>
-                <button type="button" class="ra-btn ra-btn-outline mt-2" data-bs-toggle="modal" data-bs-target="#simuladorModal">
-                    <i class="bi bi-sliders"></i> Simulador "¿Qué pasaría si?"
+        </div>
+        <div class="ra-ai-hero-text">
+            <span class="ra-hero-eyebrow"><i class="bi bi-brain"></i> Análisis de deserción</span>
+            <h1 class="ra-page-title mb-1">@alumno.Nombre @alumno.Apellidos</h1>
+            <p class="ra-page-subtitle mb-2">@alumno.Carrera · @alumno.SemestreActual° semestre · Boleta @alumno.Matricula</p>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <span class="ra-badge ra-badge-@riskColor" style="font-size:0.95rem;padding:0.35em 0.9em;">Riesgo @riskLevel</span>
+                <span class="ra-badge ra-badge-neutral">Promedio @alumno.PromedioGlobal.ToString("F2")</span>
+                <span class="ra-badge ra-badge-neutral">@(alumno.MateriasReprobadas ?? 0) reprobadas</span>
+                <span class="ra-badge ra-badge-neutral">@(alumno.Ausencias ?? 0) ausencias</span>
+            </div>
+            @if (factores.Any())
+            {
+                <p class="text-secondary small mb-3"><i class="bi bi-flag me-1"></i><strong>Factores:</strong> @string.Join(" · ", factores)</p>
+            }
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="ra-btn ra-btn-primary ra-btn-lg" data-bs-toggle="modal" data-bs-target="#simuladorModal">
+                    <i class="bi bi-sliders"></i> Simular escenarios
                 </button>
+                @if (!User.IsInRole("Autoridad"))
+                {
+                    <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-outline ra-btn-lg">
+                        <i class="bi bi-clipboard-pulse"></i> Intervenir
+                    </a>
+                }
             </div>
         </div>
-    </div>
+    </section>
+
+    <p class="text-secondary small mb-4"><i class="bi bi-cpu me-1"></i> Método: heurística institucional (promedio, reprobadas, ausencias, recursamientos). Genera el informe IA abajo para una lectura narrativa.</p>
 
     @* ── What-if simulator ─────────────────────────────────────────── *@
     <div class="modal fade" id="simuladorModal" tabindex="-1" aria-hidden="true">

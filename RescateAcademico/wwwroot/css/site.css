@@ -2929,3 +2929,104 @@ button.ra-authority-kpi {
   gap: 0.5rem;
 }
 .ra-section-label i { color: var(--ra-accent); font-size: 0.95em; }
+
+
+/* ════════════════════════════════════════════════════════════════
+   AI RISK HERO — big, clear conic gauge for the prediction detail
+   ════════════════════════════════════════════════════════════════ */
+.ra-ai-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  align-items: center;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-xl);
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--ra-primary) 7%, transparent), transparent 55%),
+    var(--ra-surface);
+  box-shadow: var(--ra-shadow-md);
+}
+.ra-ai-gauge {
+  --ra-gauge: 0;
+  --ra-gauge-color: var(--ra-info);
+  width: clamp(150px, 30vw, 200px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    conic-gradient(var(--ra-gauge-color) calc(var(--ra-gauge) * 1%), var(--ra-border-subtle) 0);
+  position: relative;
+}
+.ra-ai-gauge.is-danger  { --ra-gauge-color: var(--ra-danger); }
+.ra-ai-gauge.is-warning { --ra-gauge-color: var(--ra-warning); }
+.ra-ai-gauge.is-info    { --ra-gauge-color: var(--ra-info); }
+.ra-ai-gauge.is-success { --ra-gauge-color: var(--ra-success); }
+.ra-ai-gauge-inner {
+  width: 76%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--ra-surface);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+}
+.ra-ai-gauge-num {
+  font-family: var(--ra-font-display);
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ra-gauge-color);
+}
+.ra-ai-gauge-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ra-text-muted);
+  margin-top: 0.25rem;
+}
+@media (max-width: 575.98px) {
+  .ra-ai-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .ra-ai-hero .d-flex { justify-content: center; }
+}
+
+/* Range sliders themed to the brand (simulator) */
+input.ra-sim {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ra-border-subtle);
+  outline: none;
+}
+input.ra-sim::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ra-primary);
+  border: 3px solid var(--ra-surface);
+  box-shadow: var(--ra-shadow);
+  cursor: pointer;
+}
+input.ra-sim::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ra-primary);
+  border: 3px solid var(--ra-surface);
+  cursor: pointer;
+}
+
+
+/* Scope selector sitting inside the shader hero reads as a translucent panel */
+.ra-hero .ra-authority-scope {
+  background: color-mix(in srgb, var(--ra-surface) 82%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-color: var(--ra-border);
+}
