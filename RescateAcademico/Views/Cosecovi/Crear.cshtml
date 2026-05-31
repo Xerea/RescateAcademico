@@ -1,0 +1,119 @@
+@model RescateAcademico.Models.ReporteCosecovi
+@{
+    ViewData["Title"] = "Nuevo reporte COSECOVI";
+    Layout = "_Layout";
+    var alumnos = ViewBag.Alumnos as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+    var canalizaciones = ViewBag.Canalizaciones as string[] ?? Array.Empty<string>();
+    var header = new PageHeader
+    {
+        Title = "Nuevo reporte COSECOVI",
+        Subtitle = "Documenta una situación y canaliza al alumno al área correspondiente.",
+        Icon = "bi-clipboard2-plus",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Reportes"
+    };
+}
+
+<partial name="_PageHeader" model="header" />
+
+<div class="row">
+    <div class="col-md-9 col-lg-8 mx-auto">
+        <div class="ra-card">
+            <div class="ra-card-body">
+                <form asp-action="Crear" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="ra-label">Alumno *</label>
+                            <select asp-for="AlumnoMatricula" class="ra-select" required>
+                                <option value="">— Selecciona un alumno —</option>
+                                @foreach (var a in alumnos)
+                                {
+                                    <option value="@a.Value" selected="@(a.Value == Model.AlumnoMatricula ? "selected" : null)">@a.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="AlumnoMatricula" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="ra-label">Período *</label>
+                            <input asp-for="Periodo" class="ra-input" placeholder="2026-A" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label class="ra-label">Canalización *</label>
+                        <div class="row g-2" role="radiogroup">
+                            @{
+                                var iconos = new Dictionary<string, string>
+                                {
+                                    ["Psicología"] = "bi-emoji-smile",
+                                    ["Trabajo Social"] = "bi-people",
+                                    ["Orientación Educativa"] = "bi-compass",
+                                    ["Médico"] = "bi-heart-pulse",
+                                    ["Tutoría Académica"] = "bi-mortarboard"
+                                };
+                            }
+                            @foreach (var c in canalizaciones)
+                            {
+                                var icon = iconos.ContainsKey(c) ? iconos[c] : "bi-signpost";
+                                <div class="col-6 col-md-4">
+                                    <label class="ra-type-card">
+                                        <input type="radio" name="Canalizacion" value="@c" required />
+                                        <i class="bi @icon"></i>
+                                        <div class="ra-type-card-title">@c</div>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="ra-label">Situación observada *</label>
+                        <textarea asp-for="SituacionObservada" class="ra-input" rows="3" placeholder="Describe la situación detectada…" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="ra-label">Recomendaciones</label>
+                        <textarea asp-for="Recomendaciones" class="ra-input" rows="2" placeholder="Recomendaciones para el alumno o el área…"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="ra-label">Acciones propuestas</label>
+                        <textarea asp-for="AccionesPropuestas" class="ra-input" rows="2" placeholder="Acciones concretas a seguir…"></textarea>
+                    </div>
+                    <input type="hidden" asp-for="Estado" value="Pendiente" />
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="ra-btn ra-btn-primary flex-fill">
+                            <i class="bi bi-save"></i> Crear y canalizar
+                        </button>
+                        <a asp-action="Index" class="ra-btn ra-btn-ghost">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ra-type-card { display:block; background:var(--ra-surface); border:1px solid var(--ra-border); border-radius:var(--ra-radius); padding:0.75rem 0.85rem; cursor:pointer; transition:var(--ra-transition); height:100%; text-align:center; }
+    .ra-type-card input { display:none; }
+    .ra-type-card i { font-size:1.3rem; color:var(--ra-text-muted); display:block; margin-bottom:0.35rem; }
+    .ra-type-card-title { font-weight:600; font-size:0.8125rem; }
+    .ra-type-card:hover { border-color:var(--ra-primary); }
+    .ra-type-card:has(input:checked) { border-color:var(--ra-primary); background:var(--ra-primary-soft); }
+    .ra-type-card:has(input:checked) i { color:var(--ra-primary); }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll('input[name="Canalizacion"]').forEach(function (inp) {
+            inp.addEventListener('change', function () {
+                document.querySelectorAll('.ra-type-card').forEach(function (c) { c.classList.remove('checked'); });
+                inp.closest('.ra-type-card')?.classList.add('checked');
+            });
+        });
+    </script>
+}

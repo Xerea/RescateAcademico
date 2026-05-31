@@ -1,0 +1,100 @@
+@model RescateAcademico.Models.ReporteCosecovi
+@{
+    ViewData["Title"] = "Reporte COSECOVI";
+    Layout = "_Layout";
+    var historial = ViewBag.HistorialAlumno as List<RescateAcademico.Models.ReporteCosecovi> ?? new();
+    var actionsHtml = $"<a href=\"{Url.Action("Editar", new { id = Model.Id })}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-pencil\"></i> Editar</a>";
+    var header = new PageHeader
+    {
+        Title = "Reporte COSECOVI",
+        Subtitle = $"Creado el {Model.FechaReporte:dd/MM/yyyy} · {Model.Periodo}",
+        Icon = "bi-clipboard2-pulse",
+        IconVariant = "accent",
+        BackUrl = Url.Action("Index"),
+        BackLabel = "Reportes",
+        ActionsHtml = actionsHtml
+    };
+}
+
+<partial name="_PageHeader" model="header" />
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="ra-card mb-3">
+            <div class="ra-card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h5 class="fw-semibold mb-0">@(Model.Alumno != null ? $"{Model.Alumno.Nombre} {Model.Alumno.Apellidos}" : Model.AlumnoMatricula)</h5>
+                        <p class="text-secondary small mb-0 ra-mono">@Model.AlumnoMatricula</p>
+                    </div>
+                    @if (Model.Alumno != null)
+                    {
+                        <ra-semaforo riesgo="@Model.Alumno.RiesgoAcademico" size="sm"></ra-semaforo>
+                    }
+                </div>
+                <dl class="row mb-0 mt-2" style="font-size:0.8125rem;">
+                    <dt class="col-5 text-secondary">Carrera</dt>
+                    <dd class="col-7">@(Model.Alumno?.Carrera ?? "—")</dd>
+                    <dt class="col-5 text-secondary">Canalización</dt>
+                    <dd class="col-7">@(Model.Canalizacion ?? "—")</dd>
+                    <dt class="col-5 text-secondary">Estado</dt>
+                    <dd class="col-7"><partial name="_CosecoviEstadoBadge" model="Model.Estado" /></dd>
+                    <dt class="col-5 text-secondary">Elaboró</dt>
+                    <dd class="col-7">@(Model.ElaboradoPor ?? "—")</dd>
+                </dl>
+                @if (Model.Alumno != null)
+                {
+                    <a asp-controller="Alumnos" asp-action="Timeline" asp-route-matricula="@Model.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline w-100 mt-3">
+                        <i class="bi bi-clock-history"></i> Línea de tiempo del alumno
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="ra-card mb-3">
+            <div class="ra-card-header"><i class="bi bi-eye"></i> Situación observada</div>
+            <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.SituacionObservada) ? "Sin descripción." : Model.SituacionObservada)</div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="ra-card h-100">
+                    <div class="ra-card-header"><i class="bi bi-lightbulb"></i> Recomendaciones</div>
+                    <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.Recomendaciones) ? "—" : Model.Recomendaciones)</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="ra-card h-100">
+                    <div class="ra-card-header"><i class="bi bi-list-check"></i> Acciones / seguimiento</div>
+                    <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.AccionesPropuestas) ? "—" : Model.AccionesPropuestas)</div>
+                </div>
+            </div>
+        </div>
+
+        @if (historial.Any())
+        {
+            <div class="ra-card mt-3">
+                <div class="ra-card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-archive"></i> Otros reportes de este alumno</span>
+                    <span class="ra-badge ra-badge-neutral">@historial.Count</span>
+                </div>
+                <div class="ra-card-body p-0">
+                    @foreach (var h in historial)
+                    {
+                        <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--ra-border-subtle);">
+                            <div>
+                                <div class="fw-medium small">@(h.Canalizacion ?? "Sin canalización") · @h.Periodo</div>
+                                <div class="text-secondary" style="font-size:0.75rem;">@h.FechaReporte.ToString("dd/MM/yyyy")</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <partial name="_CosecoviEstadoBadge" model="h.Estado" />
+                                <a asp-action="Detalle" asp-route-id="@h.Id" class="ra-btn ra-btn-sm ra-btn-ghost" aria-label="Ver reporte"><i class="bi bi-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

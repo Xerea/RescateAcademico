@@ -1,0 +1,213 @@
+@model RescateAcademico.Controllers.CosecoviDashboardViewModel
+@{
+    ViewData["Title"] = "COSECOVI";
+    Layout = "_Layout";
+    var actionsHtml = $"<a href=\"{Url.Action("Index")}\" class=\"ra-btn ra-btn-outline\"><i class=\"bi bi-list-ul\"></i> Ver reportes</a>"
+        + $"<a href=\"{Url.Action("Crear")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo reporte</a>";
+    var header = new PageHeader
+    {
+        Title = "Panel COSECOVI",
+        Subtitle = "Comité de Seguimiento, Contención y Vinculación — canalización y atención estudiantil.",
+        Icon = "bi-heart-pulse",
+        IconVariant = "accent",
+        ActionsHtml = actionsHtml
+    };
+}
+
+<partial name="_PageHeader" model="header" />
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="ra-stat-label">Pendientes</div>
+                    <div class="ra-stat-value" data-countup="@Model.Pendientes">@Model.Pendientes</div>
+                </div>
+                <i class="bi bi-hourglass-split ra-stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="ra-stat-label">En seguimiento</div>
+                    <div class="ra-stat-value" data-countup="@Model.EnSeguimiento">@Model.EnSeguimiento</div>
+                </div>
+                <i class="bi bi-arrow-repeat ra-stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="ra-stat-label">Atendidos</div>
+                    <div class="ra-stat-value" data-countup="@Model.Atendidos">@Model.Atendidos</div>
+                </div>
+                <i class="bi bi-check2-circle ra-stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="ra-stat ra-stat-accent">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="ra-stat-label">Total reportes</div>
+                    <div class="ra-stat-value" data-countup="@Model.Total">@Model.Total</div>
+                </div>
+                <i class="bi bi-clipboard2-pulse ra-stat-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-5">
+        <div class="ra-card h-100">
+            <div class="ra-card-header"><i class="bi bi-pie-chart"></i> Por tipo de canalización</div>
+            <div class="ra-card-body">
+                @if (Model.PorCanalizacion.Any())
+                {
+                    <canvas id="chartCanalizacion" height="240"></canvas>
+                }
+                else
+                {
+                    <div class="ra-empty py-4"><i class="bi bi-pie-chart"></i><p>Sin datos de canalización.</p></div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="ra-card h-100">
+            <div class="ra-card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-exclamation-octagon ra-text-danger"></i> Casos crónicos (3+ reportes)</span>
+                <span class="ra-badge ra-badge-danger">@Model.CasosCronicos.Count</span>
+            </div>
+            <div class="ra-card-body p-0">
+                @if (Model.CasosCronicos.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table ra-table ra-table-cards mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th>Carrera</th>
+                                    <th>Reportes</th>
+                                    <th>Último</th>
+                                    <th data-orderable="false"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in Model.CasosCronicos)
+                                {
+                                    <tr>
+                                        <td data-label="Alumno">
+                                            <strong>@c.Nombre</strong><br />
+                                            <span class="ra-mono text-secondary small">@c.Matricula</span>
+                                        </td>
+                                        <td data-label="Carrera" class="text-secondary">@c.Carrera</td>
+                                        <td data-label="Reportes"><span class="ra-badge ra-badge-danger">@c.TotalReportes</span></td>
+                                        <td data-label="Último" class="text-secondary small">@c.UltimoReporte.ToString("dd/MM/yyyy")</td>
+                                        <td data-label="Acción">
+                                            <a asp-action="Crear" asp-route-matricula="@c.Matricula" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Canalizar de nuevo">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="ra-empty py-4"><i class="bi bi-check-circle ra-text-success"></i><p>No hay casos crónicos.</p></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ra-card">
+    <div class="ra-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history"></i> Reportes recientes</span>
+        <a asp-action="Index" class="ra-btn ra-btn-sm ra-btn-ghost">Ver todos <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="ra-card-body p-0">
+        @if (Model.Recientes.Any())
+        {
+            <div class="table-responsive">
+                <table class="table ra-table ra-table-cards mb-0">
+                    <thead>
+                        <tr>
+                            <th>Alumno</th>
+                            <th>Canalización</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th data-orderable="false"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Recientes)
+                        {
+                            <tr>
+                                <td data-label="Alumno">@(r.Alumno != null ? $"{r.Alumno.Nombre} {r.Alumno.Apellidos}" : r.AlumnoMatricula)</td>
+                                <td data-label="Canalización">@(r.Canalizacion ?? "—")</td>
+                                <td data-label="Estado"><partial name="_CosecoviEstadoBadge" model="r.Estado" /></td>
+                                <td data-label="Fecha" class="text-secondary small">@r.FechaReporte.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Acción">
+                                    <a asp-action="Detalle" asp-route-id="@r.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver reporte">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="ra-empty py-4"><i class="bi bi-inbox"></i><p>No hay reportes registrados.</p></div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        @if (Model.PorCanalizacion.Any())
+        {
+            <text>
+            (function () {
+                var rootStyle = getComputedStyle(document.documentElement);
+                var get = function (v) { return (rootStyle.getPropertyValue(v) || '').trim(); };
+                var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                Chart.defaults.color = isDark ? '#cbd5e1' : '#475569';
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                var palette = [get('--ra-primary'), get('--ra-accent'), get('--ra-info'), get('--ra-warning'), get('--ra-success'), get('--ra-danger')];
+                new Chart(document.getElementById('chartCanalizacion'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PorCanalizacion.Keys)),
+                        datasets: [{
+                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PorCanalizacion.Values)),
+                            backgroundColor: palette,
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14 } } }
+                    }
+                });
+            })();
+            </text>
+        }
+    </script>
+}

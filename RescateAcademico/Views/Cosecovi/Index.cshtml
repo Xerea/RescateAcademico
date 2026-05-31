@@ -1,0 +1,133 @@
+@model IEnumerable<RescateAcademico.Models.ReporteCosecovi>
+@{
+    ViewData["Title"] = "Reportes COSECOVI";
+    Layout = "_Layout";
+    var periodos = ViewBag.Periodos as List<string> ?? new List<string>();
+    var canalizaciones = RescateAcademico.Controllers.CosecoviController.Canalizaciones;
+    var estados = RescateAcademico.Controllers.CosecoviController.Estados;
+    var filterActive = !string.IsNullOrEmpty(ViewBag.FiltroPeriodo as string)
+        || !string.IsNullOrEmpty(ViewBag.FiltroEstado as string)
+        || !string.IsNullOrEmpty(ViewBag.FiltroCanalizacion as string);
+    var actionsHtml = $"<a href=\"{Url.Action("Dashboard")}\" class=\"ra-btn ra-btn-outline\"><i class=\"bi bi-speedometer2\"></i> Panel</a>"
+        + $"<a href=\"{Url.Action("Crear")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo reporte</a>";
+    var header = new PageHeader
+    {
+        Title = "Reportes COSECOVI",
+        Subtitle = "Canalizaciones y seguimiento de casos estudiantiles.",
+        Icon = "bi-clipboard2-pulse",
+        IconVariant = "accent",
+        ActionsHtml = actionsHtml
+    };
+}
+
+<partial name="_PageHeader" model="header" />
+
+<div class="ra-card ra-filter-bar">
+    <div class="ra-card-body">
+        <form method="get">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="ra-label">Período</label>
+                    <select name="periodo" class="ra-select">
+                        <option value="">Todos</option>
+                        @foreach (var p in periodos)
+                        {
+                            <option value="@p" selected="@(ViewBag.FiltroPeriodo == p ? "selected" : null)">@p</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="ra-label">Estado</label>
+                    <select name="estado" class="ra-select">
+                        <option value="">Todos</option>
+                        @foreach (var e in estados)
+                        {
+                            <option value="@e" selected="@(ViewBag.FiltroEstado == e ? "selected" : null)">@e</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="ra-label">Canalización</label>
+                    <select name="canalizacion" class="ra-select">
+                        <option value="">Todas</option>
+                        @foreach (var c in canalizaciones)
+                        {
+                            <option value="@c" selected="@(ViewBag.FiltroCanalizacion == c ? "selected" : null)">@c</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="ra-btn ra-btn-primary flex-fill"><i class="bi bi-search"></i> Filtrar</button>
+                    @if (filterActive)
+                    {
+                        <a asp-action="Index" class="ra-btn ra-btn-ghost" title="Limpiar filtros"><i class="bi bi-x-lg"></i></a>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="ra-card">
+    <div class="ra-card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table ra-table ra-table-cards mb-0" id="tablaCosecovi">
+                    <thead>
+                        <tr>
+                            <th>Alumno</th>
+                            <th>Período</th>
+                            <th>Canalización</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th data-orderable="false">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            <tr>
+                                <td data-label="Alumno">
+                                    <strong>@(r.Alumno != null ? $"{r.Alumno.Nombre} {r.Alumno.Apellidos}" : r.AlumnoMatricula)</strong><br />
+                                    <span class="ra-mono text-secondary small">@r.AlumnoMatricula</span>
+                                </td>
+                                <td data-label="Período">@r.Periodo</td>
+                                <td data-label="Canalización">@(r.Canalizacion ?? "—")</td>
+                                <td data-label="Estado"><partial name="_CosecoviEstadoBadge" model="r.Estado" /></td>
+                                <td data-label="Fecha" class="text-secondary small">@r.FechaReporte.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Acciones">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a asp-action="Detalle" asp-route-id="@r.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver reporte" title="Ver"><i class="bi bi-eye"></i></a>
+                                        <a asp-action="Editar" asp-route-id="@r.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar reporte" title="Editar"><i class="bi bi-pencil"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="ra-empty py-5">
+                <i class="bi bi-clipboard2-x"></i>
+                <p>No hay reportes con los filtros seleccionados.</p>
+                <a asp-action="Crear" class="ra-btn ra-btn-primary mt-2"><i class="bi bi-plus-circle"></i> Crear el primero</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tablaCosecovi').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json' },
+                pageLength: 25,
+                order: [[4, 'desc']],
+                columnDefs: [{ orderable: false, targets: 5 }]
+            });
+        });
+    </script>
+}

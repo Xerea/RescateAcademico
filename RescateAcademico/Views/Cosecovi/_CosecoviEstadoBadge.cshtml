@@ -1,0 +1,12 @@
+@model string
+@{
+    var estado = Model ?? "Pendiente";
+    var (cls, icon) = estado switch
+    {
+        "Atendido"    => ("ra-badge-success", "bi-check-circle"),
+        "Seguimiento" => ("ra-badge-info", "bi-arrow-repeat"),
+        "Cerrado"     => ("ra-badge-neutral", "bi-lock"),
+        _             => ("ra-badge-warning", "bi-hourglass-split")
+    };
+}
+<span class="ra-badge @cls"><i class="bi @icon me-1"></i>@estado</span>
