@@ -61,6 +61,64 @@
                 <h4 class="mb-2">Probabilidad de Deserción: <span class="ra-text-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning" : Model.Probabilidad > 0.3m ? "info" : "success")">@((Model.Probabilidad * 100).ToString("F1"))%</span></h4>
                 <span class="ra-badge ra-badge-@(Model.Probabilidad > 0.7m ? "danger" : Model.Probabilidad > 0.5m ? "warning" : Model.Probabilidad > 0.3m ? "info" : "success") fs-6">Nivel: @(Model.Probabilidad > 0.7m ? "Crítico" : Model.Probabilidad > 0.5m ? "Alto" : Model.Probabilidad > 0.3m ? "Medio" : "Bajo")</span>
                 <p class="text-secondary mt-2"><small>Método: Heurística Institucional (basada en promedio, reprobadas, ausencias, recursamientos)</small></p>
+                <button type="button" class="ra-btn ra-btn-outline mt-2" data-bs-toggle="modal" data-bs-target="#simuladorModal">
+                    <i class="bi bi-sliders"></i> Simulador "¿Qué pasaría si?"
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @* ── What-if simulator ─────────────────────────────────────────── *@
+    <div class="modal fade" id="simuladorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="ra-modal-content">
+                <div class="ra-card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-sliders"></i> Simulador de riesgo — ¿Qué pasaría si...?</span>
+                    <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" data-bs-dismiss="modal" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div class="ra-card-body">
+                    <p class="text-secondary small">Ajusta los indicadores para ver cómo cambiaría la probabilidad de deserción en tiempo real. El cálculo es instantáneo (heurística institucional, sin costo de IA).</p>
+                    <div class="row g-4">
+                        <div class="col-md-7">
+                            <div class="mb-3">
+                                <label class="ra-label d-flex justify-content-between">Promedio global <span class="ra-mono" id="simPromedioVal">@alumno.PromedioGlobal.ToString("F1")</span></label>
+                                <input type="range" class="form-range ra-sim" id="simPromedio" min="0" max="10" step="0.1" value="@alumno.PromedioGlobal.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)">
+                            </div>
+                            <div class="mb-3">
+                                <label class="ra-label d-flex justify-content-between">Materias reprobadas <span class="ra-mono" id="simReprobadasVal">@(alumno.MateriasReprobadas ?? 0)</span></label>
+                                <input type="range" class="form-range ra-sim" id="simReprobadas" min="0" max="10" step="1" value="@(alumno.MateriasReprobadas ?? 0)">
+                            </div>
+                            <div class="mb-3">
+                                <label class="ra-label d-flex justify-content-between">Ausencias <span class="ra-mono" id="simAusenciasVal">@(alumno.Ausencias ?? 0)</span></label>
+                                <input type="range" class="form-range ra-sim" id="simAusencias" min="0" max="20" step="1" value="@(alumno.Ausencias ?? 0)">
+                            </div>
+                            <div class="mb-3">
+                                <label class="ra-label d-flex justify-content-between">Recursamientos <span class="ra-mono" id="simRecursamientosVal">@(alumno.Recursamientos ?? 0)</span></label>
+                                <input type="range" class="form-range ra-sim" id="simRecursamientos" min="0" max="8" step="1" value="@(alumno.Recursamientos ?? 0)">
+                            </div>
+                            <div class="mb-3">
+                                <label class="ra-label d-flex justify-content-between">Carga académica <span class="ra-mono" id="simCargaVal">@(alumno.CargaAcademicaActual ?? 0)</span></label>
+                                <input type="range" class="form-range ra-sim" id="simCarga" min="0" max="10" step="1" value="@(alumno.CargaAcademicaActual ?? 0)">
+                            </div>
+                            <button type="button" class="ra-btn ra-btn-sm ra-btn-ghost" id="simReset"><i class="bi bi-arrow-counterclockwise"></i> Valores actuales</button>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="ra-card h-100 text-center">
+                                <div class="ra-card-body d-flex flex-column justify-content-center">
+                                    <div class="ra-heading mb-1">Probabilidad proyectada</div>
+                                    <div class="ra-stat-value" id="simResultado" style="font-size:3rem;">—</div>
+                                    <div class="mb-3"><ra-semaforo id="simSemaforo" riesgo="@alumno.RiesgoAcademico" size="lg"></ra-semaforo></div>
+                                    <div class="ra-heading mb-1">Nivel</div>
+                                    <div class="fw-semibold mb-3" id="simNivel">—</div>
+                                    <div style="height:10px;background:var(--ra-border);border-radius:6px;overflow:hidden;">
+                                        <div id="simBarra" style="height:100%;width:0;background:var(--ra-warning);transition:width 0.3s ease,background 0.3s ease;"></div>
+                                    </div>
+                                    <div class="mt-2 small" id="simDelta"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -293,10 +351,87 @@
             var text = container.innerText.replace(/\n{3,}/g, '\n\n').trim();
             navigator.clipboard.writeText(text).then(function() { RaToast.show('Informe IA copiado al portapapeles', 'success'); });
         }
+
+        // ── What-if simulator (real-time, no AI cost) ──────────────────
+        (function () {
+            var ids = ['simPromedio', 'simReprobadas', 'simAusencias', 'simRecursamientos', 'simCarga'];
+            var baseline = {
+                promedio: parseFloat('@((alumno?.PromedioGlobal ?? 0m).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))'),
+                reprobadas: @(alumno?.MateriasReprobadas ?? 0),
+                ausencias: @(alumno?.Ausencias ?? 0),
+                recursamientos: @(alumno?.Recursamientos ?? 0),
+                carga: @(alumno?.CargaAcademicaActual ?? 0)
+            };
+            var actual = @((Model.Probabilidad * 100).ToString("F1", System.Globalization.CultureInfo.InvariantCulture));
+            var debounceTimer = null;
+
+            function setText(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+
+            function recalc() {
+                var pEl = document.getElementById('simPromedio');
+                if (!pEl) return;
+                var p = pEl.value;
+                var r = document.getElementById('simReprobadas').value;
+                var a = document.getElementById('simAusencias').value;
+                var rc = document.getElementById('simRecursamientos').value;
+                var c = document.getElementById('simCarga').value;
+                setText('simPromedioVal', parseFloat(p).toFixed(1));
+                setText('simReprobadasVal', r);
+                setText('simAusenciasVal', a);
+                setText('simRecursamientosVal', rc);
+                setText('simCargaVal', c);
+
+                var url = '/Predicciones/Simular?promedio=' + p + '&reprobadas=' + r + '&ausencias=' + a + '&recursamientos=' + rc + '&carga=' + c;
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function (res) { return res.ok ? res.json() : null; })
+                    .then(function (d) {
+                        if (!d) return;
+                        var color = 'var(--ra-' + d.color + ')';
+                        setText('simResultado', d.porcentaje + '%');
+                        document.getElementById('simResultado').style.color = color;
+                        setText('simNivel', d.nivel);
+                        var barra = document.getElementById('simBarra');
+                        barra.style.width = Math.min(d.porcentaje, 100) + '%';
+                        barra.style.background = color;
+                        var sem = document.getElementById('simSemaforo');
+                        if (sem) sem.setAttribute('riesgo', d.semaforo);
+                        var delta = (d.porcentaje - actual).toFixed(1);
+                        var deltaEl = document.getElementById('simDelta');
+                        var arrowDown = String.fromCharCode(8595);
+                        var arrowUp = String.fromCharCode(8593);
+                        if (Math.abs(delta) < 0.05) {
+                            deltaEl.textContent = 'Sin cambio respecto al ' + actual + '% actual';
+                            deltaEl.className = 'mt-2 small text-secondary';
+                        } else if (delta < 0) {
+                            deltaEl.textContent = arrowDown + ' ' + Math.abs(delta) + ' pts menos que el ' + actual + '% actual';
+                            deltaEl.className = 'mt-2 small ra-text-success';
+                        } else {
+                            deltaEl.textContent = arrowUp + ' ' + delta + ' pts mas que el ' + actual + '% actual';
+                            deltaEl.className = 'mt-2 small ra-text-danger';
+                        }
+                    });
+            }
+
+            function onInput() { clearTimeout(debounceTimer); debounceTimer = setTimeout(recalc, 120); }
+            ids.forEach(function (id) { var el = document.getElementById(id); if (el) el.addEventListener('input', onInput); });
+
+            var resetBtn = document.getElementById('simReset');
+            if (resetBtn) resetBtn.addEventListener('click', function () {
+                document.getElementById('simPromedio').value = baseline.promedio;
+                document.getElementById('simReprobadas').value = baseline.reprobadas;
+                document.getElementById('simAusencias').value = baseline.ausencias;
+                document.getElementById('simRecursamientos').value = baseline.recursamientos;
+                document.getElementById('simCarga').value = baseline.carga;
+                recalc();
+            });
+
+            var modalEl = document.getElementById('simuladorModal');
+            if (modalEl) modalEl.addEventListener('shown.bs.modal', recalc);
+        })();
     </script>
 }
 
-<div class="mb-3">
+<div class="mb-3 d-flex flex-wrap gap-2">
     @if (!User.IsInRole("Autoridad") && alumno != null)
     {
         <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-accent">
@@ -304,6 +439,12 @@
         </a>
         <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-primary">
             <i class="bi bi-journal-check"></i> Crear plan de mejora
+        </a>
+    }
+    @if ((User.IsInRole("Administrador") || User.IsInRole("Autoridad")) && alumno != null)
+    {
+        <a asp-controller="Cosecovi" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-outline">
+            <i class="bi bi-heart-pulse"></i> Canalizar a COSECOVI
         </a>
     }
 </div>

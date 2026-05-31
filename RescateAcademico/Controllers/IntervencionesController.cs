@@ -83,7 +83,10 @@ namespace RescateAcademico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Tutor")]
-        public async Task<IActionResult> Crear([Bind("AlumnoMatricula,Tipo,Descripcion,Resultado,RequiereSeguimiento,FechaSeguimiento,NotasSeguimiento,PlanMejoraId")] IntervencionTutoria intervencion)
+        public async Task<IActionResult> Crear(
+            [Bind("AlumnoMatricula,Tipo,Descripcion,Resultado,RequiereSeguimiento,FechaSeguimiento,NotasSeguimiento,PlanMejoraId")] IntervencionTutoria intervencion,
+            bool canalizarCosecovi = false,
+            string? cosecoviCanalizacion = null)
         {
             var tutor = await _studentAccessService.GetCurrentTutorAsync();
 
@@ -94,9 +97,30 @@ namespace RescateAcademico.Controllers
             intervencion.Fecha = DateTime.Now;
 
             _context.IntervencionesTutoria.Add(intervencion);
+
+            // Optional: escalate to COSECOVI in the same action.
+            if (canalizarCosecovi && !string.IsNullOrWhiteSpace(cosecoviCanalizacion))
+            {
+                var now = DateTime.Now;
+                var periodo = $"{now.Year}-{(now.Month <= 6 ? "B" : "A")}";
+                _context.ReportesCosecovi.Add(new ReporteCosecovi
+                {
+                    AlumnoMatricula = intervencion.AlumnoMatricula,
+                    Periodo = periodo,
+                    FechaReporte = now,
+                    SituacionObservada = intervencion.Descripcion,
+                    Recomendaciones = intervencion.Resultado,
+                    Canalizacion = cosecoviCanalizacion,
+                    Estado = "Pendiente",
+                    ElaboradoPor = User.Identity?.Name
+                });
+            }
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Intervención registrada exitosamente.";
+            TempData["Success"] = canalizarCosecovi && !string.IsNullOrWhiteSpace(cosecoviCanalizacion)
+                ? "Intervención registrada y canalizada a COSECOVI."
+                : "Intervención registrada exitosamente.";
             if (intervencion.PlanMejoraId.HasValue)
             {
                 return RedirectToAction("Detalles", "PlanesMejora", new { id = intervencion.PlanMejoraId.Value });
