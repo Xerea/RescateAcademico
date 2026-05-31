@@ -184,7 +184,23 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add<AuditLogFilter>();
 });
 
+// Response compression (Brotli + Gzip) — big win on slow connections.
+// HTML, CSS, JS and JSON get compressed; static assets too (over HTTPS).
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Optimal);
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Optimal);
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+    options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "application/json", "image/svg+xml", "application/manifest+json" });
+});
+
 var app = builder.Build();
+
+// Must run early so downstream responses are compressed.
+app.UseResponseCompression();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
@@ -205,7 +221,20 @@ if (!isRailway)
     app.UseHttpsRedirection();
 }
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Versioned assets (asp-append-version adds ?v=) can be cached hard.
+        var path = ctx.File.Name;
+        if (path.EndsWith(".css") || path.EndsWith(".js") || path.EndsWith(".woff2")
+            || path.EndsWith(".woff") || path.EndsWith(".svg") || path.EndsWith(".ico")
+            || path.EndsWith(".png") || path.EndsWith(".jpg") || path.EndsWith(".webp"))
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=31536000,immutable";
+        }
+    }
+});
 app.UseRouting();
 
 app.UseRateLimiter();

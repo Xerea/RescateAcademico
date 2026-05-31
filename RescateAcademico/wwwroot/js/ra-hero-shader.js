@@ -13,6 +13,19 @@
 
     var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Skip the animated GPU layer on constrained devices — the calm CSS
+    // gradient remains. Cheap heuristics, no libraries.
+    function isLowEnd() {
+        try {
+            if (navigator.connection && navigator.connection.saveData) return true;
+            if (typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4) return true;
+            if (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4) return true;
+            if (window.matchMedia('(max-width: 767.98px)').matches) return true;
+        } catch (e) { /* ignore */ }
+        return false;
+    }
+    var skipAnimation = prefersReduced || isLowEnd();
+
     function srgb(input, fallback) {
         var c = (input || '').trim() || fallback;
         var m = c.match(/rgba?\(([^)]+)\)/i);
@@ -216,6 +229,8 @@
     }
 
     async function init(canvas) {
+        // Constrained device → keep the calm CSS gradient, skip GPU work entirely.
+        if (skipAnimation) return;
         try {
             if (await initWebGPU(canvas)) return;
         } catch (e) { /* fall through */ }

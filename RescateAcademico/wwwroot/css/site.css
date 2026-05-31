@@ -173,9 +173,16 @@ a:hover { color: var(--ra-primary-hover); }
   position: sticky;
   top: 0;
   z-index: 1030;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: background-color 0.3s ease;
+}
+/* Frosted blur only where the device can afford it. */
+@supports (backdrop-filter: blur(10px)) {
+  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    .ra-navbar {
+      background-color: color-mix(in srgb, var(--ra-surface) 80%, transparent);
+      backdrop-filter: saturate(140%) blur(10px);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+    }
+  }
 }
 
 .ra-navbar-brand {
@@ -668,14 +675,19 @@ a:hover { color: var(--ra-primary-hover); }
 }
 
 /* ============================================
-   PAGE CONTENT FADE (transition-based, no compositor issues)
+   PAGE CONTENT ENTRANCE
+   Visible immediately (no JS dependency); a fast, GPU-cheap
+   fade/rise plays on first paint. Never blocks content.
    ============================================ */
 .ra-page-content {
-  opacity: 0;
-  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: raPageIn 0.28s ease-out both;
 }
-.ra-page-content.loaded {
-  opacity: 1;
+@keyframes raPageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ra-page-content { animation: none; }
 }
 
 /* ============================================
@@ -3119,4 +3131,82 @@ input.ra-sim::-moz-range-thumb {
 /* Tighten grid gaps app-wide so cards breathe but don't sprawl */
 @media (min-width: 992px) {
   .row.g-3 { --bs-gutter-x: 1.1rem; --bs-gutter-y: 1.1rem; }
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   DELIGHT LAYER — refined + a little creative, never annoying
+   Apple/Claude-ad logic: restraint, confident motion, one or two
+   intentional touches. All transforms (GPU-cheap). Reduced-motion safe.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Confident spring easing shared by interactive surfaces */
+:root {
+  --ra-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+/* Cards lift with a soft spring and a faint brand-tinted edge on hover */
+.ra-card,
+.ra-action-tile,
+.ra-authority-priority,
+.ra-authority-kpi,
+.ra-insight-tile,
+.ra-stat {
+  transition: transform 0.32s var(--ra-spring),
+              box-shadow 0.32s ease,
+              border-color 0.32s ease;
+}
+
+/* Primary action buttons get a tactile press + subtle glow on hover */
+.ra-btn-primary:hover,
+.ra-btn-accent:hover {
+  box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--ra-primary) 70%, transparent);
+}
+.ra-btn:active { transform: translateY(1px) scale(0.985); }
+
+/* Links inside content get an elegant animated underline */
+.ra-page-content p a:not(.ra-btn),
+.ra-card-body a:not(.ra-btn):not(.ra-action-tile):not(.ra-authority-kpi):not(.ra-insight-tile) {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1.5px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size 0.28s var(--ra-spring);
+  padding-bottom: 1px;
+}
+.ra-page-content p a:not(.ra-btn):hover,
+.ra-card-body a:not(.ra-btn):not(.ra-action-tile):not(.ra-authority-kpi):not(.ra-insight-tile):hover {
+  background-size: 100% 1.5px;
+}
+
+/* Stat numbers get a refined tabular alignment so they never jitter */
+.ra-stat-value,
+.ra-authority-kpi strong,
+.ra-insight-tile strong,
+.ra-ai-gauge-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A single tasteful entrance: the hero title settles in with intent */
+.ra-hero-title,
+.ra-page-title {
+  animation: raTitleIn 0.5s var(--ra-spring) both;
+}
+@keyframes raTitleIn {
+  from { opacity: 0; transform: translateY(8px); letter-spacing: -0.04em; }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Icon in the page title gives a friendly, brief nod on load */
+.ra-page-title i,
+.ra-hero-eyebrow i { transition: transform 0.4s var(--ra-spring); }
+.ra-page-header:hover .ra-page-title i { transform: rotate(-6deg) scale(1.08); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ra-card, .ra-action-tile, .ra-authority-priority, .ra-authority-kpi,
+  .ra-insight-tile, .ra-stat, .ra-btn,
+  .ra-hero-title, .ra-page-title, .ra-page-title i, .ra-hero-eyebrow i {
+    transition: none !important;
+    animation: none !important;
+  }
 }
