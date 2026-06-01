@@ -72,6 +72,84 @@
         }, 6000);
     });
 
+    // --- Bootstrap Modal Coordinator ---
+    // Keeps custom RA modals interactive even when they are rendered inside
+    // animated/cards/layout containers. Bootstrap modals must live under body
+    // and must keep the modal-content class for pointer/focus handling.
+    window.RaModalSystem = {
+        normalize: function (modalEl) {
+            if (!modalEl || !modalEl.classList || !modalEl.classList.contains('modal')) return null;
+
+            if (modalEl.parentElement !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+
+            var customContent = modalEl.querySelector('.modal-dialog > .ra-modal-content:not(.modal-content)');
+            if (customContent) {
+                customContent.classList.add('modal-content');
+            }
+
+            return modalEl;
+        },
+
+        closeBlockingOverlays: function () {
+            var search = document.getElementById('raSearchBackdrop');
+            if (search) search.classList.remove('active');
+
+            var notifPanel = document.getElementById('raNotifPanel');
+            if (notifPanel) {
+                notifPanel.classList.remove('active');
+                notifPanel.setAttribute('aria-hidden', 'true');
+            }
+
+            var notifScrim = document.getElementById('raNotifScrim');
+            if (notifScrim) {
+                notifScrim.classList.remove('active');
+                notifScrim.hidden = true;
+            }
+
+            var notifTrigger = document.getElementById('raNotifTrigger');
+            if (notifTrigger) notifTrigger.setAttribute('aria-expanded', 'false');
+        },
+
+        cleanupChrome: function () {
+            if (document.querySelector('.modal.show')) return;
+            document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
+                backdrop.remove();
+            });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        },
+
+        prepareOpen: function (modalEl) {
+            this.normalize(modalEl);
+            this.closeBlockingOverlays();
+            this.cleanupChrome();
+        }
+    };
+
+    document.addEventListener('click', function (e) {
+        var trigger = e.target.closest('[data-bs-toggle="modal"]');
+        if (!trigger) return;
+
+        var selector = trigger.getAttribute('data-bs-target') || trigger.getAttribute('href');
+        if (!selector || selector.charAt(0) !== '#') return;
+
+        var modalEl = document.querySelector(selector);
+        if (modalEl) window.RaModalSystem.prepareOpen(modalEl);
+    }, true);
+
+    document.addEventListener('show.bs.modal', function (e) {
+        window.RaModalSystem.prepareOpen(e.target);
+    });
+
+    document.addEventListener('hidden.bs.modal', function () {
+        window.setTimeout(function () {
+            window.RaModalSystem.cleanupChrome();
+        }, 20);
+    });
+
     // --- Toast System ---
     window.RaToast = {
         container: document.getElementById('raToastContainer'),
@@ -482,17 +560,11 @@
         open: async function (matricula) {
             var modalEl = document.getElementById('raQuickViewModal');
             if (!modalEl) { console.warn('[RaQuickView] modal partial not included'); return; }
-            if (modalEl.parentElement !== document.body) {
-                document.body.appendChild(modalEl);
-            }
+            window.RaModalSystem.prepareOpen(modalEl);
 
             // Show modal first for perceived speed
             var existing = bootstrap.Modal.getInstance(modalEl);
             if (existing) existing.dispose();
-            document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) { backdrop.remove(); });
-            document.body.classList.remove('modal-open');
-            document.body.style.removeProperty('overflow');
-            document.body.style.removeProperty('padding-right');
 
             var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
             modal.show();
