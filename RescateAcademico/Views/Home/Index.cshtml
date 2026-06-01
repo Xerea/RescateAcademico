@@ -11,72 +11,34 @@
 
 <style>
     .ra-landing {
-        min-height: calc(100vh - 190px);
-        display: grid;
-        align-content: center;
-        gap: 1rem;
-        padding: clamp(1rem, 3vw, 2rem) 0 2.5rem;
+        min-height: calc(100vh - 160px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 3rem 1rem 2rem;
         position: relative;
         z-index: 1;
     }
-    .ra-landing::before {
-        content: "";
-        position: absolute;
-        inset: -12% -10% auto -10%;
-        height: min(560px, 72vh);
-        border-radius: 0 0 48px 48px;
-        background:
-            radial-gradient(42% 48% at 12% 16%, color-mix(in srgb, var(--ra-primary) 22%, transparent), transparent 72%),
-            radial-gradient(38% 42% at 90% 10%, color-mix(in srgb, var(--ra-accent) 20%, transparent), transparent 74%),
-            linear-gradient(135deg, color-mix(in srgb, var(--ra-primary) 10%, transparent), transparent 58%);
-        filter: blur(2px);
-        opacity: 0.9;
-        pointer-events: none;
-        z-index: -1;
-    }
-    .ra-landing-board {
-        display: grid;
-        grid-template-columns: minmax(280px, 0.82fr) minmax(360px, 1.18fr);
-        gap: 1rem;
-        align-items: stretch;
-    }
-    .ra-landing-card {
-        border: 1px solid var(--ra-border);
-        border-radius: 24px;
-        background: color-mix(in srgb, var(--ra-surface) 88%, transparent);
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
-        overflow: hidden;
-    }
-    [data-bs-theme="dark"] .ra-landing-card {
-        background: color-mix(in srgb, var(--ra-surface) 84%, transparent);
-    }
-    .ra-landing-profile {
-        display: grid;
-        align-content: end;
-        min-height: 310px;
-        padding: clamp(1.25rem, 3vw, 1.8rem);
-        background:
-            linear-gradient(145deg, color-mix(in srgb, var(--ra-accent) 18%, transparent), transparent 58%),
-            color-mix(in srgb, var(--ra-surface) 92%, transparent);
-    }
     .ra-landing-icon {
-        width: 74px;
-        height: 74px;
-        border-radius: 20px;
+        width: 84px;
+        height: 84px;
+        border-radius: 22px;
         background: var(--ra-accent-soft);
         color: var(--ra-accent);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.2rem;
-        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
+        margin-bottom: 1.75rem;
     }
     .ra-landing h1 {
-        font-size: clamp(2.1rem, 5vw, 3.45rem);
+        font-size: clamp(2.2rem, 5vw, 3.75rem);
         font-weight: 800;
         letter-spacing: 0;
         line-height: 1.05;
-        margin-bottom: 0.8rem;
+        margin-bottom: 1.1rem;
         color: var(--ra-text);
     }
     .ra-landing h1 .ra-landing-accent {
@@ -86,69 +48,21 @@
         color: transparent;
     }
     .ra-landing-lead {
-        font-size: 1rem;
+        font-size: clamp(1rem, 2vw, 1.2rem);
         color: var(--ra-text-secondary);
-        max-width: 46ch;
-        margin: 0;
+        max-width: 560px;
+        margin: 0 auto 2rem;
         line-height: 1.5;
-    }
-    .ra-landing-panel {
-        display: grid;
-        grid-template-rows: auto 1fr;
-        min-height: 310px;
-    }
-    .ra-landing-panel-head {
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        align-items: center;
-        padding: 1.25rem 1.4rem;
-        border-bottom: 1px solid var(--ra-border);
-        background: color-mix(in srgb, var(--ra-surface-raised) 78%, transparent);
-    }
-    .ra-landing-panel-title {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        min-width: 0;
-    }
-    .ra-landing-mini-icon {
-        width: 42px;
-        height: 42px;
-        display: grid;
-        place-items: center;
-        border-radius: 12px;
-        background: var(--ra-primary-soft);
-        color: var(--ra-primary);
-        flex: 0 0 auto;
-    }
-    .ra-landing-panel-title strong,
-    .ra-landing-panel-title small {
-        display: block;
-    }
-    .ra-landing-panel-title small {
-        color: var(--ra-text-secondary);
-        margin-top: 0.1rem;
-    }
-    .ra-landing-actions {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.65rem;
-        padding: clamp(1.25rem, 3vw, 1.8rem);
-        align-content: center;
-        align-items: center;
     }
     .ra-landing-cta {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        min-width: 168px;
-        padding: 0.85rem 1.3rem;
-        font-size: 0.98rem;
+        padding: 0.85rem 2.25rem;
+        font-size: 1.05rem;
         font-weight: 600;
-        border-radius: 14px;
+        border-radius: var(--ra-radius);
         background: var(--ra-accent);
         color: #fff;
         border: none;
@@ -175,11 +89,12 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1rem;
-        margin: 1rem 0 0;
+        max-width: 900px;
+        margin: 3.5rem auto 0;
         text-align: left;
     }
     .ra-landing-feature {
-        background: color-mix(in srgb, var(--ra-surface) 92%, transparent);
+        background: var(--ra-surface);
         border: 1px solid var(--ra-border);
         border-radius: var(--ra-radius-lg);
         padding: 1.25rem 1.5rem;
@@ -206,8 +121,9 @@
         font-size: 0.8125rem;
     }
     .ra-demo-access {
+        max-width: 900px;
         width: 100%;
-        margin: 1rem 0 0;
+        margin: 2rem auto 0;
         padding: 1rem;
         border: 1px solid var(--ra-border);
         border-radius: var(--ra-radius-lg);
@@ -235,31 +151,9 @@
     .ra-demo-persona small {
         color: var(--ra-text-secondary);
     }
-    @@media (max-width: 991.98px) {
-        .ra-landing {
-            min-height: auto;
-        }
-        .ra-landing-board {
-            grid-template-columns: 1fr;
-        }
-        .ra-landing-profile,
-        .ra-landing-panel {
-            min-height: 0;
-        }
-    }
     @@media (max-width: 767.98px) {
         .ra-demo-access-grid {
             grid-template-columns: 1fr;
-        }
-        .ra-landing::before {
-            inset-inline: -20%;
-        }
-        .ra-landing-panel-head {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-        .ra-landing-actions {
-            justify-content: stretch;
         }
         .ra-landing-cta {
             width: 100%;
@@ -267,58 +161,39 @@
     }
 </style>
 
-<div class="ra-landing">
-    <div class="ra-landing-board">
-        <section class="ra-landing-card ra-landing-profile" aria-label="Presentación">
-            <div class="ra-landing-icon">
-                <i class="bi bi-mortarboard-fill"></i>
-            </div>
-            <h1>
-                Rescate<br>
-                <span class="ra-landing-accent">Académico.</span>
-            </h1>
-            <p class="ra-landing-lead">
-                Plataforma del <strong>CECyT No. 13</strong> para detectar riesgo académico
-                a tiempo y coordinar acciones entre profesores, autoridades y alumnos.
-            </p>
-        </section>
+<div class="ra-auth-bg" aria-hidden="true"></div>
 
-        <section class="ra-landing-card ra-landing-panel" aria-label="Acceso principal">
-            <div class="ra-landing-panel-head">
-                <div class="ra-landing-panel-title">
-                    <span class="ra-landing-mini-icon"><i class="bi bi-grid-1x2"></i></span>
-                    <span>
-                        <strong>Entrada rápida</strong>
-                        <small>Acceso seguro, demo o solicitud de cuenta.</small>
-                    </span>
-                </div>
-                <span class="ra-badge ra-badge-primary">IPN · CECyT 13</span>
-            </div>
-            <div class="ra-landing-actions">
-                @if (!isAuth)
-                {
-                    <a asp-controller="Account" asp-action="Login" class="ra-landing-cta">
-                        <i class="bi bi-box-arrow-in-right"></i> Acceder
-                    </a>
-                    <a asp-controller="Account" asp-action="Register" class="ra-landing-cta ra-landing-cta-secondary">
-                        <i class="bi bi-person-plus"></i> Solicitar acceso
-                    </a>
-                }
-                else
-                {
-                    <a asp-controller="Dashboard" asp-action="Index" class="ra-landing-cta">
-                        <i class="bi bi-grid-1x2"></i> Ir al panel
-                    </a>
-                    @if (User.IsInRole("Alumno"))
-                    {
-                        <a asp-controller="PerfilAcademico" asp-action="MiPerfil" class="ra-landing-cta ra-landing-cta-secondary">
-                            <i class="bi bi-person-badge"></i> Mi perfil
-                        </a>
-                    }
-                }
-            </div>
-        </section>
+<div class="ra-landing">
+    <div class="ra-landing-icon">
+        <i class="bi bi-mortarboard-fill"></i>
     </div>
+    <h1>
+        Rescate<br>
+        <span class="ra-landing-accent">Académico.</span>
+    </h1>
+    <p class="ra-landing-lead">
+        Sigue tu progreso. Recupera estudiantes. Plataforma del
+        <strong>CECyT No. 13</strong>, IPN, para detectar riesgo académico a
+        tiempo y coordinar intervenciones entre profesores, autoridades y alumnos.
+    </p>
+
+    @if (!isAuth)
+    {
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a asp-controller="Account" asp-action="Login" class="ra-landing-cta">
+                <i class="bi bi-box-arrow-in-right"></i> Acceder
+            </a>
+            <a asp-controller="Account" asp-action="Register" class="ra-landing-cta ra-landing-cta-secondary">
+                <i class="bi bi-person-plus"></i> Solicitar acceso
+            </a>
+        </div>
+    }
+    else
+    {
+        <a asp-controller="Dashboard" asp-action="Index" class="ra-landing-cta">
+            <i class="bi bi-grid-1x2"></i> Ir al panel
+        </a>
+    }
 
     <div class="ra-landing-features">
         <div class="ra-landing-feature">
@@ -329,12 +204,12 @@
         <div class="ra-landing-feature">
             <i class="bi bi-cpu"></i>
             <h5>Alertas tempranas</h5>
-            <p>Identifica estudiantes que necesitan atención antes del cierre.</p>
+            <p>Modelo predictivo que identifica alumnos en riesgo.</p>
         </div>
         <div class="ra-landing-feature">
             <i class="bi bi-graph-up-arrow"></i>
-            <h5>Seguimiento claro</h5>
-            <p>Indicadores por carrera, grupo, semestre y estado académico.</p>
+            <h5>Indicadores en vivo</h5>
+            <p>Dashboards de desempeño por carrera, grupo y semestre.</p>
         </div>
     </div>
 
@@ -344,7 +219,7 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div class="text-start">
                     <div class="ra-heading mb-1">Demo guiada</div>
-                    <p class="text-secondary small mb-0">Explora el producto con perfiles seguros para presentación pública.</p>
+                    <p class="text-secondary small mb-0">Explora el producto con personas seguras para presentación pública.</p>
                 </div>
                 <span class="ra-badge ra-badge-info">Sin credenciales visibles</span>
             </div>

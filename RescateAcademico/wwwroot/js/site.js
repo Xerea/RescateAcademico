@@ -482,11 +482,19 @@
         open: async function (matricula) {
             var modalEl = document.getElementById('raQuickViewModal');
             if (!modalEl) { console.warn('[RaQuickView] modal partial not included'); return; }
+            if (modalEl.parentElement !== document.body) {
+                document.body.appendChild(modalEl);
+            }
 
             // Show modal first for perceived speed
             var existing = bootstrap.Modal.getInstance(modalEl);
-            if (existing) existing.hide();
-            var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+            if (existing) existing.dispose();
+            document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) { backdrop.remove(); });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+
+            var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
             modal.show();
 
             modalEl.querySelector('#raQvLoading').style.display = 'block';
