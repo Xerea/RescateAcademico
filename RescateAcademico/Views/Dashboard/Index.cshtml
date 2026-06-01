@@ -9,7 +9,7 @@
 
     // Autoridad/Admin render their own shader hero (which carries the title),
     // so we skip the generic page header to avoid a redundant double-title.
-    var showPageHeader = !(User.IsInRole("Autoridad") || User.IsInRole("Administrador"));
+    var showPageHeader = !(User.IsInRole("Alumno") || User.IsInRole("Autoridad") || User.IsInRole("Administrador"));
     var header = new PageHeader
     {
         Title = "Panel de control",

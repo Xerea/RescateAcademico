@@ -97,7 +97,9 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(opts =>
     opts.TokenLifespan = TimeSpan.FromMinutes(10);
 });
 
-var cookieSecurePolicy = isRailway ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+var cookieSecurePolicy = builder.Environment.IsDevelopment() || isRailway
+    ? CookieSecurePolicy.SameAsRequest
+    : CookieSecurePolicy.Always;
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
