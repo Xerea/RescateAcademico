@@ -12,9 +12,20 @@ namespace RescateAcademico.Models
         public Alumno? Alumno { get; set; }
 
         [Required]
-        public string Periodo { get; set; } = null!; // e.g., "2026-A", "2025-B"
+        public string Periodo { get; set; } = null!;
 
         public DateTime FechaReporte { get; set; } = DateTime.Now;
+
+        public DateTime FechaIncidente { get; set; } = DateTime.Now;
+
+        [MaxLength(60)]
+        public string TipoIncidente { get; set; } = "Conducta disruptiva";
+
+        [MaxLength(20)]
+        public string Gravedad { get; set; } = "Media";
+
+        [MaxLength(80)]
+        public string? Lugar { get; set; }
 
         public string? SituacionObservada { get; set; }
 
@@ -22,10 +33,16 @@ namespace RescateAcademico.Models
 
         public string? AccionesPropuestas { get; set; }
 
-        public string? Canalizacion { get; set; } // e.g., "Psicología", "Trabajo Social", "Orientación Educativa"
+        public string? MedidasTomadas { get; set; }
+
+        public bool TutorNotificado { get; set; }
+
+        public bool PadreTutorCitado { get; set; }
+
+        public string? Canalizacion { get; set; }
 
         [MaxLength(20)]
-        public string Estado { get; set; } = "Pendiente"; // Pendiente, Atendido, Seguimiento
+        public string Estado { get; set; } = "Registrado";
 
         public string? ElaboradoPor { get; set; }
     }

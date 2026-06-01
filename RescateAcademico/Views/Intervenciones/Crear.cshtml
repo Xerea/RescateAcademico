@@ -105,29 +105,6 @@
                         <span>Requiere seguimiento en una sesión posterior</span>
                     </label>
 
-                    <div class="ra-card ra-card-accent mb-4" style="background: var(--ra-accent-soft);">
-                        <div class="ra-card-body">
-                            <label class="ra-check-label mb-0">
-                                <input type="checkbox" class="ra-checkbox" id="canalizarCosecovi" name="canalizarCosecovi" value="true" />
-                                <span><i class="bi bi-heart-pulse me-1"></i> Canalizar también a COSECOVI</span>
-                            </label>
-                            <div id="cosecoviFields" class="mt-3" style="display:none;">
-                                <label class="ra-label">Área de canalización</label>
-                                <select name="cosecoviCanalizacion" class="ra-select">
-                                    <option value="">— Selecciona un área —</option>
-                                    <option value="Psicología">Psicología</option>
-                                    <option value="Trabajo Social">Trabajo Social</option>
-                                    <option value="Orientación Educativa">Orientación Educativa</option>
-                                    <option value="Médico">Médico</option>
-                                    <option value="Tutoría Académica">Tutoría Académica</option>
-                                </select>
-                                <div class="text-secondary small mt-2">
-                                    <i class="bi bi-info-circle"></i> Se creará un reporte COSECOVI con la descripción de esta intervención y se notificará al área correspondiente.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="d-flex gap-2">
                         <button type="submit" class="ra-btn ra-btn-primary flex-fill">
                             <i class="bi bi-save"></i> Guardar intervención
@@ -183,16 +160,5 @@
                 inp.closest('.ra-type-card')?.classList.add('checked');
             });
         });
-
-        // Reveal COSECOVI fields when canalizar is checked
-        (function () {
-            var chk = document.getElementById('canalizarCosecovi');
-            var fields = document.getElementById('cosecoviFields');
-            if (chk && fields) {
-                chk.addEventListener('change', function () {
-                    fields.style.display = chk.checked ? 'block' : 'none';
-                });
-            }
-        })();
     </script>
 }

@@ -164,12 +164,17 @@ namespace RescateAcademico.Controllers
         {
             var alumno = await _context.Alumnos
                 .Include(a => a.Grupo)
+                .Include(a => a.ReportesCosecovi)
                 .FirstOrDefaultAsync(a => a.Matricula == matricula);
 
             if (alumno == null) return NotFound();
 
             if (!await _studentAccessService.CanAccessAlumnoAsync(matricula))
                 return Forbid();
+
+            var ultimoCosecovi = alumno.ReportesCosecovi
+                .OrderByDescending(r => r.FechaIncidente)
+                .FirstOrDefault();
 
             return Json(new
             {
@@ -186,6 +191,12 @@ namespace RescateAcademico.Controllers
                 alumno.Ausencias,
                 alumno.EtsPresentados,
                 alumno.Recursamientos,
+                CosecoviReportes = alumno.ReportesCosecovi.Count,
+                CosecoviAbiertos = alumno.ReportesCosecovi.Count(r => r.Estado != "Cerrado"),
+                CosecoviUltimoTipo = ultimoCosecovi?.TipoIncidente,
+                CosecoviUltimaGravedad = ultimoCosecovi?.Gravedad,
+                CosecoviUltimoEstado = ultimoCosecovi?.Estado,
+                CosecoviUltimaFecha = ultimoCosecovi?.FechaIncidente.ToString("dd/MM/yyyy"),
                 FechaUltimaActualizacion = alumno.FechaUltimaActualizacion?.ToString("dd/MM/yyyy")
             });
         }

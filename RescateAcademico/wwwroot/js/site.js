@@ -599,6 +599,26 @@
                     if (el) el.textContent = fields[key];
                 });
 
+                var cosecoviCount = parseInt(data.cosecoviReportes, 10) || 0;
+                var cosecoviOpen = parseInt(data.cosecoviAbiertos, 10) || 0;
+                var cosecoviResumen = modalEl.querySelector('[data-qv="cosecoviResumen"]');
+                var cosecoviDetalle = modalEl.querySelector('[data-qv="cosecoviDetalle"]');
+                var cosecoviBadge = modalEl.querySelector('[data-qv="cosecoviBadge"]');
+                if (cosecoviResumen) {
+                    cosecoviResumen.textContent = cosecoviCount > 0
+                        ? cosecoviCount + ' reporte' + (cosecoviCount === 1 ? '' : 's') + ' COSECOVI'
+                        : 'Sin reportes disciplinarios';
+                }
+                if (cosecoviDetalle) {
+                    cosecoviDetalle.textContent = cosecoviCount > 0
+                        ? 'Ultimo: ' + fmt(data.cosecoviUltimoTipo) + ' · ' + fmt(data.cosecoviUltimaGravedad) + ' · ' + fmt(data.cosecoviUltimaFecha)
+                        : '';
+                }
+                if (cosecoviBadge) {
+                    cosecoviBadge.textContent = cosecoviOpen > 0 ? cosecoviOpen + ' abierto' + (cosecoviOpen === 1 ? '' : 's') : String(cosecoviCount);
+                    cosecoviBadge.className = 'ra-badge ' + (cosecoviOpen > 0 ? 'ra-badge-warning' : 'ra-badge-neutral');
+                }
+
                 var promedio = typeof data.promedioGlobal === 'number' ? data.promedioGlobal : parseFloat(data.promedioGlobal) || 0;
                 var promedioEl = modalEl.querySelector('[data-qv="promedio"]');
                 if (promedioEl) {
@@ -616,10 +636,10 @@
                 }
 
                 var cfg = this._cfg || {};
-                ['profile', 'detalle', 'timeline', 'intervencion', 'plan'].forEach(function (key) {
+                ['profile', 'detalle', 'timeline', 'intervencion', 'plan', 'cosecovi'].forEach(function (key) {
                     var link = modalEl.querySelector('[data-qv-link="' + key + '"]');
                     if (!link) return;
-                    if (cfg[key]) {
+                    if (cfg[key] && (key !== 'cosecovi' || cosecoviCount > 0)) {
                         link.href = cfg[key].replace('{matricula}', encodeURIComponent(matricula));
                         link.style.display = '';
                     } else {

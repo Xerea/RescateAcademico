@@ -1,17 +1,21 @@
 @model RescateAcademico.Models.ReporteCosecovi
 @{
-    ViewData["Title"] = "Reporte COSECOVI";
+    ViewData["Title"] = "Incidente COSECOVI";
     Layout = "_Layout";
     var historial = ViewBag.HistorialAlumno as List<RescateAcademico.Models.ReporteCosecovi> ?? new();
-    var actionsHtml = $"<a href=\"{Url.Action("Editar", new { id = Model.Id })}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-pencil\"></i> Editar</a>";
+    var canEdit = User.IsInRole("Administrador") || User.IsInRole("Autoridad");
+    var gravedadClass = Model.Gravedad is "Alta" or "Critica" ? "ra-badge-danger" : Model.Gravedad == "Media" ? "ra-badge-warning" : "ra-badge-neutral";
+    var actionsHtml = canEdit
+        ? $"<a href=\"{Url.Action("Editar", new { id = Model.Id })}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-pencil\"></i> Editar</a>"
+        : string.Empty;
     var header = new PageHeader
     {
-        Title = "Reporte COSECOVI",
-        Subtitle = $"Creado el {Model.FechaReporte:dd/MM/yyyy} · {Model.Periodo}",
-        Icon = "bi-clipboard2-pulse",
+        Title = "Incidente COSECOVI",
+        Subtitle = $"{Model.TipoIncidente} · {Model.Gravedad} · {Model.FechaIncidente:dd/MM/yyyy}",
+        Icon = "bi-shield-exclamation",
         IconVariant = "accent",
-        BackUrl = Url.Action("Index"),
-        BackLabel = "Reportes",
+        BackUrl = canEdit ? Url.Action("Index") : Url.Action("Alumno", new { matricula = Model.AlumnoMatricula }),
+        BackLabel = canEdit ? "Reportes" : "Historial",
         ActionsHtml = actionsHtml
     };
 }
@@ -27,25 +31,36 @@
                         <h5 class="fw-semibold mb-0">@(Model.Alumno != null ? $"{Model.Alumno.Nombre} {Model.Alumno.Apellidos}" : Model.AlumnoMatricula)</h5>
                         <p class="text-secondary small mb-0 ra-mono">@Model.AlumnoMatricula</p>
                     </div>
-                    @if (Model.Alumno != null)
-                    {
-                        <ra-semaforo riesgo="@Model.Alumno.RiesgoAcademico" size="sm"></ra-semaforo>
-                    }
+                    <span class="ra-badge @gravedadClass">@Model.Gravedad</span>
                 </div>
                 <dl class="row mb-0 mt-2" style="font-size:0.8125rem;">
                     <dt class="col-5 text-secondary">Carrera</dt>
-                    <dd class="col-7">@(Model.Alumno?.Carrera ?? "—")</dd>
-                    <dt class="col-5 text-secondary">Canalización</dt>
-                    <dd class="col-7">@(Model.Canalizacion ?? "—")</dd>
+                    <dd class="col-7">@(Model.Alumno?.Carrera ?? "-")</dd>
+                    <dt class="col-5 text-secondary">Tipo</dt>
+                    <dd class="col-7">@Model.TipoIncidente</dd>
+                    <dt class="col-5 text-secondary">Lugar</dt>
+                    <dd class="col-7">@(Model.Lugar ?? "-")</dd>
+                    <dt class="col-5 text-secondary">Turnado</dt>
+                    <dd class="col-7">@(Model.Canalizacion ?? "Sin turno")</dd>
                     <dt class="col-5 text-secondary">Estado</dt>
                     <dd class="col-7"><partial name="_CosecoviEstadoBadge" model="Model.Estado" /></dd>
-                    <dt class="col-5 text-secondary">Elaboró</dt>
-                    <dd class="col-7">@(Model.ElaboradoPor ?? "—")</dd>
+                    <dt class="col-5 text-secondary">Elaboro</dt>
+                    <dd class="col-7">@(Model.ElaboradoPor ?? "-")</dd>
                 </dl>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    @if (Model.TutorNotificado)
+                    {
+                        <span class="ra-badge ra-badge-info"><i class="bi bi-person-check"></i> Tutor notificado</span>
+                    }
+                    @if (Model.PadreTutorCitado)
+                    {
+                        <span class="ra-badge ra-badge-warning"><i class="bi bi-people"></i> Tutor legal citado</span>
+                    }
+                </div>
                 @if (Model.Alumno != null)
                 {
                     <a asp-controller="Alumnos" asp-action="Timeline" asp-route-matricula="@Model.AlumnoMatricula" class="ra-btn ra-btn-sm ra-btn-outline w-100 mt-3">
-                        <i class="bi bi-clock-history"></i> Línea de tiempo del alumno
+                        <i class="bi bi-clock-history"></i> Linea de tiempo del alumno
                     </a>
                 }
             </div>
@@ -54,20 +69,20 @@
 
     <div class="col-lg-8">
         <div class="ra-card mb-3">
-            <div class="ra-card-header"><i class="bi bi-eye"></i> Situación observada</div>
-            <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.SituacionObservada) ? "Sin descripción." : Model.SituacionObservada)</div>
+            <div class="ra-card-header"><i class="bi bi-eye"></i> Hechos observados</div>
+            <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.SituacionObservada) ? "Sin descripcion." : Model.SituacionObservada)</div>
         </div>
         <div class="row g-3">
             <div class="col-md-6">
                 <div class="ra-card h-100">
-                    <div class="ra-card-header"><i class="bi bi-lightbulb"></i> Recomendaciones</div>
-                    <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.Recomendaciones) ? "—" : Model.Recomendaciones)</div>
+                    <div class="ra-card-header"><i class="bi bi-clipboard-check"></i> Medidas tomadas</div>
+                    <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.MedidasTomadas) ? "-" : Model.MedidasTomadas)</div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="ra-card h-100">
-                    <div class="ra-card-header"><i class="bi bi-list-check"></i> Acciones / seguimiento</div>
-                    <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.AccionesPropuestas) ? "—" : Model.AccionesPropuestas)</div>
+                    <div class="ra-card-header"><i class="bi bi-list-check"></i> Seguimiento</div>
+                    <div class="ra-card-body" style="white-space:pre-wrap;">@(string.IsNullOrWhiteSpace(Model.AccionesPropuestas) ? "-" : Model.AccionesPropuestas)</div>
                 </div>
             </div>
         </div>
@@ -76,7 +91,7 @@
         {
             <div class="ra-card mt-3">
                 <div class="ra-card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-archive"></i> Otros reportes de este alumno</span>
+                    <span><i class="bi bi-archive"></i> Historial COSECOVI del alumno</span>
                     <span class="ra-badge ra-badge-neutral">@historial.Count</span>
                 </div>
                 <div class="ra-card-body p-0">
@@ -84,8 +99,8 @@
                     {
                         <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--ra-border-subtle);">
                             <div>
-                                <div class="fw-medium small">@(h.Canalizacion ?? "Sin canalización") · @h.Periodo</div>
-                                <div class="text-secondary" style="font-size:0.75rem;">@h.FechaReporte.ToString("dd/MM/yyyy")</div>
+                                <div class="fw-medium small">@h.TipoIncidente · @h.Gravedad · @h.Periodo</div>
+                                <div class="text-secondary" style="font-size:0.75rem;">@h.FechaIncidente.ToString("dd/MM/yyyy")</div>
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <partial name="_CosecoviEstadoBadge" model="h.Estado" />

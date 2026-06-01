@@ -455,7 +455,7 @@
     @if ((User.IsInRole("Administrador") || User.IsInRole("Autoridad")) && alumno != null)
     {
         <a asp-controller="Cosecovi" asp-action="Crear" asp-route-matricula="@alumno.Matricula" class="ra-btn ra-btn-outline">
-            <i class="bi bi-heart-pulse"></i> Canalizar a COSECOVI
+            <i class="bi bi-shield-exclamation"></i> Registrar incidente COSECOVI
         </a>
     }
 </div>

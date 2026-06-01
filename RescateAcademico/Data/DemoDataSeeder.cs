@@ -333,8 +333,18 @@ namespace RescateAcademico.Seeders
             var sb = new StringBuilder();
             foreach (var c in normalized)
             {
-                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                var category = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (category == UnicodeCategory.NonSpacingMark ||
+                    category == UnicodeCategory.Format ||
+                    category == UnicodeCategory.Control)
+                {
+                    continue;
+                }
+
+                if (c <= 127 && char.IsLetterOrDigit(c))
+                {
                     sb.Append(c);
+                }
             }
             return sb.ToString().Normalize(NormalizationForm.FormC);
         }
@@ -841,35 +851,106 @@ namespace RescateAcademico.Seeders
         {
             if (await context.ReportesCosecovi.AnyAsync()) return;
             var reportes = new List<ReporteCosecovi>();
-            var canalizaciones = new[] { "Psicología", "Trabajo Social", "Orientación Educativa", "Médico", "Tutoría Académica" };
-            var situaciones = new[] {
-                "Bajo rendimiento académico detectado en el semestre actual.",
-                "Inasistencias recurrentes sin justificación médica.",
-                "Cambio de comportamiento y desmotivación observada.",
-                "Situación familiar que afecta el desempeño escolar.",
-                "Dificultades de adaptación al ambiente escolar."
-            };
-            var candidatos = alumnos.Where(a => a.PromedioGlobal < 7.0m || (a.Ausencias ?? 0) > 4).OrderBy(_ => _rng.Next()).Take(35).ToList();
+            var candidatos = alumnos.OrderBy(_ => _rng.Next()).Take(42).ToList();
 
             foreach (var alumno in candidatos)
             {
+                var tipoIncidente = _rng.NextDouble() switch
+                {
+                    < 0.18 => "Conducta disruptiva",
+                    < 0.32 => "Agresion verbal",
+                    < 0.46 => "Rina",
+                    < 0.60 => "Consumo de sustancias",
+                    < 0.72 => "Dano a instalaciones",
+                    < 0.84 => "Acoso o violencia",
+                    < 0.94 => "Amenaza",
+                    _ => "Portacion de objeto prohibido"
+                };
+                var gravedad = tipoIncidente switch
+                {
+                    "Consumo de sustancias" => _rng.NextDouble() > 0.35 ? "Alta" : "Media",
+                    "Portacion de objeto prohibido" => "Critica",
+                    "Acoso o violencia" => _rng.NextDouble() > 0.35 ? "Alta" : "Media",
+                    "Amenaza" => "Alta",
+                    "Rina" => _rng.NextDouble() > 0.4 ? "Alta" : "Media",
+                    _ => _rng.NextDouble() > 0.7 ? "Media" : "Baja"
+                };
+                var fechaIncidente = DateTime.Now.AddDays(-_rng.Next(3, 140));
+                var turnado = gravedad is "Alta" or "Critica"
+                    ? new[] { "Direccion", "Seguridad", "Red de Genero", "Oficina del Abogado General", "Comite COSECOVI" }[_rng.Next(5)]
+                    : new[] { "Sin turno", "Direccion", "Servicios Educativos" }[_rng.Next(3)];
+
                 reportes.Add(new ReporteCosecovi
                 {
                     AlumnoMatricula = alumno.Matricula,
                     Periodo = "2026-A",
-                    FechaReporte = DateTime.Now.AddDays(-_rng.Next(5, 60)),
-                    SituacionObservada = situaciones[_rng.Next(situaciones.Length)],
-                    Recomendaciones = "Seguimiento semanal por parte del profesor tutor. Entrevista con padres de familia.",
-                    AccionesPropuestas = "Canalización al área correspondiente. Plan de acción personalizado.",
-                    Canalizacion = canalizaciones[_rng.Next(canalizaciones.Length)],
-                    Estado = _rng.NextDouble() > 0.4 ? "Atendido" : "Seguimiento",
+                    FechaReporte = fechaIncidente.AddHours(1),
+                    FechaIncidente = fechaIncidente,
+                    TipoIncidente = tipoIncidente,
+                    Gravedad = gravedad,
+                    Lugar = new[] { "Patio central", "Pasillo edificio A", "Banos", "Aula", "Laboratorio", "Entrada principal", "Cafeteria" }[_rng.Next(7)],
+                    SituacionObservada = DescribirIncidente(tipoIncidente, alumno),
+                    MedidasTomadas = new[]
+                    {
+                        "Llamado de atencion y registro preventivo.",
+                        "Entrevista con el estudiante y compromiso de conducta firmado.",
+                        "Citatorio a madre, padre o tutor y seguimiento por COSECOVI.",
+                        "Reporte turnado a Direccion para valoracion disciplinaria.",
+                        "Resguardo preventivo y notificacion al profesor tutor."
+                    }[_rng.Next(5)],
+                    AccionesPropuestas = gravedad is "Alta" or "Critica"
+                        ? "Mantener seguimiento documentado, informar a Direccion y revisar reincidencia antes del cierre."
+                        : "Verificar que no exista reincidencia durante las siguientes dos semanas.",
+                    Canalizacion = turnado,
+                    TutorNotificado = true,
+                    PadreTutorCitado = gravedad is "Alta" or "Critica" || _rng.NextDouble() > 0.7,
+                    Estado = new[] { "Registrado", "En seguimiento", "Escalado", "Cerrado" }[_rng.Next(4)],
                     ElaboradoPor = "COSECOVI CECyT 13"
                 });
+
+                if (_rng.NextDouble() > 0.82)
+                {
+                    var segundoTipo = tipoIncidente == "Conducta disruptiva" ? "Agresion verbal" : "Conducta disruptiva";
+                    var segundaFecha = fechaIncidente.AddDays(_rng.Next(14, 80));
+                    reportes.Add(new ReporteCosecovi
+                    {
+                        AlumnoMatricula = alumno.Matricula,
+                        Periodo = "2026-A",
+                        FechaReporte = segundaFecha.AddHours(2),
+                        FechaIncidente = segundaFecha,
+                        TipoIncidente = segundoTipo,
+                        Gravedad = "Alta",
+                        Lugar = "Direccion",
+                        SituacionObservada = DescribirIncidente(segundoTipo, alumno),
+                        MedidasTomadas = "Se detecto reincidencia. Se cito a madre, padre o tutor y se escalo a Direccion.",
+                        AccionesPropuestas = "Seguimiento semanal por COSECOVI hasta cierre del caso.",
+                        Canalizacion = "Direccion",
+                        TutorNotificado = true,
+                        PadreTutorCitado = true,
+                        Estado = "En seguimiento",
+                        ElaboradoPor = "COSECOVI CECyT 13"
+                    });
+                }
             }
             context.ReportesCosecovi.AddRange(reportes);
             await context.SaveChangesAsync();
         }
 
+        private static string DescribirIncidente(string tipo, Alumno alumno)
+        {
+            return tipo switch
+            {
+                "Conducta disruptiva" => $"Se reporta que {alumno.Nombre} interrumpio reiteradamente la actividad escolar y se nego a atender indicaciones del personal.",
+                "Agresion verbal" => "Se registra agresion verbal hacia un integrante de la comunidad escolar durante el horario de clases.",
+                "Rina" => "El estudiante fue presentado ante COSECOVI por participar en una rina dentro de las instalaciones.",
+                "Consumo de sustancias" => "Se detecto presunto consumo de sustancias psicoactivas dentro de la unidad academica.",
+                "Dano a instalaciones" => "Se reporta dano o uso indebido de mobiliario e instalaciones escolares.",
+                "Portacion de objeto prohibido" => "Se registra portacion de objeto no permitido dentro del plantel y se resguardo preventivamente.",
+                "Acoso o violencia" => "Se recibio reporte de conducta de acoso o violencia que requiere seguimiento institucional.",
+                "Amenaza" => "Se documenta amenaza contra un integrante de la comunidad escolar.",
+                _ => $"Se registra incidente de seguridad escolar relacionado con {alumno.Nombre}."
+            };
+        }
         private static async Task SeedPrediccionesDesercionAsync(ApplicationDbContext context, List<Alumno> alumnos)
         {
             if (await context.PrediccionesDesercion.AnyAsync()) return;

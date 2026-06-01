@@ -231,15 +231,16 @@
     {
         <div class="ra-card ra-card-info mb-3">
             <div class="ra-card-header">
-                <i class="bi bi-clipboard-pulse me-2"></i> Reportes COSECOVI
+                <i class="bi bi-shield-exclamation me-2"></i> Historial COSECOVI
             </div>
             <div class="ra-card-body">
                 @foreach (var r in cosecovi)
                 {
+                    var gravedadClass = r.Gravedad is "Alta" or "Critica" ? "ra-badge-danger" : r.Gravedad == "Media" ? "ra-badge-warning" : "ra-badge-neutral";
                     <div class="mb-2 p-2 rounded-3" style="border: 1px solid var(--ra-border);">
-                        <strong>@r.Periodo</strong> <span class="ra-badge @(r.Estado == "Atendido" ? "ra-badge-success" : "ra-badge-warning")">@r.Estado</span>
+                        <strong>@r.TipoIncidente</strong> <span class="ra-badge @gravedadClass">@r.Gravedad</span>
                         <p class="mb-1">@r.SituacionObservada</p>
-                        <small class="text-secondary">Canalización: @r.Canalizacion | @r.FechaReporte.ToString("yyyy-MM-dd")</small>
+                        <small class="text-secondary">Estado: @r.Estado | Turnado: @(r.Canalizacion ?? "Sin turno") | @r.FechaIncidente.ToString("yyyy-MM-dd")</small>
                     </div>
                 }
             </div>

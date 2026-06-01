@@ -7,7 +7,7 @@
     The partial expects the endpoint /Alumnos/QuickView?matricula=... to return
     JSON with: nombre, apellidos, matricula, carrera, semestreActual, grupo,
     promedioGlobal, riesgoAcademico, cargaAcademicaActual, fechaUltimaActualizacion,
-    materiasReprobadas, ausencias, etsPresentados, recursamientos.
+    materiasReprobadas, ausencias, etsPresentados, recursamientos, cosecoviReportes.
 *@
 <div class="modal fade" id="raQuickViewModal" tabindex="-1" aria-hidden="true" aria-labelledby="raQvTitle">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -80,6 +80,18 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="ra-card">
+                                <div class="ra-card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                    <div>
+                                        <small class="text-secondary d-block">COSECOVI</small>
+                                        <span class="fw-semibold" data-qv="cosecoviResumen">Sin reportes disciplinarios</span>
+                                        <div class="text-secondary small" data-qv="cosecoviDetalle"></div>
+                                    </div>
+                                    <span class="ra-badge ra-badge-neutral" data-qv="cosecoviBadge">0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -98,6 +110,9 @@
                 </a>
                 <a data-qv-link="plan" href="#" class="ra-btn ra-btn-outline ra-btn-sm" style="display:none;">
                     <i class="bi bi-journal-plus"></i> Crear plan
+                </a>
+                <a data-qv-link="cosecovi" href="#" class="ra-btn ra-btn-outline ra-btn-sm" style="display:none;">
+                    <i class="bi bi-shield-exclamation"></i> COSECOVI
                 </a>
                 <button type="button" class="ra-btn ra-btn-ghost ra-btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>

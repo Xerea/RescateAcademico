@@ -1,12 +1,14 @@
 @model RescateAcademico.Models.ReporteCosecovi
 @{
-    ViewData["Title"] = "Editar reporte COSECOVI";
+    ViewData["Title"] = "Editar incidente COSECOVI";
     Layout = "_Layout";
-    var canalizaciones = ViewBag.Canalizaciones as string[] ?? Array.Empty<string>();
+    var tipos = ViewBag.TiposIncidente as string[] ?? Array.Empty<string>();
+    var gravedades = ViewBag.Gravedades as string[] ?? Array.Empty<string>();
+    var turnados = ViewBag.Turnados as string[] ?? Array.Empty<string>();
     var estados = ViewBag.Estados as string[] ?? Array.Empty<string>();
     var header = new PageHeader
     {
-        Title = "Editar reporte",
+        Title = "Editar incidente",
         Subtitle = Model.Alumno != null ? $"{Model.Alumno.Nombre} {Model.Alumno.Apellidos} · {Model.Periodo}" : Model.AlumnoMatricula,
         Icon = "bi-pencil-square",
         IconVariant = "accent",
@@ -18,7 +20,7 @@
 <partial name="_PageHeader" model="header" />
 
 <div class="row">
-    <div class="col-md-9 col-lg-8 mx-auto">
+    <div class="col-lg-9 mx-auto">
         <div class="ra-card">
             <div class="ra-card-body">
                 <form asp-action="Editar" method="post">
@@ -38,28 +40,69 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="ra-label">Canalización</label>
-                        <select name="Canalizacion" class="ra-select">
-                            <option value="">— Sin canalización —</option>
-                            @foreach (var c in canalizaciones)
-                            {
-                                <option value="@c" selected="@(Model.Canalizacion == c ? "selected" : null)">@c</option>
-                            }
-                        </select>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="ra-label">Fecha del incidente</label>
+                            <input asp-for="FechaIncidente" type="datetime-local" class="ra-input" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="ra-label">Tipo</label>
+                            <select asp-for="TipoIncidente" class="ra-select">
+                                @foreach (var t in tipos)
+                                {
+                                    <option value="@t" selected="@(Model.TipoIncidente == t ? "selected" : null)">@t</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="ra-label">Gravedad</label>
+                            <select asp-for="Gravedad" class="ra-select">
+                                @foreach (var g in gravedades)
+                                {
+                                    <option value="@g" selected="@(Model.Gravedad == g ? "selected" : null)">@g</option>
+                                }
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="ra-label">Situación observada</label>
-                        <textarea name="SituacionObservada" class="ra-input" rows="3">@Model.SituacionObservada</textarea>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="ra-label">Lugar</label>
+                            <input asp-for="Lugar" class="ra-input" maxlength="80" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="ra-label">Turnado a</label>
+                            <select asp-for="Canalizacion" class="ra-select">
+                                @foreach (var t in turnados)
+                                {
+                                    <option value="@t" selected="@(Model.Canalizacion == t ? "selected" : null)">@t</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label class="ra-label">Hechos observados</label>
+                        <textarea asp-for="SituacionObservada" class="ra-input" rows="4"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="ra-label">Recomendaciones</label>
-                        <textarea name="Recomendaciones" class="ra-input" rows="2">@Model.Recomendaciones</textarea>
+                        <label class="ra-label">Medidas tomadas</label>
+                        <textarea asp-for="MedidasTomadas" class="ra-input" rows="3"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="ra-label">Acciones propuestas / notas de seguimiento</label>
-                        <textarea name="AccionesPropuestas" class="ra-input" rows="3">@Model.AccionesPropuestas</textarea>
+                        <label class="ra-label">Seguimiento propuesto</label>
+                        <textarea asp-for="AccionesPropuestas" class="ra-input" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-flex gap-3 flex-wrap mb-4">
+                        <label class="ra-check-label">
+                            <input asp-for="TutorNotificado" class="ra-checkbox" />
+                            <span>Profesor tutor notificado</span>
+                        </label>
+                        <label class="ra-check-label">
+                            <input asp-for="PadreTutorCitado" class="ra-checkbox" />
+                            <span>Madre, padre o tutor citado</span>
+                        </label>
                     </div>
 
                     <div class="d-flex gap-2">

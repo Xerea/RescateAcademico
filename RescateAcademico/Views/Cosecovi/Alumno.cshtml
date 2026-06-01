@@ -1,0 +1,60 @@
+@model IEnumerable<RescateAcademico.Models.ReporteCosecovi>
+@{
+    ViewData["Title"] = "Historial COSECOVI";
+    Layout = "_Layout";
+    var alumno = ViewBag.Alumno as RescateAcademico.Models.Alumno;
+    var matricula = ViewBag.Matricula as string;
+    var header = new PageHeader
+    {
+        Title = alumno != null ? $"COSECOVI · {alumno.Nombre} {alumno.Apellidos}" : "Historial COSECOVI",
+        Subtitle = alumno != null ? $"{alumno.Matricula} · {alumno.Grupo?.Clave ?? "Sin grupo"}" : "Incidentes visibles segun tu rol.",
+        Icon = "bi-shield-exclamation",
+        IconVariant = "accent",
+        BackUrl = User.IsInRole("Tutor") ? Url.Action("Index", "Profesor") : Url.Action("Index", "Cosecovi"),
+        BackLabel = User.IsInRole("Tutor") ? "Mis grupos" : "Reportes"
+    };
+}
+
+<partial name="_PageHeader" model="header" />
+
+<div class="ra-card">
+    <div class="ra-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history"></i> Reportes disciplinarios y de seguridad</span>
+        <span class="ra-badge ra-badge-neutral">@Model.Count()</span>
+    </div>
+    <div class="ra-card-body p-0">
+        @if (Model.Any())
+        {
+            foreach (var r in Model)
+            {
+                var gravedadClass = r.Gravedad is "Alta" or "Critica" ? "ra-badge-danger" : r.Gravedad == "Media" ? "ra-badge-warning" : "ra-badge-neutral";
+                <div class="p-3" style="border-bottom:1px solid var(--ra-border-subtle);">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="fw-semibold">@r.TipoIncidente</div>
+                            <div class="text-secondary small">@r.FechaIncidente.ToString("dd/MM/yyyy") · @(r.Lugar ?? "Sin lugar registrado")</div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="ra-badge @gravedadClass">@r.Gravedad</span>
+                            <partial name="_CosecoviEstadoBadge" model="r.Estado" />
+                        </div>
+                    </div>
+                    <p class="text-secondary small mt-2 mb-2">@r.SituacionObservada</p>
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                        <span class="text-secondary small">Turnado: @(r.Canalizacion ?? "Sin turno")</span>
+                        <a asp-action="Detalle" asp-route-id="@r.Id" class="ra-btn ra-btn-sm ra-btn-outline">
+                            <i class="bi bi-eye"></i> Ver detalle
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="ra-empty py-5">
+                <i class="bi bi-shield-check"></i>
+                <p>No hay reportes COSECOVI registrados para este alumno.</p>
+            </div>
+        }
+    </div>
+</div>
