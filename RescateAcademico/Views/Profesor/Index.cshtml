@@ -2,17 +2,19 @@
 @{
     ViewData["Title"] = "Mis Grupos";
     Layout = "_Layout";
+
     var total = Model.TotalEstudiantes;
     var pctVerde = total > 0 ? (Model.EnRiesgoVerde * 100.0 / total) : 0;
     var pctAmarillo = total > 0 ? (Model.EnRiesgoAmarillo * 100.0 / total) : 0;
     var pctRojo = total > 0 ? (Model.EnRiesgoRojo * 100.0 / total) : 0;
+    var totalPred = Model.PrediccionesAltas + Model.PrediccionesMedias + Model.PrediccionesBajas;
 
     var hoy = DateTime.Now.ToString("dddd, dd 'de' MMMM", new System.Globalization.CultureInfo("es-MX"));
     var nombre = string.IsNullOrWhiteSpace(Model.ProfesorNombre) ? "Profesor" : Model.ProfesorNombre;
 
     var heroLead = Model.EnRiesgoRojo > 0
-        ? $"Tienes {Model.EnRiesgoRojo} estudiante(s) en riesgo alto. Empieza por ellos: revisa, decide y registra una intervención."
-        : "Todo tu alumnado está estable. Revisa tus grupos y mantén el seguimiento al día.";
+        ? $"Tienes {Model.EnRiesgoRojo} estudiante(s) en riesgo alto. Empieza por la lista priorizada y registra una acción concreta."
+        : "Tus grupos no tienen estudiantes en riesgo alto. Mantén el seguimiento y revisa cambios recientes.";
 
     var hero = new HeroBand
     {
@@ -20,292 +22,201 @@
         Title = "Hola, " + nombre.Split(' ')[0] + ".",
         Lead = heroLead,
         ActionsHtml =
-            $"<a href='{Url.Action("Index", "Predicciones")}' class='ra-btn ra-btn-primary ra-btn-lg'><i class='bi bi-stars'></i> Análisis IA</a>" +
-            $"<a href='{Url.Action("Index", "Intervenciones")}' class='ra-btn ra-btn-outline ra-btn-lg'><i class='bi bi-clipboard-pulse'></i> Intervenciones</a>"
+            $"<a href='{Url.Action("Index", "Intervenciones")}' class='ra-btn ra-btn-primary ra-btn-lg'><i class='bi bi-clipboard-pulse'></i> Intervenciones</a>" +
+            $"<a href='{Url.Action("Index", "Predicciones")}' class='ra-btn ra-btn-outline ra-btn-lg'><i class='bi bi-stars'></i> Análisis IA</a>"
     };
 }
 
 <partial name="_Hero" model="hero" />
 
-@if (Model.CopilotoCasos.Any())
-{
-    <section class="ra-card ra-copilot-card mb-4" aria-label="Copiloto académico">
+<section class="ra-professor-command mb-4" aria-label="Centro de mando docente">
+    <div class="ra-card ra-copilot-card h-100">
         <div class="ra-card-body">
             <div class="ra-copilot-head">
                 <div>
-                    <span class="ra-student-eyebrow">Copiloto académico</span>
-                    <h2>Casos que necesitan decisión docente</h2>
-                    <p>Prioriza estudiantes con riesgo predictivo, revisa el análisis IA y convierte la recomendación en intervención o plan.</p>
+                    <span class="ra-student-eyebrow">Prioridad docente</span>
+                    <h2>@(Model.CopilotoCasos.Any() ? "Casos para atender primero" : "Sin casos críticos activos")</h2>
+                    <p>@(Model.CopilotoCasos.Any()
+                        ? "Lista única de estudiantes que concentran riesgo académico y predictivo. Atiende desde aquí sin repetir paneles."
+                        : "No hay estudiantes con señales urgentes. Revisa grupos y mantén seguimiento preventivo.")</p>
                 </div>
-                <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary">
-                    <i class="bi bi-stars"></i> Abrir IA
+                <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-stars"></i> Ver IA
                 </a>
             </div>
-            <div class="ra-copilot-grid">
-                @foreach (var caso in Model.CopilotoCasos)
-                {
-                    var color = caso.Probabilidad >= 0.55m ? "danger" : "warning";
-                    <article class="ra-copilot-case">
-                        <div class="d-flex justify-content-between gap-2 align-items-start">
-                            <div>
+
+            @if (Model.CopilotoCasos.Any())
+            {
+                <div class="ra-priority-list">
+                    @foreach (var caso in Model.CopilotoCasos)
+                    {
+                        var color = caso.Probabilidad >= 0.55m ? "danger" : "warning";
+                        <article class="ra-priority-row">
+                            <div class="ra-priority-person">
                                 <strong>@caso.Nombre</strong>
-                                <small>@caso.Matricula · @caso.Grupo · @caso.Carrera</small>
+                                <small>@caso.Matricula · @caso.Grupo · Promedio @caso.Promedio.ToString("F2")</small>
                             </div>
                             <span class="ra-badge ra-badge-@color">@((caso.Probabilidad * 100).ToString("F0"))%</span>
-                        </div>
-                        <div class="ra-copilot-case-meta">
-                            <span>Promedio @caso.Promedio.ToString("F2")</span>
-                            <span>@caso.SiguienteAccion</span>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2 mt-3">
-                            <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-primary">
-                                <i class="bi bi-brain"></i> Analizar
-                            </a>
-                            <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
-                                <i class="bi bi-clipboard-pulse"></i> Intervenir
-                            </a>
-                            @if (!caso.TienePlanActivo)
-                            {
-                                <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
-                                    <i class="bi bi-journal-check"></i> Plan
+                            <span class="ra-priority-action">@caso.SiguienteAccion</span>
+                            <div class="ra-priority-buttons">
+                                <a asp-controller="Predicciones" asp-action="Detalle" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-primary">
+                                    <i class="bi bi-brain"></i> Analizar
                                 </a>
-                            }
-                        </div>
-                    </article>
-                }
-            </div>
-        </div>
-    </section>
-}
-
-<!-- Smart Suggestions -->
-@{
-    var topRiesgo = Model.Estudiantes
-        .Where(e => e.RiesgoAcademico == "Rojo")
-        .OrderBy(e => e.PromedioGlobal)
-        .Take(3)
-        .ToList();
-}
-@if (topRiesgo.Any())
-{
-    <div class="ra-card mb-4">
-        <div class="ra-card-header">
-            <i class="bi bi-exclamation-triangle ra-text-warning me-1"></i> Estudiantes en riesgo alto (@Model.EnRiesgoRojo)
-        </div>
-        <div class="ra-card-body p-0">
-            @foreach (var est in topRiesgo)
+                                <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
+                                    <i class="bi bi-clipboard-pulse"></i> Intervenir
+                                </a>
+                                @if (!caso.TienePlanActivo)
+                                {
+                                    <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@caso.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
+                                        <i class="bi bi-journal-check"></i> Plan
+                                    </a>
+                                }
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
             {
-                var hasPlan = Model.ExistingPlanMatriculas.Contains(est.Matricula);
-                <div class="d-flex flex-wrap align-items-center gap-2 p-3" style="border-bottom:1px solid var(--ra-border-subtle);">
-                    <ra-semaforo riesgo="Rojo" size="sm"></ra-semaforo>
-                    <div style="flex:1;min-width:180px;">
-                        <div class="fw-medium" style="font-size:0.875rem;">@est.Nombre @est.Apellidos</div>
-                        <div class="text-secondary" style="font-size:0.6875rem;">@est.Carrera — Promedio @est.PromedioGlobal.ToString("F2") · @(est.MateriasReprobadas ?? 0) reprob.</div>
-                    </div>
-                    <div class="d-flex gap-1 ms-auto">
-                        <a asp-action="HistorialAcademico" asp-route-boleta="@est.Matricula" class="ra-btn ra-btn-sm ra-btn-ghost" title="Ver perfil">
-                            <i class="bi bi-person-badge"></i>
-                        </a>
-                        @if (hasPlan)
-                        {
-                            <a asp-controller="PlanesMejora" asp-action="Index" asp-route-matricula="@est.Matricula" class="ra-btn ra-btn-sm ra-btn-outline">
-                                <i class="bi bi-eye"></i> Ver plan
-                            </a>
-                        }
-                        else
-                        {
-                            <a asp-controller="PlanesMejora" asp-action="Crear" asp-route-matricula="@est.Matricula" class="ra-btn ra-btn-sm ra-btn-primary">
-                                <i class="bi bi-plus-circle"></i> Crear plan
-                            </a>
-                        }
-                    </div>
+                <div class="ra-empty py-4">
+                    <i class="bi bi-check2-circle"></i>
+                    <p>No hay estudiantes en prioridad alta.</p>
                 </div>
             }
         </div>
-        @if (Model.EnRiesgoRojo > 3)
-        {
-            <div class="ra-card-footer text-center">
-                <small class="text-secondary">+@(Model.EnRiesgoRojo - 3) estudiantes mas en riesgo alto</small>
-            </div>
-        }
     </div>
-}
 
-<!-- Risk Distribution Bar -->
-@if (total > 0)
-{
-    <div class="ra-card mb-4">
-        <div class="ra-card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <div class="ra-heading mb-1">Distribución de Riesgo</div>
-                    <div class="text-secondary small">@total estudiantes en total</div>
-                </div>
-                <div class="d-flex gap-3">
-                    <div class="text-center">
-                        <div class="fw-bold" style="color:var(--ra-success);">@Model.EnRiesgoVerde</div>
-                        <div class="ra-heading" style="font-size:0.65rem;">Verde</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="fw-bold" style="color:var(--ra-warning);">@Model.EnRiesgoAmarillo</div>
-                        <div class="ra-heading" style="font-size:0.65rem;">Amarillo</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="fw-bold" style="color:var(--ra-danger);">@Model.EnRiesgoRojo</div>
-                        <div class="ra-heading" style="font-size:0.65rem;">Rojo</div>
-                    </div>
-                </div>
-            </div>
-            <div style="height:12px;background:var(--ra-border);border-radius:6px;overflow:hidden;display:flex;">
-                @if (pctVerde > 0)
-                {
-                    <div style="width:@pctVerde.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-success);transition:width 1s ease;"></div>
-                }
-                @if (pctAmarillo > 0)
-                {
-                    <div style="width:@pctAmarillo.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-warning);transition:width 1s ease;"></div>
-                }
-                @if (pctRojo > 0)
-                {
-                    <div style="width:@pctRojo.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-danger);transition:width 1s ease;"></div>
-                }
-            </div>
+    <aside class="ra-card h-100">
+        <div class="ra-card-header">
+            <i class="bi bi-speedometer2"></i> Lectura rápida
         </div>
-    </div>
-}
-
-<!-- Prediction Glance -->
-@{
-    var totalPred = Model.PrediccionesAltas + Model.PrediccionesMedias + Model.PrediccionesBajas;
-}
-@if (totalPred > 0)
-{
-    <div class="ra-card mb-4">
         <div class="ra-card-body">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="ra-heading mb-1"><i class="bi bi-brain me-1"></i> Predicciones de Deserción</div>
-                    <div class="text-secondary small">Análisis heurístico de tus @totalPred estudiantes</div>
-                </div>
-                <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-sm ra-btn-outline">
-                    <i class="bi bi-eye"></i> Ver todas
+            <div class="ra-professor-summary-grid">
+                <a asp-controller="Alumnos" asp-action="MisTutorados" class="ra-professor-stat is-link">
+                    <span class="ra-professor-stat-icon"><i class="bi bi-people"></i></span>
+                    <span><strong>@Model.TotalEstudiantes</strong><small>Estudiantes</small></span>
+                </a>
+                <a asp-controller="PlanesMejora" asp-action="Index" class="ra-professor-stat is-link">
+                    <span class="ra-professor-stat-icon"><i class="bi bi-journal-check"></i></span>
+                    <span><strong>@Model.PlanesActivos</strong><small>Planes activos</small></span>
+                </a>
+                <a asp-controller="Intervenciones" asp-action="Index" class="ra-professor-stat is-link">
+                    <span class="ra-professor-stat-icon"><i class="bi bi-clipboard-pulse"></i></span>
+                    <span><strong>@Model.IntervencionesPendientes</strong><small>Seguimientos</small></span>
                 </a>
             </div>
-            <div class="row g-3 mt-2">
-                <div class="col-4">
-                    <div class="text-center p-2 rounded-3" style="background: var(--ra-danger-bg);">
-                        <div class="fw-bold fs-5" style="color: var(--ra-danger);">@Model.PrediccionesAltas</div>
-                        <div class="text-secondary" style="font-size:0.6875rem;">Alta / Crítica</div>
+
+            @if (total > 0)
+            {
+                <div class="ra-risk-compact mt-3">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                        <span class="ra-heading">Riesgo académico</span>
+                        <small class="text-secondary">@total estudiantes</small>
+                    </div>
+                    <div class="ra-risk-bar" aria-label="Distribución de riesgo">
+                        @if (pctVerde > 0)
+                        {
+                            <span style="width:@pctVerde.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-success);"></span>
+                        }
+                        @if (pctAmarillo > 0)
+                        {
+                            <span style="width:@pctAmarillo.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-warning);"></span>
+                        }
+                        @if (pctRojo > 0)
+                        {
+                            <span style="width:@pctRojo.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-danger);"></span>
+                        }
+                    </div>
+                    <div class="ra-risk-legend">
+                        <span><i style="background:var(--ra-success);"></i>@Model.EnRiesgoVerde verde</span>
+                        <span><i style="background:var(--ra-warning);"></i>@Model.EnRiesgoAmarillo amarillo</span>
+                        <span><i style="background:var(--ra-danger);"></i>@Model.EnRiesgoRojo rojo</span>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="text-center p-2 rounded-3" style="background: var(--ra-warning-bg);">
-                        <div class="fw-bold fs-5" style="color: var(--ra-warning);">@Model.PrediccionesMedias</div>
-                        <div class="text-secondary" style="font-size:0.6875rem;">Media</div>
+            }
+
+            @if (totalPred > 0)
+            {
+                <div class="ra-prediction-compact mt-3">
+                    <div class="ra-heading mb-2"><i class="bi bi-brain me-1"></i>Predicción</div>
+                    <div class="ra-prediction-pills">
+                        <span class="ra-badge ra-badge-danger">@Model.PrediccionesAltas alta</span>
+                        <span class="ra-badge ra-badge-warning">@Model.PrediccionesMedias media</span>
+                        <span class="ra-badge ra-badge-success">@Model.PrediccionesBajas baja</span>
                     </div>
                 </div>
-                <div class="col-4">
-                    <div class="text-center p-2 rounded-3" style="background: var(--ra-success-bg);">
-                        <div class="fw-bold fs-5" style="color: var(--ra-success);">@Model.PrediccionesBajas</div>
-                        <div class="text-secondary" style="font-size:0.6875rem;">Baja</div>
-                    </div>
-                </div>
+            }
+
+            <div class="ra-professor-quick-actions mt-3">
+                <a asp-action="MateriasReprobadas" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-x-circle"></i> Reprobadas
+                </a>
+                <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary">
+                    <i class="bi bi-brain"></i> Predicciones
+                </a>
             </div>
         </div>
-    </div>
-}
+    </aside>
+</section>
 
-<!-- Groups Grid -->
-<div class="mb-3">
-    <div class="ra-heading mb-3"><i class="bi bi-grid-3x3-gap me-1"></i> Selecciona un Grupo</div>
-    <div class="row g-3">
+<section aria-label="Grupos asignados">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <div class="ra-heading mb-1"><i class="bi bi-grid-3x3-gap me-1"></i> Tus grupos</div>
+            <p class="text-secondary small mb-0">Entra al grupo para filtrar estudiantes, revisar riesgo y abrir acciones rápidas.</p>
+        </div>
+    </div>
+
+    <div class="ra-group-grid">
         @foreach (var g in Model.Grupos)
         {
-            <div class="col-md-6 col-lg-4">
-                <a asp-action="MisEstudiantes" asp-route-grupo="@g.Clave" class="text-decoration-none">
-                    <div class="ra-card h-100" style="transition: var(--ra-transition); cursor: pointer;">
-                        <div class="ra-card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h4 class="fw-bold mb-0 ra-text-accent" style="letter-spacing:-0.02em;">@g.Clave</h4>
-                                <span class="ra-badge ra-badge-neutral">@g.Turno</span>
-                            </div>
-                            <p class="text-secondary small mb-3">@g.Carrera — @g.Semestre° Semestre</p>
+            var groupAlumnos = Model.Estudiantes.Where(a => a.Grupo?.Clave == g.Clave).ToList();
+            var gv = groupAlumnos.Count(a => a.RiesgoAcademico == "Verde" || string.IsNullOrEmpty(a.RiesgoAcademico));
+            var ga = groupAlumnos.Count(a => a.RiesgoAcademico == "Amarillo");
+            var gr = groupAlumnos.Count(a => a.RiesgoAcademico == "Rojo");
+            var gTotal = Math.Max(groupAlumnos.Count, 1);
+            var gvPct = gv * 100.0 / gTotal;
+            var gaPct = ga * 100.0 / gTotal;
+            var grPct = gr * 100.0 / gTotal;
 
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <i class="bi bi-people text-secondary"></i>
-                                <span class="text-secondary small">@g.TotalAlumnos estudiantes</span>
-                            </div>
-
-                            <!-- Mini risk strip for this group -->
-                            @{
-                                var groupAlumnos = Model.Estudiantes.Where(a => a.Grupo?.Clave == g.Clave).ToList();
-                                var gv = groupAlumnos.Count(a => a.RiesgoAcademico == "Verde" || string.IsNullOrEmpty(a.RiesgoAcademico));
-                                var ga = groupAlumnos.Count(a => a.RiesgoAcademico == "Amarillo");
-                                var gr = groupAlumnos.Count(a => a.RiesgoAcademico == "Rojo");
-                            }
-                            <div class="d-flex gap-1 mb-3">
-                                @for (int i = 0; i < gr; i++)
-                                {
-                                    <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:var(--ra-danger);box-shadow:0 0 6px var(--ra-danger);"></span>
-                                }
-                                @for (int i = 0; i < ga; i++)
-                                {
-                                    <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:var(--ra-warning);box-shadow:0 0 6px var(--ra-warning);"></span>
-                                }
-                                @for (int i = 0; i < Math.Min(gv, 8); i++)
-                                {
-                                    <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:var(--ra-success);opacity:0.6;"></span>
-                                }
-                                @if (gv > 8)
-                                {
-                                    <span class="text-secondary small">+@(gv - 8)</span>
-                                }
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                @if (g.EnRiesgo > 0)
-                                {
-                                    <span class="ra-badge ra-badge-danger"><i class="bi bi-exclamation-triangle me-1"></i>@g.EnRiesgo en riesgo</span>
-                                }
-                                else
-                                {
-                                    <span class="ra-badge ra-badge-success"><i class="bi bi-check-circle me-1"></i>Sin riesgo</span>
-                                }
-                                <span class="ra-btn ra-btn-sm ra-btn-ghost" style="pointer-events:none;">Ver grupo <i class="bi bi-arrow-right"></i></span>
-                            </div>
-                        </div>
+            <a asp-action="MisEstudiantes" asp-route-grupo="@g.Clave" class="ra-group-card">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <h3>@g.Clave</h3>
+                        <small>@g.Carrera · @g.Semestre° semestre · @g.Turno</small>
                     </div>
-                </a>
-            </div>
+                    <span class="ra-badge @(g.EnRiesgo > 0 ? "ra-badge-warning" : "ra-badge-success")">
+                        @(g.EnRiesgo > 0 ? $"{g.EnRiesgo} en riesgo" : "estable")
+                    </span>
+                </div>
+                <div class="ra-group-metrics">
+                    <span><strong>@g.TotalAlumnos</strong><small>alumnos</small></span>
+                    <span><strong>@gr</strong><small>rojo</small></span>
+                    <span><strong>@ga</strong><small>amarillo</small></span>
+                </div>
+                <div class="ra-risk-bar" aria-hidden="true">
+                    @if (gvPct > 0)
+                    {
+                        <span style="width:@gvPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-success);"></span>
+                    }
+                    @if (gaPct > 0)
+                    {
+                        <span style="width:@gaPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-warning);"></span>
+                    }
+                    @if (grPct > 0)
+                    {
+                        <span style="width:@grPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;background:var(--ra-danger);"></span>
+                    }
+                </div>
+                <span class="ra-group-open">Ver grupo <i class="bi bi-arrow-right"></i></span>
+            </a>
         }
     </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="ra-card">
-    <div class="ra-card-header">
-        <i class="bi bi-lightning"></i> Acciones Rápidas
-    </div>
-    <div class="ra-card-body d-flex flex-wrap gap-2">
-        <a asp-action="MateriasReprobadas" class="ra-btn ra-btn-outline">
-            <i class="bi bi-x-circle"></i> Materias Reprobadas
-        </a>
-        <a asp-controller="Intervenciones" asp-action="Index" class="ra-btn ra-btn-outline">
-            <i class="bi bi-clipboard-pulse"></i> Intervenciones
-        </a>
-        <a asp-controller="PlanesMejora" asp-action="Index" class="ra-btn ra-btn-outline">
-            <i class="bi bi-journal-check"></i> Planes de Mejora
-        </a>
-        <a asp-controller="Predicciones" asp-action="Index" class="ra-btn ra-btn-primary">
-            <i class="bi bi-brain"></i> Predicciones
-        </a>
-    </div>
-</div>
+</section>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Morning briefing toast
             var alertas = [];
             @if (Model.EnRiesgoRojo > 0) { <text>alertas.push('@Model.EnRiesgoRojo estudiantes en riesgo alto');</text> }
             @if (Model.IntervencionesPendientes > 0) { <text>alertas.push('@Model.IntervencionesPendientes intervenciones pendientes');</text> }

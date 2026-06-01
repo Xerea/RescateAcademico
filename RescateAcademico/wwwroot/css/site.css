@@ -2229,6 +2229,179 @@ button.ra-authority-kpi {
   gap: 0.45rem;
 }
 
+.ra-professor-command {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.ra-priority-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ra-priority-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto minmax(160px, 0.8fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius);
+  background: color-mix(in srgb, var(--ra-surface) 92%, transparent);
+}
+
+.ra-priority-person strong,
+.ra-priority-person small {
+  display: block;
+}
+
+.ra-priority-person small,
+.ra-priority-action {
+  color: var(--ra-text-secondary);
+  font-size: 0.8125rem;
+}
+
+.ra-priority-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.ra-professor-summary-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ra-risk-bar {
+  height: 10px;
+  display: flex;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ra-border-subtle);
+}
+
+.ra-risk-bar span {
+  min-width: 3px;
+}
+
+.ra-risk-legend,
+.ra-prediction-pills,
+.ra-professor-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ra-risk-legend {
+  margin-top: 0.65rem;
+  color: var(--ra-text-secondary);
+  font-size: 0.75rem;
+}
+
+.ra-risk-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ra-risk-legend i {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
+.ra-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.85rem;
+}
+
+.ra-group-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-lg);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ra-primary) 8%, transparent), transparent 48%),
+    var(--ra-surface);
+  color: var(--ra-text);
+  text-decoration: none;
+  box-shadow: var(--ra-shadow);
+}
+
+.ra-group-card:hover {
+  color: var(--ra-text);
+  border-color: color-mix(in srgb, var(--ra-primary) 45%, var(--ra-border));
+  transform: translateY(-1px);
+  box-shadow: var(--ra-shadow-md);
+}
+
+.ra-group-card h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ra-accent);
+}
+
+.ra-group-card small {
+  color: var(--ra-text-secondary);
+}
+
+.ra-group-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.ra-group-metrics span {
+  padding: 0.65rem;
+  border: 1px solid var(--ra-border-subtle);
+  border-radius: var(--ra-radius);
+  background: var(--ra-surface-raised);
+}
+
+.ra-group-metrics strong,
+.ra-group-metrics small {
+  display: block;
+}
+
+.ra-group-metrics strong {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.ra-group-open {
+  justify-self: end;
+  color: var(--ra-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 1199.98px) {
+  .ra-professor-command {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ra-priority-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .ra-priority-buttons,
+  .ra-professor-quick-actions {
+    justify-content: stretch;
+  }
+  .ra-priority-buttons .ra-btn,
+  .ra-professor-quick-actions .ra-btn {
+    width: 100%;
+  }
+}
+
 .ra-decision-actions {
   display: flex;
   flex-wrap: wrap;
