@@ -70,8 +70,11 @@ namespace RescateAcademico.Controllers
                     .ContinueWith(t => t.Result.Select(x => (x.Semestre, x.Count)).ToList());
 
                 // Autoridad-specific stats
-                stats.PromedioGeneral = await alumnoQuery.AnyAsync()
-                    ? await alumnoQuery.AverageAsync(a => a.PromedioGlobal)
+                var promedios = await alumnoQuery
+                    .Select(a => a.PromedioGlobal)
+                    .ToListAsync();
+                stats.PromedioGeneral = promedios.Count > 0
+                    ? promedios.Average()
                     : 0m;
                 stats.AlumnosPromedioCritico = await alumnoQuery.CountAsync(a => a.PromedioGlobal < 6m);
                 stats.AlumnosPromedioObservacion = await alumnoQuery.CountAsync(a => a.PromedioGlobal >= 6m && a.PromedioGlobal < 7.5m);
