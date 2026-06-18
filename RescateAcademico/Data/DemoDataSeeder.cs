@@ -292,6 +292,7 @@ namespace RescateAcademico.Seeders
                 (5, "Técnico en Informática", "Vespertino", 1),
                 (5, "Técnico en Administración", "Vespertino", 2),
                 (6, "Técnico en Informática", "Vespertino", 1),
+                (6, "Técnico en Informática", "Vespertino", 8),
             };
 
             int profIdx = 1;
@@ -300,7 +301,7 @@ namespace RescateAcademico.Seeders
                 var turnoAbrev = turno == "Matutino" ? "IM" : "IV";
                 var clave = $"{sem}{turnoAbrev}{num}";
                 var carreraClave = CarreraClaves[Array.IndexOf(Carreras, carrera)];
-                var profesorId = grupos.Count < 3 || clave == "5IV1"
+                var profesorId = grupos.Count < 3 || clave == "5IV1" || clave == "6IV8"
                     ? profesores[0].Id
                     : profesores[profIdx++ % profesores.Count].Id;
                 grupos.Add(new Grupo
@@ -396,7 +397,7 @@ namespace RescateAcademico.Seeders
             var sergioEmail = "salanisp2300@alumno.ipn.mx";
             _emailsUsados.Add(sergioEmail);
             var sergioUser = await EnsureUserAsync(um, sergioEmail, password, "Alumno");
-            var sergioGrupo = grupos.FirstOrDefault(g => g.Clave == "5IV1") ?? grupos.First(g => g.Carrera.Contains("Informática") && g.Semestre == 5);
+            var sergioGrupo = grupos.FirstOrDefault(g => g.Clave == "6IV8") ?? grupos.First(g => g.Carrera.Contains("Informática") && g.Semestre == 6);
             alumnos.Add(new Alumno
             {
                 Matricula = "2024130105",
@@ -405,7 +406,7 @@ namespace RescateAcademico.Seeders
                 Carrera = sergioGrupo.Carrera,
                 SemestreActual = sergioGrupo.Semestre,
                 PromedioGlobal = 9.57m,
-                MateriasReprobadas = 1,
+                MateriasReprobadas = 0,
                 Ausencias = 0,
                 ParcialesBajos = 0,
                 EtsPresentados = 0,
@@ -475,16 +476,28 @@ namespace RescateAcademico.Seeders
             const string matricula = "2024130105";
             const string email = "salanisp2300@alumno.ipn.mx";
 
-            var grupo = await context.Grupos
-                .FirstOrDefaultAsync(g => g.Clave == "5IV1")
-                ?? await context.Grupos.FirstOrDefaultAsync(g => g.Carrera != null && g.Carrera.Contains("Informática") && g.Semestre == 5)
-                ?? await context.Grupos.FirstOrDefaultAsync();
-
-            if (grupo == null) return;
-
             var profesorDemo = await context.Tutores
                 .Include(t => t.Usuario)
                 .FirstOrDefaultAsync(t => t.Usuario != null && t.Usuario.Email == "profesor1@ipn.mx");
+
+            var grupo = await context.Grupos.FirstOrDefaultAsync(g => g.Clave == "6IV8");
+            if (grupo == null)
+            {
+                grupo = new Grupo
+                {
+                    Clave = "6IV8",
+                    Carrera = "Técnico en Informática",
+                    Semestre = 6,
+                    Turno = "Vespertino",
+                    NumeroGrupo = 8,
+                    ProfesorId = profesorDemo?.Id
+                };
+                context.Grupos.Add(grupo);
+                await context.SaveChangesAsync();
+            }
+
+            if (grupo == null) return;
+
             if (profesorDemo != null && grupo.ProfesorId != profesorDemo.Id)
             {
                 grupo.ProfesorId = profesorDemo.Id;
@@ -503,8 +516,8 @@ namespace RescateAcademico.Seeders
             alumno.Carrera = grupo.Carrera;
             alumno.SemestreActual = grupo.Semestre;
             alumno.PromedioGlobal = 9.57m;
-            alumno.RiesgoAcademico = "Amarillo";
-            alumno.MateriasReprobadas = 1;
+            alumno.RiesgoAcademico = "Verde";
+            alumno.MateriasReprobadas = 0;
             alumno.Ausencias = 0;
             alumno.ParcialesBajos = 0;
             alumno.EtsPresentados = 0;
@@ -519,6 +532,15 @@ namespace RescateAcademico.Seeders
             alumno.FechaUltimaActualizacion = DateTime.Now;
 
             await context.SaveChangesAsync();
+
+            var existingGrades = await context.Calificaciones
+                .Where(c => c.AlumnoMatricula == matricula)
+                .ToListAsync();
+            if (existingGrades.Any())
+            {
+                context.Calificaciones.RemoveRange(existingGrades);
+                await context.SaveChangesAsync();
+            }
 
             if (!await context.Calificaciones.AnyAsync(c => c.AlumnoMatricula == matricula))
             {
@@ -752,7 +774,7 @@ namespace RescateAcademico.Seeders
             new("I506", "26/1", "Ordinario", 10m),
             new("I507", "26/1", "Ordinario", 10m),
             new("I508", "26/1", "Ordinario", 10m),
-            new("I509", "26/1", "Ordinario", 1m),
+            new("I509", "26/1", "Ordinario", 10m),
         };
 
         private static async Task SeedAsignacionesTutorAsync(ApplicationDbContext context, List<Tutor> profesores, List<Alumno> alumnos)
