@@ -122,11 +122,17 @@ namespace RescateAcademico.Seeders
         };
 
         private record MateriaSeed(string Clave, string Nombre, int Semestre, decimal Creditos);
+        private record AcademicGradeSeed(string Clave, string Periodo, string Tipo, decimal Calificacion);
 
         public static async Task SeedAsync(IServiceProvider serviceProvider, ApplicationDbContext context)
         {
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+            var adminPassword = config["DEMO_ADMIN_PASSWORD"] ?? "Admin123!";
+            var autoridadPassword = config["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!";
+            var tutorPassword = config["DEMO_TUTOR_PASSWORD"] ?? "Demo123!";
+            var alumnoPassword = config["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!";
 
             // Guard: skip only if a substantial amount of student data already exists.
             // This prevents re-seeding on a healthy database but allows recovery
@@ -134,17 +140,13 @@ namespace RescateAcademico.Seeders
             var existingStudentCount = await context.Alumnos.CountAsync();
             if (existingStudentCount >= 50)
             {
+                await EnsureSergioDemoStudentAsync(userManager, context, alumnoPassword);
                 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
                 logger.LogInformation("Database already contains {Count} students. Skipping DemoDataSeeder.", existingStudentCount);
                 return;
             }
 
             var alertas = new AlertasService(context);
-            var config = serviceProvider.GetRequiredService<IConfiguration>();
-            var adminPassword = config["DEMO_ADMIN_PASSWORD"] ?? "Admin123!";
-            var autoridadPassword = config["DEMO_AUTORIDAD_PASSWORD"] ?? "Autoridad123!";
-            var tutorPassword = config["DEMO_TUTOR_PASSWORD"] ?? "Demo123!";
-            var alumnoPassword = config["DEMO_ALUMNO_PASSWORD"] ?? "Demo123!";
 
             await SeedRolesAsync(roleManager);
             var adminUser = await EnsureUserAsync(userManager, "admin@ipn.mx", adminPassword, "Administrador");
@@ -205,6 +207,10 @@ namespace RescateAcademico.Seeders
                     var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
                     throw new InvalidOperationException($"Failed to create user '{email}': {errors}");
                 }
+                await um.AddToRoleAsync(user, role);
+            }
+            else if (!await um.IsInRoleAsync(user, role))
+            {
                 await um.AddToRoleAsync(user, role);
             }
             return user;
@@ -294,6 +300,9 @@ namespace RescateAcademico.Seeders
                 var turnoAbrev = turno == "Matutino" ? "IM" : "IV";
                 var clave = $"{sem}{turnoAbrev}{num}";
                 var carreraClave = CarreraClaves[Array.IndexOf(Carreras, carrera)];
+                var profesorId = grupos.Count < 3 || clave == "5IV1"
+                    ? profesores[0].Id
+                    : profesores[profIdx++ % profesores.Count].Id;
                 grupos.Add(new Grupo
                 {
                     Clave = clave,
@@ -301,7 +310,7 @@ namespace RescateAcademico.Seeders
                     Semestre = sem,
                     Turno = turno,
                     NumeroGrupo = num,
-                    ProfesorId = grupos.Count < 3 ? profesores[0].Id : profesores[profIdx++ % profesores.Count].Id
+                    ProfesorId = profesorId
                 });
             }
             context.Grupos.AddRange(grupos);
@@ -384,6 +393,33 @@ namespace RescateAcademico.Seeders
             };
             alumnos.Add(demoAlumno);
 
+            var sergioEmail = "salanisp2300@alumno.ipn.mx";
+            _emailsUsados.Add(sergioEmail);
+            var sergioUser = await EnsureUserAsync(um, sergioEmail, password, "Alumno");
+            var sergioGrupo = grupos.FirstOrDefault(g => g.Clave == "5IV1") ?? grupos.First(g => g.Carrera.Contains("Informática") && g.Semestre == 5);
+            alumnos.Add(new Alumno
+            {
+                Matricula = "2024130105",
+                Nombre = "Sergio Esteban",
+                Apellidos = "Alanis Pacheco",
+                Carrera = sergioGrupo.Carrera,
+                SemestreActual = sergioGrupo.Semestre,
+                PromedioGlobal = 9.57m,
+                MateriasReprobadas = 1,
+                Ausencias = 0,
+                ParcialesBajos = 0,
+                EtsPresentados = 0,
+                Recursamientos = 0,
+                CargaAcademicaActual = 9,
+                Estatus = "Activo",
+                Correo = sergioEmail,
+                NombreTutorLegal = "Tutor legal de Sergio Alanis",
+                TelefonoTutorLegal = "5553208877",
+                UserId = sergioUser.Id,
+                GrupoId = sergioGrupo.Id,
+                FechaUltimaActualizacion = DateTime.Now.AddDays(-1)
+            });
+
             foreach (var grupo in grupos)
             {
                 int cantidad = grupo.Semestre <= 3 ? 36 : grupo.Semestre == 4 ? 30 : grupo.Semestre == 5 ? 25 : 24;
@@ -432,6 +468,84 @@ namespace RescateAcademico.Seeders
                 await context.SaveChangesAsync();
             }
             return alumnos;
+        }
+
+        private static async Task EnsureSergioDemoStudentAsync(UserManager<ApplicationUser> um, ApplicationDbContext context, string password)
+        {
+            const string matricula = "2024130105";
+            const string email = "salanisp2300@alumno.ipn.mx";
+
+            var grupo = await context.Grupos
+                .FirstOrDefaultAsync(g => g.Clave == "5IV1")
+                ?? await context.Grupos.FirstOrDefaultAsync(g => g.Carrera != null && g.Carrera.Contains("Informática") && g.Semestre == 5)
+                ?? await context.Grupos.FirstOrDefaultAsync();
+
+            if (grupo == null) return;
+
+            var profesorDemo = await context.Tutores
+                .Include(t => t.Usuario)
+                .FirstOrDefaultAsync(t => t.Usuario != null && t.Usuario.Email == "profesor1@ipn.mx");
+            if (profesorDemo != null && grupo.ProfesorId != profesorDemo.Id)
+            {
+                grupo.ProfesorId = profesorDemo.Id;
+            }
+
+            var user = await EnsureUserAsync(um, email, password, "Alumno");
+            var alumno = await context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == matricula);
+            if (alumno == null)
+            {
+                alumno = new Alumno { Matricula = matricula };
+                context.Alumnos.Add(alumno);
+            }
+
+            alumno.Nombre = "Sergio Esteban";
+            alumno.Apellidos = "Alanis Pacheco";
+            alumno.Carrera = grupo.Carrera;
+            alumno.SemestreActual = grupo.Semestre;
+            alumno.PromedioGlobal = 9.57m;
+            alumno.RiesgoAcademico = "Amarillo";
+            alumno.MateriasReprobadas = 1;
+            alumno.Ausencias = 0;
+            alumno.ParcialesBajos = 0;
+            alumno.EtsPresentados = 0;
+            alumno.Recursamientos = 0;
+            alumno.CargaAcademicaActual = 9;
+            alumno.Estatus = "Activo";
+            alumno.Correo = email;
+            alumno.NombreTutorLegal = "Tutor legal de Sergio Alanis";
+            alumno.TelefonoTutorLegal = "5553208877";
+            alumno.UserId = user.Id;
+            alumno.GrupoId = grupo.Id;
+            alumno.FechaUltimaActualizacion = DateTime.Now;
+
+            await context.SaveChangesAsync();
+
+            if (!await context.Calificaciones.AnyAsync(c => c.AlumnoMatricula == matricula))
+            {
+                var materias = await context.Materias.ToListAsync();
+                var calificaciones = GetSergioAcademicHistory()
+                    .Select(gradeSeed =>
+                    {
+                        var materia = materias.FirstOrDefault(m => m.Clave == gradeSeed.Clave);
+                        return materia == null ? null : new Calificacion
+                        {
+                            AlumnoMatricula = matricula,
+                            MateriaId = materia.Id,
+                            Periodo = gradeSeed.Periodo,
+                            CicloEscolar = gradeSeed.Periodo,
+                            Valor = gradeSeed.Calificacion,
+                            Aprobada = gradeSeed.Calificacion >= 6m,
+                            VecesCursada = 1,
+                            Tipo = gradeSeed.Tipo
+                        };
+                    })
+                    .Where(c => c != null)
+                    .Cast<Calificacion>()
+                    .ToList();
+
+                context.Calificaciones.AddRange(calificaciones);
+                await context.SaveChangesAsync();
+            }
         }
 
         private static async Task SeedAlumnoClaimCodesAsync(ApplicationDbContext context, List<Alumno> alumnos)
@@ -517,6 +631,28 @@ namespace RescateAcademico.Seeders
 
             foreach (var alumno in alumnos)
             {
+                if (alumno.Matricula == "2024130105")
+                {
+                    foreach (var gradeSeed in GetSergioAcademicHistory())
+                    {
+                        var dbMat = materias.FirstOrDefault(m => m.Clave == gradeSeed.Clave);
+                        if (dbMat == null) continue;
+
+                        calificaciones.Add(new Calificacion
+                        {
+                            AlumnoMatricula = alumno.Matricula,
+                            MateriaId = dbMat.Id,
+                            Periodo = gradeSeed.Periodo,
+                            CicloEscolar = gradeSeed.Periodo,
+                            Valor = gradeSeed.Calificacion,
+                            Aprobada = gradeSeed.Calificacion >= 6m,
+                            VecesCursada = 1,
+                            Tipo = gradeSeed.Tipo
+                        });
+                    }
+                    continue;
+                }
+
                 // Common subjects for semesters 1-2 (all students have completed these)
                 var comunes = MateriasComunes;
                 foreach (var mat in comunes)
@@ -568,6 +704,56 @@ namespace RescateAcademico.Seeders
             context.Calificaciones.AddRange(calificaciones);
             await context.SaveChangesAsync();
         }
+
+        private static IReadOnlyList<AcademicGradeSeed> GetSergioAcademicHistory() => new List<AcademicGradeSeed>
+        {
+            new("0101", "24/1", "Ordinario", 10m),
+            new("0102", "24/1", "Ordinario", 10m),
+            new("0103", "24/1", "Ordinario", 10m),
+            new("0104", "24/1", "Ordinario", 9m),
+            new("0105", "24/1", "Ordinario", 10m),
+            new("0106", "24/1", "Ordinario", 10m),
+            new("0107", "24/1", "Ordinario", 9m),
+            new("0108", "24/1", "Ordinario", 10m),
+            new("0109", "24/1", "Ordinario", 9m),
+            new("0201", "24/2", "Ordinario", 10m),
+            new("0202", "24/2", "Ordinario", 10m),
+            new("0203", "24/2", "Ordinario", 10m),
+            new("0204", "24/2", "Ordinario", 9m),
+            new("0205", "24/2", "Ordinario", 10m),
+            new("0206", "24/2", "Ordinario", 9m),
+            new("0207", "24/2", "Ordinario", 10m),
+            new("0208", "24/2", "Ordinario", 10m),
+            new("0209", "24/2", "Ordinario", 10m),
+            new("I301", "25/1", "Ordinario", 9m),
+            new("I302", "25/1", "Ordinario", 10m),
+            new("I303", "25/1", "Ordinario", 8m),
+            new("I304", "25/1", "Ordinario", 9m),
+            new("I305", "25/1", "Ordinario", 10m),
+            new("I306", "25/1", "Ordinario", 10m),
+            new("I307", "25/1", "Ordinario", 10m),
+            new("I308", "25/1", "Ordinario", 10m),
+            new("I309", "25/1", "Ordinario", 9m),
+            new("I310", "25/1", "Ordinario", 9m),
+            new("I401", "25/2", "Ordinario", 10m),
+            new("I402", "25/2", "Ordinario", 8m),
+            new("I403", "25/2", "Ordinario", 8m),
+            new("I404", "25/2", "Ordinario", 7m),
+            new("I405", "25/2", "Ordinario", 10m),
+            new("I406", "25/2", "Ordinario", 9m),
+            new("I407", "25/2", "Ordinario", 10m),
+            new("I408", "25/2", "Ordinario", 10m),
+            new("I409", "25/2", "Ordinario", 10m),
+            new("I501", "26/1", "Ordinario", 10m),
+            new("I502", "26/1", "Ordinario", 10m),
+            new("I503", "26/1", "Ordinario", 9m),
+            new("I504", "26/1", "Ordinario", 10m),
+            new("I505", "26/1", "Ordinario", 10m),
+            new("I506", "26/1", "Ordinario", 10m),
+            new("I507", "26/1", "Ordinario", 10m),
+            new("I508", "26/1", "Ordinario", 10m),
+            new("I509", "26/1", "Ordinario", 1m),
+        };
 
         private static async Task SeedAsignacionesTutorAsync(ApplicationDbContext context, List<Tutor> profesores, List<Alumno> alumnos)
         {
