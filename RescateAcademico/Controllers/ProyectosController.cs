@@ -17,6 +17,7 @@ namespace RescateAcademico.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "Administrador,Autoridad")]
         public async Task<IActionResult> Index(string? tipo, string? busqueda)
         {
             var query = _context.Proyectos.Where(p => p.EstaActivo).AsQueryable();

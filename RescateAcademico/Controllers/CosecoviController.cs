@@ -158,6 +158,7 @@ namespace RescateAcademico.Controllers
                 ModelState.AddModelError(nameof(reporte.AlumnoMatricula), "Selecciona un alumno valido.");
             }
 
+            ValidarFechaIncidente(reporte.FechaIncidente);
             ValidarCatalogos(reporte);
 
             if (!ModelState.IsValid)
@@ -203,6 +204,7 @@ namespace RescateAcademico.Controllers
             var reporte = await _context.ReportesCosecovi.FindAsync(id);
             if (reporte == null) return NotFound();
 
+            ValidarFechaIncidente(form.FechaIncidente);
             ValidarCatalogos(form);
             if (!ModelState.IsValid)
             {
@@ -318,6 +320,18 @@ namespace RescateAcademico.Controllers
             ViewBag.Gravedades = Gravedades;
             ViewBag.Turnados = Turnados;
             ViewBag.Estados = Estados;
+            ViewBag.FechaIncidenteMin = DateTime.Now.AddDays(-7).ToString("yyyy-MM-ddTHH:mm");
+            ViewBag.FechaIncidenteMax = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+        }
+
+        private void ValidarFechaIncidente(DateTime fechaIncidente)
+        {
+            var min = DateTime.Now.AddDays(-7);
+            var max = DateTime.Now.AddMinutes(1);
+            if (fechaIncidente < min)
+                ModelState.AddModelError(nameof(ReporteCosecovi.FechaIncidente), "La fecha del incidente no puede ser anterior a 7 dias.");
+            if (fechaIncidente > max)
+                ModelState.AddModelError(nameof(ReporteCosecovi.FechaIncidente), "La fecha del incidente no puede estar en el futuro.");
         }
 
         private void ValidarCatalogos(ReporteCosecovi reporte)

@@ -6,6 +6,8 @@
     var tipos = ViewBag.TiposIncidente as string[] ?? Array.Empty<string>();
     var gravedades = ViewBag.Gravedades as string[] ?? Array.Empty<string>();
     var turnados = ViewBag.Turnados as string[] ?? Array.Empty<string>();
+    var fechaMin = ViewBag.FechaIncidenteMin as string;
+    var fechaMax = ViewBag.FechaIncidenteMax as string;
     var header = new PageHeader
     {
         Title = "Nuevo incidente COSECOVI",
@@ -37,11 +39,13 @@
                                     <option value="@a.Value" selected="@(a.Value == Model.AlumnoMatricula ? "selected" : null)">@a.Text</option>
                                 }
                             </select>
+                            <div class="text-secondary small mt-1" id="alumnoSeleccionadoPreview">Selecciona un alumno para continuar.</div>
                             <span asp-validation-for="AlumnoMatricula" class="text-danger"></span>
                         </div>
                         <div class="col-md-3">
                             <label class="ra-label">Fecha del incidente *</label>
-                            <input asp-for="FechaIncidente" type="datetime-local" class="ra-input" required />
+                            <input asp-for="FechaIncidente" type="datetime-local" class="ra-input" min="@fechaMin" max="@fechaMax" required />
+                            <div class="text-secondary small mt-1">Solo se permite registrar incidentes de los ultimos 7 dias.</div>
                         </div>
                         <div class="col-md-2">
                             <label class="ra-label">Periodo *</label>
@@ -125,4 +129,21 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var select = document.getElementById('AlumnoMatricula');
+            var preview = document.getElementById('alumnoSeleccionadoPreview');
+            function syncAlumnoPreview() {
+                if (!select || !preview) return;
+                var option = select.options[select.selectedIndex];
+                preview.textContent = option && option.value
+                    ? 'Seleccionado: ' + option.text
+                    : 'Selecciona un alumno para continuar.';
+            }
+            if (select) {
+                select.addEventListener('change', syncAlumnoPreview);
+                syncAlumnoPreview();
+            }
+        })();
+    </script>
 }

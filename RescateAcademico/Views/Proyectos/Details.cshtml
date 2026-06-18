@@ -8,8 +8,10 @@
         Subtitle = "Detalles del proyecto",
         Icon = "bi-folder",
         IconVariant = "accent",
-        BackUrl = Url.Action("Index"),
-        BackLabel = "Proyectos"
+        BackUrl = User.IsInRole("Alumno")
+            ? Url.Action("MisPostulaciones", "Postulaciones")
+            : Url.Action("Index"),
+        BackLabel = User.IsInRole("Alumno") ? "Mis postulaciones" : "Proyectos"
     };
 }
 
@@ -48,7 +50,7 @@
 </div>
 
 <div class="mt-3">
-    <a asp-action="Index" class="ra-btn ra-btn-ghost">
+    <a href="@(User.IsInRole("Alumno") ? Url.Action("MisPostulaciones", "Postulaciones") : Url.Action("Index"))" class="ra-btn ra-btn-ghost">
         <i class="bi bi-arrow-left"></i> Volver
     </a>
 </div>

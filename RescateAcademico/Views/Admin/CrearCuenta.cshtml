@@ -22,7 +22,12 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label asp-for="Password" class="ra-label">Contraseña temporal *</label>
-                            <input asp-for="Password" type="password" class="ra-input" autocomplete="new-password" minlength="6" required />
+                            <div class="input-group">
+                                <input asp-for="Password" type="password" class="ra-input" autocomplete="new-password" minlength="6" required />
+                                <button class="ra-btn ra-btn-outline" type="button" id="togglePassword" aria-label="Mostrar contraseña">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <div class="text-secondary small mt-1">Debe incluir mayúscula, minúscula, número y símbolo.</div>
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
@@ -60,7 +65,16 @@
                     <div class="row">
                         <div class="col-md-6 mb-3" id="carreraField">
                             <label asp-for="Carrera" class="ra-label">Carrera</label>
-                            <input asp-for="Carrera" class="ra-input" placeholder="Técnico en Informática" />
+                            <select asp-for="Carrera" class="ra-select">
+                                <option value="">Pendiente de asignar</option>
+                                <option value="Tronco común">Tronco común</option>
+                                <option value="Técnico en Administración">Técnico en Administración</option>
+                                <option value="Técnico en Administración de Empresas Turísticas">Técnico en Administración de Empresas Turísticas</option>
+                                <option value="Técnico en Contaduría">Técnico en Contaduría</option>
+                                <option value="Técnico en Gastronomía">Técnico en Gastronomía</option>
+                                <option value="Técnico en Gestión de la Ciberseguridad">Técnico en Gestión de la Ciberseguridad</option>
+                                <option value="Técnico en Informática">Técnico en Informática</option>
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3" id="semestreField">
                             <label asp-for="SemestreActual" class="ra-label">Semestre</label>
@@ -99,6 +113,8 @@
             var semestreField = document.getElementById('semestreField');
             var especialidadField = document.getElementById('especialidadField');
             var matriculaInput = document.getElementById('Matricula');
+            var passwordInput = document.getElementById('Password');
+            var togglePassword = document.getElementById('togglePassword');
 
             function syncRoleFields() {
                 var rol = rolSelect.value;
@@ -116,6 +132,14 @@
             }
 
             rolSelect.addEventListener('change', syncRoleFields);
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function () {
+                    var showing = passwordInput.type === 'text';
+                    passwordInput.type = showing ? 'password' : 'text';
+                    togglePassword.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+                    togglePassword.innerHTML = showing ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+                });
+            }
             syncRoleFields();
         })();
     </script>

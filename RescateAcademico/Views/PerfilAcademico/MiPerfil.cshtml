@@ -367,12 +367,20 @@
                 var umbrales = [];
                 try { umbrales = JSON.parse(simContext.dataset.umbrales || '[]'); } catch(e) { console.warn('[Simulador] Failed to parse umbrales'); }
 
+                function clampGradeInput(inp) {
+                    var v = parseFloat(inp.value);
+                    if (isNaN(v)) return NaN;
+                    var clamped = Math.max(0, Math.min(10, v));
+                    if (clamped !== v) inp.value = clamped.toFixed(1);
+                    return clamped;
+                }
+
                 function calcularSimulacion() {
                     try {
                         var inputs = document.querySelectorAll('.calif-input');
                         var sum = 0, count = 0;
                         inputs.forEach(function(inp) {
-                            var v = parseFloat(inp.value);
+                            var v = clampGradeInput(inp);
                             if (!isNaN(v)) { sum += v; count++; }
                         });
                         if (count === 0) return;
@@ -417,7 +425,8 @@
 
                 function calcularObjetivo() {
                     try {
-                        var objetivo = parseFloat(document.getElementById('simObjetivo').value);
+                        var objetivoInput = document.getElementById('simObjetivo');
+                        var objetivo = clampGradeInput(objetivoInput);
                         if (isNaN(objetivo) || objetivo < 0 || objetivo > 10) {
                             document.getElementById('simObjetivoResultado').innerHTML = '';
                             return;

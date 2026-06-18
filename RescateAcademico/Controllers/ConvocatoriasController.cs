@@ -31,6 +31,11 @@ namespace RescateAcademico.Controllers
                 .Where(c => c.EstaActiva && c.ValidadaPorAcademia)
                 .AsQueryable();
 
+            if (User.IsInRole("Alumno"))
+            {
+                query = query.Where(c => c.PostulacionesActuales < c.CupoMaximo && c.FechaCierre >= DateTime.Now);
+            }
+
             if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
                 query = query.Where(c => c.Tipo == tipo);
 
