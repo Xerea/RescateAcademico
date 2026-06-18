@@ -31,10 +31,45 @@ namespace RescateAcademico.Controllers
             _configuration = configuration;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? semestre, string? grupo, string? riesgo)
         {
-            var matriculas = await _studentAccessService.GetVisibleMatriculasAsync();
+            var visibleQuery = _studentAccessService.ApplyVisibleStudents(_context.Alumnos.Include(a => a.Grupo).AsNoTracking());
+
+            ViewBag.Semestres = await visibleQuery
+                .Select(a => a.SemestreActual)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToListAsync();
+
+            ViewBag.Grupos = await visibleQuery
+                .Where(a => a.Grupo != null)
+                .Select(a => a.Grupo!.Clave)
+                .Distinct()
+                .OrderBy(g => g)
+                .ToListAsync();
+
+            if (semestre.HasValue)
+            {
+                visibleQuery = visibleQuery.Where(a => a.SemestreActual == semestre.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(grupo))
+            {
+                visibleQuery = visibleQuery.Where(a => a.Grupo != null && a.Grupo.Clave == grupo);
+            }
+
+            var matriculas = await visibleQuery.Select(a => a.Matricula).ToListAsync();
             var predicciones = await _predictionService.PredecirAsync(matriculas);
+
+            if (!string.IsNullOrWhiteSpace(riesgo))
+            {
+                predicciones = predicciones.Where(p => p.Riesgo == riesgo).ToList();
+            }
+
+            ViewBag.FiltroSemestre = semestre;
+            ViewBag.FiltroGrupo = grupo;
+            ViewBag.FiltroRiesgo = riesgo;
+
             return View(predicciones);
         }
 

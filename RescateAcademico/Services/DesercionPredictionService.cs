@@ -53,6 +53,7 @@ namespace RescateAcademico.Services
         {
             var ids = matriculas.ToList();
             var alumnos = await _context.Alumnos
+                .Include(a => a.Grupo)
                 .Where(a => ids.Contains(a.Matricula))
                 .ToListAsync();
             return PredecirAlumnos(alumnos);
@@ -70,6 +71,8 @@ namespace RescateAcademico.Services
                     Matricula = alumno.Matricula,
                     Nombre = $"{alumno.Nombre} {alumno.Apellidos}",
                     Carrera = alumno.Carrera,
+                    Semestre = alumno.SemestreActual,
+                    Grupo = alumno.Grupo?.Clave,
                     Promedio = alumno.PromedioGlobal,
                     ProbabilidadDesercion = pred.Probabilidad,
                     Riesgo = pred.Probabilidad > 0.7m ? "Crítico" : pred.Probabilidad > 0.5m ? "Alto" : pred.Probabilidad > 0.3m ? "Medio" : "Bajo",
@@ -312,6 +315,8 @@ namespace RescateAcademico.Services
         public string Matricula { get; set; } = "";
         public string Nombre { get; set; } = "";
         public string? Carrera { get; set; }
+        public int Semestre { get; set; }
+        public string? Grupo { get; set; }
         public decimal Promedio { get; set; }
         public decimal ProbabilidadDesercion { get; set; }
         public string Riesgo { get; set; } = "";
