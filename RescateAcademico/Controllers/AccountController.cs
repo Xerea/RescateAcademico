@@ -32,9 +32,15 @@ namespace RescateAcademico.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public IActionResult Login(string? returnUrl = null, string? registro = null, string? expediente = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            if (registro == "pendiente")
+            {
+                ViewData["RegistroPendiente"] = expediente == "faltante"
+                    ? "Solicitud creada. Tu cuenta queda pendiente porque la boleta aun no existe en la base academica. Coordinacion debe importar o crear tu expediente antes de aprobarla."
+                    : "Solicitud creada. Tu cuenta queda pendiente de validacion para vincularla con tu expediente academico.";
+            }
             return View();
         }
 
@@ -229,10 +235,11 @@ namespace RescateAcademico.Controllers
 
                 if (user.PendienteVerificacion)
                 {
-                    TempData["Success"] = alumnoExistente == null
-                        ? "Solicitud creada. Tu cuenta queda pendiente porque la boleta aun no existe en la base academica. Coordinacion debe importar o crear tu expediente antes de aprobarla."
-                        : "Solicitud creada. Tu cuenta queda pendiente de validacion para vincularla con tu expediente academico.";
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Login", new
+                    {
+                        registro = "pendiente",
+                        expediente = alumnoExistente == null ? "faltante" : "existente"
+                    });
                 }
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Dashboard");

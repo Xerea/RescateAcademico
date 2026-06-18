@@ -56,6 +56,14 @@
                         </div>
                     }
 
+                    @if (ViewData["RegistroPendiente"] is string registroPendiente)
+                    {
+                        <div class="ra-alert ra-alert-info mb-3" role="status">
+                            <i class="bi bi-hourglass-split"></i>
+                            <div>@registroPendiente</div>
+                        </div>
+                    }
+
                     <div id="recaptchaError" class="ra-alert ra-alert-danger mb-3" role="alert" style="display:none;">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <div>No se pudo cargar la verificación de seguridad. Recarga la página e intenta de nuevo.</div>
