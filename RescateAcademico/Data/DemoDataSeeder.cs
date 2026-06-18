@@ -123,6 +123,7 @@ namespace RescateAcademico.Seeders
 
         private record MateriaSeed(string Clave, string Nombre, int Semestre, decimal Creditos);
         private record AcademicGradeSeed(string Clave, string Periodo, string Tipo, decimal Calificacion);
+        private record GrupoSeed(int Semestre, string Carrera, string Turno, int NumeroGrupo);
 
         public static async Task SeedAsync(IServiceProvider serviceProvider, ApplicationDbContext context)
         {
@@ -140,6 +141,7 @@ namespace RescateAcademico.Seeders
             var existingStudentCount = await context.Alumnos.CountAsync();
             if (existingStudentCount >= 50)
             {
+                await EnsureActiveSemesterDemoStructureAsync(context);
                 await EnsureSergioDemoStudentAsync(userManager, context, alumnoPassword);
                 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
                 logger.LogInformation("Database already contains {Count} students. Skipping DemoDataSeeder.", existingStudentCount);
@@ -216,6 +218,85 @@ namespace RescateAcademico.Seeders
             return user;
         }
 
+        private static async Task EnsureActiveSemesterDemoStructureAsync(ApplicationDbContext context)
+        {
+            var profesorDemo = await context.Tutores
+                .Include(t => t.Usuario)
+                .FirstOrDefaultAsync(t => t.Usuario != null && t.Usuario.Email == "profesor1@ipn.mx");
+
+            foreach (var seed in GetActiveGroupSeed())
+            {
+                var turnoAbrev = seed.Turno == "Matutino" ? "IM" : "IV";
+                var clave = $"{seed.Semestre}{turnoAbrev}{seed.NumeroGrupo}";
+                var grupo = await context.Grupos.FirstOrDefaultAsync(g => g.Clave == clave);
+                if (grupo == null)
+                {
+                    grupo = new Grupo { Clave = clave };
+                    context.Grupos.Add(grupo);
+                }
+
+                grupo.Carrera = seed.Carrera;
+                grupo.Semestre = seed.Semestre;
+                grupo.Turno = seed.Turno;
+                grupo.NumeroGrupo = seed.NumeroGrupo;
+                if (profesorDemo != null && clave is "2IV1" or "4IV3" or "6IV1" or "6IV8")
+                {
+                    grupo.ProfesorId = profesorDemo.Id;
+                }
+            }
+
+            await context.SaveChangesAsync();
+
+            var refreshedGroups = await context.Grupos.ToListAsync();
+            Grupo PickTarget(Alumno alumno)
+            {
+                var targetSemester = alumno.SemestreActual <= 2 ? 2 : alumno.SemestreActual <= 4 ? 4 : 6;
+                var targetCareer = targetSemester == 2 ? "Tronco común" : alumno.Carrera;
+
+                if (alumno.Matricula == "2024130105")
+                {
+                    return refreshedGroups.First(g => g.Clave == "6IV8");
+                }
+
+                if (alumno.Grupo?.Clave == "5IV1")
+                {
+                    return refreshedGroups.First(g => g.Clave == "6IV8");
+                }
+
+                return refreshedGroups.FirstOrDefault(g => g.Semestre == targetSemester && g.Carrera == targetCareer)
+                    ?? refreshedGroups.FirstOrDefault(g => g.Semestre == targetSemester)
+                    ?? refreshedGroups.First(g => g.Clave == "6IV8");
+            }
+
+            var alumnos = await context.Alumnos.Include(a => a.Grupo).ToListAsync();
+            foreach (var alumno in alumnos)
+            {
+                if (alumno.SemestreActual % 2 == 1 || alumno.Grupo == null || alumno.Grupo.Semestre % 2 == 1)
+                {
+                    var target = PickTarget(alumno);
+                    alumno.GrupoId = target.Id;
+                    alumno.SemestreActual = target.Semestre;
+                    alumno.Carrera = target.Carrera;
+                }
+            }
+
+            await context.SaveChangesAsync();
+
+            var activeKeys = GetActiveGroupSeed()
+                .Select(seed => $"{seed.Semestre}{(seed.Turno == "Matutino" ? "IM" : "IV")}{seed.NumeroGrupo}")
+                .ToHashSet();
+
+            var inactiveEmptyGroups = await context.Grupos
+                .Where(g => !activeKeys.Contains(g.Clave) && !context.Alumnos.Any(a => a.GrupoId == g.Id))
+                .ToListAsync();
+
+            if (inactiveEmptyGroups.Any())
+            {
+                context.Grupos.RemoveRange(inactiveEmptyGroups);
+                await context.SaveChangesAsync();
+            }
+        }
+
         private static async Task SeedCarrerasAsync(ApplicationDbContext context)
         {
             if (await context.Carreras.AnyAsync()) return;
@@ -279,46 +360,53 @@ namespace RescateAcademico.Seeders
         private static async Task<List<Grupo>> SeedGruposAsync(ApplicationDbContext context, List<Tutor> profesores)
         {
             if (await context.Grupos.AnyAsync()) return await context.Grupos.ToListAsync();
-            var grupos = new List<Grupo>();
-            var config = new[]
-            {
-                (3, "Técnico en Informática", "Matutino", 1),
-                (3, "Técnico en Contaduría", "Matutino", 2),
-                (3, "Técnico en Administración", "Vespertino", 1),
-                (3, "Técnico en Informática", "Vespertino", 2),
-                (4, "Técnico en Gestión de la Ciberseguridad", "Matutino", 1),
-                (4, "Técnico en Administración de Empresas Turísticas", "Vespertino", 1),
-                (4, "Técnico en Gastronomía", "Vespertino", 2),
-                (5, "Técnico en Informática", "Vespertino", 1),
-                (5, "Técnico en Administración", "Vespertino", 2),
-                (6, "Técnico en Informática", "Vespertino", 1),
-                (6, "Técnico en Informática", "Vespertino", 8),
-            };
 
-            int profIdx = 1;
-            foreach (var (sem, carrera, turno, num) in config)
+            var grupos = new List<Grupo>();
+            var profIdx = 1;
+            foreach (var groupSeed in GetActiveGroupSeed())
             {
-                var turnoAbrev = turno == "Matutino" ? "IM" : "IV";
-                var clave = $"{sem}{turnoAbrev}{num}";
-                var carreraClave = CarreraClaves[Array.IndexOf(Carreras, carrera)];
-                var profesorId = grupos.Count < 3 || clave == "5IV1" || clave == "6IV8"
+                var turnoAbrev = groupSeed.Turno == "Matutino" ? "IM" : "IV";
+                var clave = $"{groupSeed.Semestre}{turnoAbrev}{groupSeed.NumeroGrupo}";
+                var profesorId = clave is "2IV1" or "4IV3" or "6IV1" or "6IV8"
                     ? profesores[0].Id
                     : profesores[profIdx++ % profesores.Count].Id;
+
                 grupos.Add(new Grupo
                 {
                     Clave = clave,
-                    Carrera = carrera,
-                    Semestre = sem,
-                    Turno = turno,
-                    NumeroGrupo = num,
+                    Carrera = groupSeed.Carrera,
+                    Semestre = groupSeed.Semestre,
+                    Turno = groupSeed.Turno,
+                    NumeroGrupo = groupSeed.NumeroGrupo,
                     ProfesorId = profesorId
                 });
             }
+
             context.Grupos.AddRange(grupos);
             await context.SaveChangesAsync();
             return grupos;
         }
 
+        private static IReadOnlyList<GrupoSeed> GetActiveGroupSeed() => new List<GrupoSeed>
+        {
+            new(2, "Tronco común", "Matutino", 1),
+            new(2, "Tronco común", "Matutino", 2),
+            new(2, "Tronco común", "Vespertino", 1),
+            new(2, "Tronco común", "Vespertino", 2),
+            new(4, "Técnico en Informática", "Vespertino", 3),
+            new(4, "Técnico en Gestión de la Ciberseguridad", "Matutino", 1),
+            new(4, "Técnico en Contaduría", "Matutino", 2),
+            new(4, "Técnico en Administración de Empresas Turísticas", "Vespertino", 1),
+            new(4, "Técnico en Gastronomía", "Vespertino", 2),
+            new(4, "Técnico en Administración", "Vespertino", 4),
+            new(6, "Técnico en Informática", "Vespertino", 1),
+            new(6, "Técnico en Contaduría", "Matutino", 2),
+            new(6, "Técnico en Administración", "Vespertino", 3),
+            new(6, "Técnico en Gastronomía", "Vespertino", 4),
+            new(6, "Técnico en Gestión de la Ciberseguridad", "Matutino", 5),
+            new(6, "Técnico en Administración de Empresas Turísticas", "Vespertino", 6),
+            new(6, "Técnico en Informática", "Vespertino", 8),
+        };
         private static string GenerarEmailIPN(string nombre, string paterno, string materno, int anio)
         {
             var sb = new StringBuilder();
@@ -697,8 +785,8 @@ namespace RescateAcademico.Seeders
                 }
 
                 // Career-specific subjects for semesters 3+
-                var carreraClave = CarreraClaves[Array.IndexOf(Carreras, alumno.Carrera)];
-                if (MateriasPorCarrera.TryGetValue(carreraClave, out var matsCarrera))
+                var carreraIndex = Array.IndexOf(Carreras, alumno.Carrera);
+                if (carreraIndex >= 0 && MateriasPorCarrera.TryGetValue(CarreraClaves[carreraIndex], out var matsCarrera))
                 {
                     foreach (var mat in matsCarrera.Where(m => m.Semestre <= alumno.SemestreActual))
                     {
