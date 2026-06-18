@@ -18,18 +18,20 @@ namespace RescateAcademico.Services
         public bool IsConfigured =>
             !string.IsNullOrWhiteSpace(_configuration["TWILIO_ACCOUNT_SID"]) &&
             !string.IsNullOrWhiteSpace(_configuration["TWILIO_AUTH_TOKEN"]) &&
-            !string.IsNullOrWhiteSpace(_configuration["TWILIO_FROM_NUMBER"]);
+            (!string.IsNullOrWhiteSpace(_configuration["TWILIO_FROM_NUMBER"]) ||
+             !string.IsNullOrWhiteSpace(_configuration["TWILIO_MESSAGING_SERVICE_SID"]));
 
         public async Task<SmsSendResult> SendAsync(string phoneNumber, string message)
         {
             if (!IsConfigured)
             {
-                return SmsSendResult.NotConfigured("El canal SMS no está configurado. Agrega TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_FROM_NUMBER.");
+                return SmsSendResult.NotConfigured("El canal SMS no está configurado. Agrega TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_FROM_NUMBER o TWILIO_MESSAGING_SERVICE_SID.");
             }
 
             var accountSid = _configuration["TWILIO_ACCOUNT_SID"]!;
             var authToken = _configuration["TWILIO_AUTH_TOKEN"]!;
-            var fromNumber = _configuration["TWILIO_FROM_NUMBER"]!;
+            var fromNumber = _configuration["TWILIO_FROM_NUMBER"];
+            var messagingServiceSid = _configuration["TWILIO_MESSAGING_SERVICE_SID"];
             var normalizedPhone = NormalizeMexicanPhone(phoneNumber);
 
             if (string.IsNullOrWhiteSpace(normalizedPhone))
@@ -40,12 +42,23 @@ namespace RescateAcademico.Services
             using var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.twilio.com/2010-04-01/Accounts/{Uri.EscapeDataString(accountSid)}/Messages.json");
             var authBytes = System.Text.Encoding.ASCII.GetBytes($"{accountSid}:{authToken}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+
+            var payload = new Dictionary<string, string>
             {
-                ["From"] = fromNumber,
                 ["To"] = normalizedPhone,
                 ["Body"] = message
-            });
+            };
+
+            if (!string.IsNullOrWhiteSpace(messagingServiceSid))
+            {
+                payload["MessagingServiceSid"] = messagingServiceSid;
+            }
+            else
+            {
+                payload["From"] = fromNumber!;
+            }
+
+            request.Content = new FormUrlEncodedContent(payload);
 
             try
             {
