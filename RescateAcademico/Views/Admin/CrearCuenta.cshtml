@@ -12,59 +12,69 @@
             </div>
             <div class="ra-card-body">
                 <form asp-action="CrearCuenta" method="post">
+                    <div asp-validation-summary="ModelOnly" class="ra-alert ra-alert-danger mb-3" role="alert"></div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="ra-label">Correo Institucional *</label>
-                            <input asp-for="Email" class="ra-input" placeholder="usuario@ipn.mx" required />
+                            <label asp-for="Email" class="ra-label">Correo *</label>
+                            <input asp-for="Email" class="ra-input" type="email" autocomplete="username" placeholder="usuario@ipn.mx" required />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="ra-label">Contraseña Temporal *</label>
-                            <input asp-for="Password" type="password" class="ra-input" required />
+                            <label asp-for="Password" class="ra-label">Contraseña temporal *</label>
+                            <input asp-for="Password" type="password" class="ra-input" autocomplete="new-password" minlength="6" required />
+                            <div class="text-secondary small mt-1">Debe incluir mayúscula, minúscula, número y símbolo.</div>
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="ra-label">Rol *</label>
+                            <label asp-for="Rol" class="ra-label">Rol *</label>
                             <select asp-for="Rol" class="ra-select" id="rolSelect" required>
                                 <option value="Alumno">Alumno</option>
                                 <option value="Tutor">Profesor</option>
                                 <option value="Autoridad">Autoridad</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
+                            <span asp-validation-for="Rol" class="text-danger"></span>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="ra-label">Boleta</label>
-                            <input asp-for="Matricula" class="ra-input" placeholder="2023600000" />
+                        <div class="col-md-6 mb-3" id="matriculaField">
+                            <label asp-for="Matricula" class="ra-label">Boleta</label>
+                            <input asp-for="Matricula" class="ra-input" placeholder="2023600000" inputmode="numeric" pattern="[0-9]{10}" />
+                            <span asp-validation-for="Matricula" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="ra-label">Nombre</label>
-                            <input asp-for="Nombre" class="ra-input" />
+                            <label asp-for="Nombre" class="ra-label">Nombre</label>
+                            <input asp-for="Nombre" class="ra-input" autocomplete="given-name" />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="ra-label">Apellidos</label>
-                            <input asp-for="Apellidos" class="ra-input" />
+                            <label asp-for="Apellidos" class="ra-label">Apellidos</label>
+                            <input asp-for="Apellidos" class="ra-input" autocomplete="family-name" />
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3" id="carreraField">
-                            <label class="ra-label">Carrera</label>
-                            <input asp-for="Carrera" class="ra-input" placeholder="Informática" />
+                            <label asp-for="Carrera" class="ra-label">Carrera</label>
+                            <input asp-for="Carrera" class="ra-input" placeholder="Técnico en Informática" />
                         </div>
                         <div class="col-md-6 mb-3" id="semestreField">
-                            <label class="ra-label">Semestre</label>
-                            <input asp-for="SemestreActual" type="number" class="ra-input" min="1" max="12" value="1" />
+                            <label asp-for="SemestreActual" class="ra-label">Semestre</label>
+                            <input asp-for="SemestreActual" type="number" class="ra-input" min="1" max="6" value="1" />
                         </div>
                         <div class="col-md-6 mb-3 d-none" id="especialidadField">
-                            <label class="ra-label">Especialidad</label>
+                            <label asp-for="Especialidad" class="ra-label">Especialidad</label>
                             <input asp-for="Especialidad" class="ra-input" placeholder="Asesoría Académica" />
                         </div>
+                    </div>
+
+                    <div class="ra-alert ra-alert-info mb-3">
+                        <i class="bi bi-info-circle"></i>
+                        <div>Si la boleta ya existe, la cuenta se vinculará al expediente académico existente. Si no existe, se creará un expediente mínimo para completar después.</div>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -80,26 +90,33 @@
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        document.getElementById('rolSelect').addEventListener('change', function() {
-            var rol = this.value;
+        (function () {
+            var rolSelect = document.getElementById('rolSelect');
+            var matriculaField = document.getElementById('matriculaField');
             var carreraField = document.getElementById('carreraField');
             var semestreField = document.getElementById('semestreField');
             var especialidadField = document.getElementById('especialidadField');
+            var matriculaInput = document.getElementById('Matricula');
 
-            if (rol === 'Tutor') {
-                especialidadField.classList.remove('d-none');
-                carreraField.classList.add('d-none');
-                semestreField.classList.add('d-none');
-            } else if (rol === 'Alumno') {
-                especialidadField.classList.add('d-none');
-                carreraField.classList.remove('d-none');
-                semestreField.classList.remove('d-none');
-            } else {
-                especialidadField.classList.add('d-none');
-                carreraField.classList.add('d-none');
-                semestreField.classList.add('d-none');
+            function syncRoleFields() {
+                var rol = rolSelect.value;
+                var isAlumno = rol === 'Alumno';
+                var isTutor = rol === 'Tutor';
+
+                matriculaField.classList.toggle('d-none', !isAlumno);
+                carreraField.classList.toggle('d-none', !isAlumno);
+                semestreField.classList.toggle('d-none', !isAlumno);
+                especialidadField.classList.toggle('d-none', !isTutor);
+
+                if (matriculaInput) {
+                    matriculaInput.required = isAlumno;
+                }
             }
-        });
+
+            rolSelect.addEventListener('change', syncRoleFields);
+            syncRoleFields();
+        })();
     </script>
 }

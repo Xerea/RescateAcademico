@@ -93,6 +93,75 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Crear Expediente y Aprobar Vinculacion", Tabla = "AccountLinkRequests")]
+        public async Task<IActionResult> CrearExpedienteYAprobarSolicitudAcceso(int id)
+        {
+            var solicitud = await _context.AccountLinkRequests.FirstOrDefaultAsync(r => r.Id == id);
+            if (solicitud == null) return NotFound();
+            if (solicitud.Estado != "Pendiente")
+            {
+                TempData["Error"] = "La solicitud ya fue revisada.";
+                return RedirectToAction(nameof(SolicitudesAcceso));
+            }
+
+            var user = await _userManager.FindByIdAsync(solicitud.UserId);
+            if (user == null)
+            {
+                TempData["Error"] = "No se pudo aprobar: la cuenta solicitante ya no existe.";
+                return RedirectToAction(nameof(SolicitudesAcceso));
+            }
+
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == solicitud.Matricula);
+            if (alumno == null)
+            {
+                var nombrePartes = SepararNombreSolicitado(solicitud.NombreSolicitado);
+                alumno = new Alumno
+                {
+                    Matricula = solicitud.Matricula,
+                    Nombre = nombrePartes.Nombre,
+                    Apellidos = nombrePartes.Apellidos,
+                    Correo = user.Email,
+                    UserId = user.Id,
+                    Carrera = "Pendiente de asignar",
+                    SemestreActual = 1,
+                    PromedioGlobal = 0m,
+                    RiesgoAcademico = "Rojo",
+                    Estatus = "Pendiente de completar",
+                    FechaUltimaActualizacion = DateTime.Now
+                };
+                _context.Alumnos.Add(alumno);
+            }
+            else if (!string.IsNullOrWhiteSpace(alumno.UserId) && alumno.UserId != user.Id)
+            {
+                TempData["Error"] = $"No se pudo aprobar: la boleta {alumno.Matricula} ya esta vinculada a otra cuenta.";
+                return RedirectToAction(nameof(SolicitudesAcceso));
+            }
+            else
+            {
+                alumno.UserId = user.Id;
+                alumno.Correo = user.Email;
+            }
+
+            user.PendienteVerificacion = false;
+            user.IsActive = true;
+            solicitud.Estado = "Aprobada";
+            solicitud.RevisadoPorUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            solicitud.FechaRevision = DateTime.Now;
+
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                TempData["Error"] = string.Join(" ", updateResult.Errors.Select(e => e.Description));
+                return RedirectToAction(nameof(SolicitudesAcceso));
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"Expediente creado y cuenta vinculada con la boleta {alumno.Matricula}. Completa carrera, grupo e historial academico desde Gestion de alumnos.";
+            return RedirectToAction(nameof(SolicitudesAcceso));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [AuditLog(Accion = "Rechazar Vinculacion", Tabla = "AccountLinkRequests")]
         public async Task<IActionResult> RechazarSolicitudAcceso(int id, string? motivo)
         {
@@ -303,9 +372,35 @@ namespace RescateAcademico.Controllers
         [AuditLog(Accion = "Crear Cuenta", Tabla = "Usuarios")]
         public async Task<IActionResult> CrearCuenta(CrearCuentaViewModel model)
         {
+            NormalizarCrearCuenta(model);
+
             if (!ModelState.IsValid)
             {
                 return View(model);
+            }
+
+            var emailExistente = await _userManager.FindByEmailAsync(model.Email);
+            if (emailExistente != null)
+            {
+                ModelState.AddModelError(nameof(model.Email), "Ya existe una cuenta registrada con este correo.");
+                return View(model);
+            }
+
+            if (model.Rol == "Alumno")
+            {
+                if (string.IsNullOrWhiteSpace(model.Matricula))
+                {
+                    ModelState.AddModelError(nameof(model.Matricula), "La boleta es obligatoria para crear una cuenta de alumno.");
+                    return View(model);
+                }
+
+                var alumnoVinculado = await _context.Alumnos
+                    .AnyAsync(a => a.Matricula == model.Matricula && !string.IsNullOrWhiteSpace(a.UserId));
+                if (alumnoVinculado)
+                {
+                    ModelState.AddModelError(nameof(model.Matricula), "Esta boleta ya esta vinculada a otra cuenta.");
+                    return View(model);
+                }
             }
 
             var user = new ApplicationUser
@@ -323,19 +418,34 @@ namespace RescateAcademico.Controllers
 
                 if (model.Rol == "Alumno")
                 {
-                    var alumno = new Alumno
+                    var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == model.Matricula);
+                    if (alumno == null)
                     {
-                        Matricula = model.Matricula ?? "",
-                        Nombre = model.Nombre ?? "",
-                        Apellidos = model.Apellidos ?? "",
-                        Correo = model.Email,
-                        UserId = user.Id,
-                        Carrera = model.Carrera ?? "",
-                        SemestreActual = model.SemestreActual > 0 ? model.SemestreActual : 1,
-                        PromedioGlobal = 0,
-                        Estatus = "Activo"
-                    };
-                    _context.Alumnos.Add(alumno);
+                        alumno = new Alumno
+                        {
+                            Matricula = model.Matricula!,
+                            Nombre = model.Nombre ?? "",
+                            Apellidos = model.Apellidos ?? "",
+                            Correo = model.Email,
+                            UserId = user.Id,
+                            Carrera = model.Carrera ?? "Pendiente de asignar",
+                            SemestreActual = model.SemestreActual > 0 ? model.SemestreActual : 1,
+                            PromedioGlobal = 0m,
+                            RiesgoAcademico = "Rojo",
+                            Estatus = "Pendiente de completar",
+                            FechaUltimaActualizacion = DateTime.Now
+                        };
+                        _context.Alumnos.Add(alumno);
+                    }
+                    else
+                    {
+                        alumno.UserId = user.Id;
+                        alumno.Correo = model.Email;
+                        if (!string.IsNullOrWhiteSpace(model.Nombre)) alumno.Nombre = model.Nombre;
+                        if (!string.IsNullOrWhiteSpace(model.Apellidos)) alumno.Apellidos = model.Apellidos;
+                        if (!string.IsNullOrWhiteSpace(model.Carrera)) alumno.Carrera = model.Carrera;
+                        if (model.SemestreActual > 0) alumno.SemestreActual = model.SemestreActual;
+                    }
                     await _context.SaveChangesAsync();
                 }
                 else if (model.Rol == "Tutor")
@@ -362,6 +472,29 @@ namespace RescateAcademico.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
             return View(model);
+        }
+
+        private static void NormalizarCrearCuenta(CrearCuentaViewModel model)
+        {
+            model.Email = model.Email.Trim();
+            model.Rol = string.IsNullOrWhiteSpace(model.Rol) ? "Alumno" : model.Rol.Trim();
+            model.Matricula = string.IsNullOrWhiteSpace(model.Matricula) ? null : model.Matricula.Trim();
+            model.Nombre = string.IsNullOrWhiteSpace(model.Nombre) ? null : model.Nombre.Trim();
+            model.Apellidos = string.IsNullOrWhiteSpace(model.Apellidos) ? null : model.Apellidos.Trim();
+            model.Carrera = string.IsNullOrWhiteSpace(model.Carrera) ? null : model.Carrera.Trim();
+            model.Especialidad = string.IsNullOrWhiteSpace(model.Especialidad) ? null : model.Especialidad.Trim();
+        }
+
+        private static (string Nombre, string Apellidos) SepararNombreSolicitado(string nombreSolicitado)
+        {
+            var partes = nombreSolicitado
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            if (partes.Length == 0) return ("Alumno", "Pendiente");
+            if (partes.Length == 1) return (partes[0], "Pendiente");
+            if (partes.Length == 2) return (partes[0], partes[1]);
+
+            return (string.Join(' ', partes.Take(partes.Length - 2)), string.Join(' ', partes.Skip(partes.Length - 2)));
         }
 
         // HU-RA-26/27: Dashboard de Integridad de Datos
