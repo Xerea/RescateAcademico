@@ -26,6 +26,21 @@
     <partial name="_PageHeader" model="header" />
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="ra-alert ra-alert-success mb-3" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <div>@TempData["Success"]</div>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="ra-alert ra-alert-danger mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>@TempData["Error"]</div>
+    </div>
+}
+
 @if (alumno != null)
 {
     <div class="ra-card mb-4">
@@ -117,7 +132,8 @@
 
         <div class="modal fade" id="contactarTutorModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content" style="border: 1px solid var(--ra-border); border-radius: var(--ra-radius-lg); background: var(--ra-surface);">
+                <form asp-action="EnviarMensajeTutorLegal" method="post" class="modal-content" style="border: 1px solid var(--ra-border); border-radius: var(--ra-radius-lg); background: var(--ra-surface);">
+                    <input type="hidden" name="boleta" value="@alumno.Matricula" />
                     <div class="modal-header border-0 pb-0">
                         <h5 class="modal-title fw-bold"><i class="bi bi-chat-dots me-2" style="color:var(--ra-primary);"></i>Contactar Tutor Legal</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -137,20 +153,20 @@
                         </div>
                         <div class="mb-3">
                             <label class="ra-label">Mensaje</label>
-                            <textarea class="ra-input" rows="4" placeholder="Escribe un mensaje para el tutor legal...">Buen día @alumno.NombreTutorLegal, me comunico con usted en mi calidad de profesor tutor de @alumno.Nombre @alumno.Apellidos. Le escribo para informarle sobre la situación académica de su pupilo y coordinar una reunión para discutir un plan de mejora. Quedo a sus órdenes.</textarea>
+                            <textarea name="mensaje" class="ra-input" rows="4" maxlength="480" required placeholder="Escribe un mensaje para el tutor legal...">Buen día @alumno.NombreTutorLegal, me comunico con usted en mi calidad de profesor tutor de @alumno.Nombre @alumno.Apellidos. Le escribo para informarle sobre la situación académica de su pupilo y coordinar una reunión para discutir un plan de mejora. Quedo a sus órdenes.</textarea>
+                            <div class="text-secondary small mt-1">Se enviará por SMS si el proveedor está configurado.</div>
                         </div>
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="ra-btn ra-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="ra-btn ra-btn-primary" onclick="RaToast.show('Mensaje preparado. En un entorno de producción, este mensaje se enviaría por SMS o WhatsApp al tutor legal.', 'info', 6000);" data-bs-dismiss="modal">
-                            <i class="bi bi-send"></i> Preparar Envío
+                        <button type="submit" class="ra-btn ra-btn-primary">
+                            <i class="bi bi-send"></i> Enviar SMS
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     }
-
     @if (reprobadas.Any())
     {
         <div class="ra-alert ra-alert-danger mb-4" role="alert">

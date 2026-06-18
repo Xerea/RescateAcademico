@@ -128,6 +128,7 @@ builder.Services.AddScoped<ConvocatoriaEligibilityService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<AlertasService>();
+builder.Services.AddHttpClient<SmsSender>();
 builder.Services.AddHttpClient<DesercionPredictionService>();
 builder.Services.AddScoped<DesercionPredictionService>();
 builder.Services.AddRateLimiter(options =>

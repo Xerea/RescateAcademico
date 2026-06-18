@@ -13,12 +13,14 @@ namespace RescateAcademico.Controllers
         private readonly ApplicationDbContext _context;
         private readonly StudentAccessService _studentAccessService;
         private readonly RiskEvaluationService _riskEvaluationService;
+        private readonly SmsSender _smsSender;
 
-        public ProfesorController(ApplicationDbContext context, StudentAccessService studentAccessService, RiskEvaluationService riskEvaluationService)
+        public ProfesorController(ApplicationDbContext context, StudentAccessService studentAccessService, RiskEvaluationService riskEvaluationService, SmsSender smsSender)
         {
             _context = context;
             _studentAccessService = studentAccessService;
             _riskEvaluationService = riskEvaluationService;
+            _smsSender = smsSender;
         }
 
         public async Task<IActionResult> Index()
@@ -199,6 +201,41 @@ namespace RescateAcademico.Controllers
             ViewBag.Sugerencias = _riskEvaluationService.GenerarSugerencias(alumno);
 
             return View(historial);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EnviarMensajeTutorLegal(string boleta, string mensaje)
+        {
+            if (string.IsNullOrWhiteSpace(boleta)) return BadRequest();
+            if (!await _studentAccessService.CanAccessAlumnoAsync(boleta)) return Forbid();
+
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == boleta);
+            if (alumno == null) return NotFound();
+
+            if (string.IsNullOrWhiteSpace(alumno.TelefonoTutorLegal))
+            {
+                TempData["Error"] = "Este alumno no tiene teléfono de tutor legal registrado.";
+                return RedirectToAction(nameof(HistorialAcademico), new { boleta });
+            }
+
+            if (string.IsNullOrWhiteSpace(mensaje) || mensaje.Trim().Length < 15)
+            {
+                TempData["Error"] = "Escribe un mensaje más claro antes de enviarlo.";
+                return RedirectToAction(nameof(HistorialAcademico), new { boleta });
+            }
+
+            var result = await _smsSender.SendAsync(alumno.TelefonoTutorLegal, mensaje.Trim());
+            if (result.Success)
+            {
+                TempData["Success"] = result.Message;
+            }
+            else
+            {
+                TempData["Error"] = result.Message;
+            }
+
+            return RedirectToAction(nameof(HistorialAcademico), new { boleta });
         }
 
         public async Task<IActionResult> MateriasReprobadas(string? grupo)
