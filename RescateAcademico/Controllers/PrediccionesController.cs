@@ -35,18 +35,32 @@ namespace RescateAcademico.Controllers
         {
             var visibleQuery = _studentAccessService.ApplyVisibleStudents(_context.Alumnos.Include(a => a.Grupo).AsNoTracking());
 
+            var gruposDisponibles = await visibleQuery
+                .Where(a => a.Grupo != null)
+                .Select(a => new { a.Grupo!.Clave, a.Grupo.Semestre })
+                .Distinct()
+                .OrderBy(g => g.Semestre)
+                .ThenBy(g => g.Clave)
+                .ToListAsync();
+
             ViewBag.Semestres = await visibleQuery
                 .Select(a => a.SemestreActual)
                 .Distinct()
                 .OrderBy(s => s)
                 .ToListAsync();
 
-            ViewBag.Grupos = await visibleQuery
-                .Where(a => a.Grupo != null)
-                .Select(a => a.Grupo!.Clave)
-                .Distinct()
-                .OrderBy(g => g)
-                .ToListAsync();
+            ViewBag.Grupos = gruposDisponibles
+                .Select(g => new PrediccionGrupoFiltro { Clave = g.Clave, Semestre = g.Semestre })
+                .ToList();
+
+            if (!string.IsNullOrWhiteSpace(grupo))
+            {
+                var grupoSeleccionado = gruposDisponibles.FirstOrDefault(g => g.Clave == grupo);
+                if (grupoSeleccionado == null || (semestre.HasValue && grupoSeleccionado.Semestre != semestre.Value))
+                {
+                    grupo = null;
+                }
+            }
 
             if (semestre.HasValue)
             {
@@ -146,5 +160,11 @@ namespace RescateAcademico.Controllers
                 color = probabilidad > 0.7m ? "danger" : probabilidad > 0.5m ? "warning" : probabilidad > 0.3m ? "info" : "success"
             });
         }
+    }
+
+    public class PrediccionGrupoFiltro
+    {
+        public string Clave { get; set; } = string.Empty;
+        public int Semestre { get; set; }
     }
 }

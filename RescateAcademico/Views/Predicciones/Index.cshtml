@@ -13,6 +13,7 @@
     var filterActive = ViewBag.FiltroSemestre != null
         || !string.IsNullOrEmpty(ViewBag.FiltroGrupo as string)
         || !string.IsNullOrEmpty(ViewBag.FiltroRiesgo as string);
+    var gruposFiltro = ViewBag.Grupos as List<RescateAcademico.Controllers.PrediccionGrupoFiltro> ?? new();
 }
 
 <partial name="_PageHeader" model="header" />
@@ -28,7 +29,7 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-3">
                     <label class="ra-label">Semestre</label>
-                    <select name="semestre" class="ra-select">
+                    <select name="semestre" class="ra-select" id="filtroSemestrePredicciones">
                         <option value="">Todos</option>
                         @foreach (var s in (ViewBag.Semestres as List<int>)!)
                         {
@@ -38,11 +39,11 @@
                 </div>
                 <div class="col-md-3">
                     <label class="ra-label">Grupo</label>
-                    <select name="grupo" class="ra-select">
+                    <select name="grupo" class="ra-select" id="filtroGrupoPredicciones">
                         <option value="">Todos</option>
-                        @foreach (var g in (ViewBag.Grupos as List<string>)!)
+                        @foreach (var g in gruposFiltro)
                         {
-                            <option value="@g" selected="@(ViewBag.FiltroGrupo as string == g ? "selected" : null)">@g</option>
+                            <option value="@g.Clave" data-semestre="@g.Semestre" selected="@(ViewBag.FiltroGrupo as string == g.Clave ? "selected" : null)">@g.Clave</option>
                         }
                     </select>
                 </div>
@@ -164,6 +165,30 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            const semestreSelect = document.getElementById('filtroSemestrePredicciones');
+            const grupoSelect = document.getElementById('filtroGrupoPredicciones');
+            function syncGrupoOptions() {
+                if (!semestreSelect || !grupoSelect) return;
+                const semestre = semestreSelect.value;
+                Array.from(grupoSelect.options).forEach(option => {
+                    if (!option.value) {
+                        option.hidden = false;
+                        option.disabled = false;
+                        return;
+                    }
+                    const matches = !semestre || option.dataset.semestre === semestre;
+                    option.hidden = !matches;
+                    option.disabled = !matches;
+                });
+                if (grupoSelect.selectedOptions.length && grupoSelect.selectedOptions[0].disabled) {
+                    grupoSelect.value = '';
+                }
+            }
+            if (semestreSelect && grupoSelect) {
+                semestreSelect.addEventListener('change', syncGrupoOptions);
+                syncGrupoOptions();
+            }
+
             $('#tablaPredicciones').DataTable({
                 language: window.RaDataTablesEs,
                 pageLength: 25
