@@ -3,7 +3,9 @@
     ViewData["Title"] = "Planes de mejora";
     Layout = "_Layout";
     var actionsHtml = !User.IsInRole("Autoridad")
-        ? $"<a href=\"{Url.Action("Crear")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo plan</a>"
+        ? User.IsInRole("Tutor")
+            ? $"<a href=\"{Url.Action("MisTutorados", "Alumnos")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo plan</a>"
+            : $"<a href=\"{Url.Action("Crear")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo plan</a>"
         : null;
     var header = new PageHeader
     {

@@ -71,7 +71,7 @@ namespace RescateAcademico.Controllers
             if (string.IsNullOrEmpty(matricula))
             {
                 TempData["Info"] = "Selecciona un alumno para crear un plan de mejora.";
-                return RedirectToAction("Index", "Profesor");
+                return RedirectToAction("MisTutorados", "Alumnos");
             }
 
             var alumno = await _context.Alumnos
