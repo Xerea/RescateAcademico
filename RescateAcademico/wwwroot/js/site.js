@@ -582,17 +582,28 @@
 
                 if (titleSpan) titleSpan.textContent = (data.nombre || '') + ' ' + (data.apellidos || '');
 
+                var promedio = typeof data.promedioGlobal === 'number' ? data.promedioGlobal : parseFloat(data.promedioGlobal) || 0;
+                var reprobadas = parseInt(data.materiasReprobadas, 10) || 0;
+                var ausencias = parseInt(data.ausencias, 10) || 0;
+                var ets = parseInt(data.etsPresentados, 10) || 0;
+                var recursadas = parseInt(data.recursamientos, 10) || 0;
+                var riesgo = data.riesgoAcademico || 'Verde';
+                var identityLine = modalEl.querySelector('[data-qv="identityLine"]');
+                if (identityLine) {
+                    identityLine.textContent = fmt(data.carrera) + ' · ' + fmt(data.grupo) + ' · Boleta ' + fmt(data.matricula);
+                }
+
                 var fields = {
                     matricula: data.matricula,
                     carrera: fmt(data.carrera),
-                    semestre: fmt(data.semestreActual),
+                    semestre: fmt(data.semestreActual) + '°',
                     grupo: fmt(data.grupo),
                     carga: (data.cargaAcademicaActual || 0) + ' materias',
                     actualizacion: fmt(data.fechaUltimaActualizacion),
-                    reprobadas: data.materiasReprobadas || 0,
-                    ausencias: data.ausencias || 0,
-                    ets: data.etsPresentados || 0,
-                    recursadas: data.recursamientos || 0
+                    reprobadas: reprobadas,
+                    ausencias: ausencias,
+                    ets: ets,
+                    recursadas: recursadas
                 };
                 Object.keys(fields).forEach(function (key) {
                     var el = modalEl.querySelector('[data-qv="' + key + '"]');
@@ -619,11 +630,37 @@
                     cosecoviBadge.className = 'ra-badge ' + (cosecoviOpen > 0 ? 'ra-badge-warning' : 'ra-badge-neutral');
                 }
 
-                var promedio = typeof data.promedioGlobal === 'number' ? data.promedioGlobal : parseFloat(data.promedioGlobal) || 0;
                 var promedioEl = modalEl.querySelector('[data-qv="promedio"]');
                 if (promedioEl) {
                     promedioEl.textContent = promedio.toFixed(2);
                     promedioEl.style.color = colorByPromedio(promedio);
+                }
+
+                var diagnosticoEl = modalEl.querySelector('[data-qv="diagnostico"]');
+                var nextStepEl = modalEl.querySelector('[data-qv="nextStep"]');
+                var hasDisciplinary = cosecoviCount > 0;
+                var flags = reprobadas + ets + recursadas;
+                if (diagnosticoEl) {
+                    if (riesgo === 'Rojo' || promedio < 6 || flags >= 2) {
+                        diagnosticoEl.textContent = 'Atención prioritaria: desempeño académico comprometido';
+                    } else if (riesgo === 'Amarillo' || promedio < 7.5 || ausencias >= 4 || flags > 0) {
+                        diagnosticoEl.textContent = 'Seguimiento preventivo: señales que conviene atender';
+                    } else if (hasDisciplinary) {
+                        diagnosticoEl.textContent = 'Académicamente estable, con antecedente disciplinario';
+                    } else {
+                        diagnosticoEl.textContent = 'Trayectoria estable: sin alertas críticas';
+                    }
+                }
+                if (nextStepEl) {
+                    if (riesgo === 'Rojo' || promedio < 6 || flags >= 2) {
+                        nextStepEl.textContent = 'Prioriza intervención, contacto con tutor legal y plan de mejora.';
+                    } else if (riesgo === 'Amarillo' || promedio < 7.5 || ausencias >= 4 || flags > 0) {
+                        nextStepEl.textContent = 'Revisa causas, agenda seguimiento y confirma materias sensibles.';
+                    } else if (hasDisciplinary) {
+                        nextStepEl.textContent = 'Consulta COSECOVI antes de decidir el siguiente acompañamiento.';
+                    } else {
+                        nextStepEl.textContent = 'Mantén monitoreo regular y revisa oportunidades disponibles.';
+                    }
                 }
 
                 var riesgoEl = modalEl.querySelector('[data-qv="riesgo"]');

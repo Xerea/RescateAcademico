@@ -2790,6 +2790,159 @@ button.ra-authority-kpi {
   .ra-search-trigger span, .ra-search-trigger kbd { display: none; }
 }
 
+.ra-qv-modal .modal-body {
+  padding-top: 1rem;
+}
+
+.ra-qv-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 12rem;
+  gap: 1rem;
+  align-items: stretch;
+  padding: 1.1rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-lg);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--ra-primary) 16%, transparent), transparent 42%),
+    var(--ra-surface);
+}
+
+.ra-qv-summary h3 {
+  margin: 0.2rem 0 0.35rem;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.ra-qv-summary p {
+  margin: 0;
+  color: var(--ra-text-secondary);
+  font-size: 0.9rem;
+}
+
+.ra-qv-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+
+.ra-qv-chip-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--ra-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ra-surface-raised) 80%, transparent);
+  font-size: 0.78rem;
+  color: var(--ra-text-secondary);
+}
+
+.ra-qv-score-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 8rem;
+  padding: 1rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-lg);
+  background: var(--ra-surface-raised);
+}
+
+.ra-qv-score-card small,
+.ra-qv-panel small {
+  color: var(--ra-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
+.ra-qv-score-card strong {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.ra-qv-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.ra-qv-metric {
+  padding: 0.85rem 0.6rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-lg);
+  background: var(--ra-surface);
+  text-align: center;
+}
+
+.ra-qv-metric span {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ra-qv-metric small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--ra-text-muted);
+  font-size: 0.74rem;
+}
+
+.ra-qv-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.ra-qv-panel {
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--ra-border);
+  border-radius: var(--ra-radius-lg);
+  background: var(--ra-surface);
+}
+
+.ra-qv-panel strong {
+  display: block;
+  margin: 0.25rem 0;
+  line-height: 1.25;
+}
+
+.ra-qv-panel span {
+  display: block;
+  color: var(--ra-text-secondary);
+  font-size: 0.82rem;
+}
+
+.ra-qv-actions {
+  justify-content: flex-end;
+  gap: 0.5rem !important;
+}
+
+@media (max-width: 767.98px) {
+  .ra-qv-summary,
+  .ra-qv-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ra-qv-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ra-qv-metric:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .ra-qv-score-card {
+    min-height: 0;
+  }
+}
+
 @media (max-width: 575.98px) {
   html,
   body {
