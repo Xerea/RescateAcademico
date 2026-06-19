@@ -115,11 +115,11 @@
 
                     <input type="hidden" asp-for="Estado" value="Registrado" />
 
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="ra-btn ra-btn-primary flex-fill">
+                    <div class="ra-form-actions">
+                        <a asp-action="Index" class="ra-btn ra-btn-ghost">Cancelar</a>
+                        <button type="submit" class="ra-btn ra-btn-primary">
                             <i class="bi bi-save"></i> Registrar incidente
                         </button>
-                        <a asp-action="Index" class="ra-btn ra-btn-ghost">Cancelar</a>
                     </div>
                 </form>
             </div>

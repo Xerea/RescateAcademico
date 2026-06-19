@@ -480,6 +480,80 @@ a:hover { color: var(--ra-primary-hover); }
 .ra-btn-sm { padding: 0.35rem 0.65rem; font-size: 0.8125rem; }
 .ra-btn-lg { padding: 0.7rem 1.5rem; font-size: 1rem; }
 
+.ra-button-cluster,
+.ra-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.ra-button-cluster {
+  justify-content: flex-end;
+}
+
+.ra-form-actions {
+  justify-content: flex-end;
+  padding-top: 1rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--ra-border-subtle);
+}
+
+.ra-form-actions .ra-btn-primary,
+.ra-form-actions .ra-btn-accent {
+  min-width: 13rem;
+}
+
+.input-group .ra-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 1%;
+}
+
+@media (max-width: 575.98px) {
+  .ra-button-cluster,
+  .ra-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .ra-button-cluster .ra-btn,
+  .ra-button-cluster form,
+  .ra-form-actions .ra-btn,
+  .ra-form-actions form {
+    width: 100%;
+  }
+
+  .ra-form-actions .ra-btn-primary,
+  .ra-form-actions .ra-btn-accent {
+    min-width: 0;
+  }
+
+  .ra-btn {
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .ra-btn-sm {
+    min-height: 40px;
+  }
+
+  .modal-footer,
+  .ra-card-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .modal-footer .ra-btn,
+  .modal-footer .btn,
+  .ra-card-footer .ra-btn {
+    width: 100%;
+  }
+}
+
 /* ============================================
    TABLES
    ============================================ */
