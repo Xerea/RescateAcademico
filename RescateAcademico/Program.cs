@@ -142,6 +142,7 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("postulation", context => CreateFixedWindowPartition(context, 5, TimeSpan.FromMinutes(1)));
     options.AddPolicy("openai", context => CreateFixedWindowPartition(context, 5, TimeSpan.FromMinutes(1)));
     options.AddPolicy("sms", context => CreateFixedWindowPartition(context, 3, TimeSpan.FromMinutes(10)));
+    options.AddPolicy("download", context => CreateFixedWindowPartition(context, 30, TimeSpan.FromMinutes(1)));
 
     options.OnRejected = (context, token) =>
     {

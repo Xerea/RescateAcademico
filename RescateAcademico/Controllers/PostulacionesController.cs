@@ -265,6 +265,7 @@ namespace RescateAcademico.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Alumno,Administrador,Autoridad")]
+        [EnableRateLimiting("download")]
         public async Task<IActionResult> DescargarDocumento(int id)
         {
             var postulacion = await _context.Postulaciones.FirstOrDefaultAsync(p => p.Id == id);

@@ -402,6 +402,12 @@ namespace RescateAcademico.Controllers
         public async Task<IActionResult> CrearCuenta(CrearCuentaViewModel model)
         {
             NormalizarCrearCuenta(model);
+            if (model.Rol is not ("Alumno" or "Tutor" or "Autoridad" or "Administrador"))
+                ModelState.AddModelError(nameof(model.Rol), "Selecciona un rol válido.");
+            if (model.Rol == "Alumno" && (model.SemestreActual < 1 || model.SemestreActual > 6))
+                ModelState.AddModelError(nameof(model.SemestreActual), "El semestre debe estar entre 1 y 6.");
+            if (!string.IsNullOrWhiteSpace(model.Matricula) && !System.Text.RegularExpressions.Regex.IsMatch(model.Matricula, @"^\d{10}$"))
+                ModelState.AddModelError(nameof(model.Matricula), "La boleta debe tener exactamente 10 dígitos.");
 
             if (!ModelState.IsValid)
             {
@@ -712,11 +718,17 @@ namespace RescateAcademico.Controllers
         [Required]
         public string Rol { get; set; } = "Alumno";
 
+        [StringLength(10)]
         public string? Matricula { get; set; }
+        [StringLength(80)]
         public string? Nombre { get; set; }
+        [StringLength(100)]
         public string? Apellidos { get; set; }
+        [StringLength(120)]
         public string? Carrera { get; set; }
+        [Range(1, 6)]
         public int SemestreActual { get; set; } = 1;
+        [StringLength(120)]
         public string? Especialidad { get; set; }
     }
 }

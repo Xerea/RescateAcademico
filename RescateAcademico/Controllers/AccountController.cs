@@ -499,9 +499,19 @@ namespace RescateAcademico.Controllers
 
     public class ResetPasswordViewModel
     {
+        [Required]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 8)]
         public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required]
         public string Code { get; set; } = string.Empty;
     }
 
