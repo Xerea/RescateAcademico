@@ -89,6 +89,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1rem;
+        width: min(100%, 900px);
         max-width: 900px;
         margin: 3.5rem auto 0;
         text-align: left;
@@ -152,6 +153,25 @@
         color: var(--ra-text-secondary);
     }
     @@media (max-width: 767.98px) {
+        .ra-landing {
+            min-height: auto;
+            justify-content: flex-start;
+            padding-top: 2rem;
+        }
+        .ra-landing-icon {
+            width: 64px;
+            height: 64px;
+            font-size: 1.85rem;
+            margin-bottom: 1rem;
+        }
+        .ra-landing-features {
+            grid-template-columns: 1fr;
+            width: 100%;
+            margin-top: 2.5rem;
+        }
+        .ra-landing-feature {
+            padding: 1.1rem 1.25rem;
+        }
         .ra-demo-access-grid {
             grid-template-columns: 1fr;
         }
