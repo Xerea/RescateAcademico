@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using RescateAcademico.Data;
 using RescateAcademico.Filters;
 using RescateAcademico.Models;
@@ -68,6 +69,11 @@ namespace RescateAcademico.Controllers
                 TempData["Error"] = "Convocatoria no encontrada";
                 return RedirectToAction("Index", "Convocatorias");
             }
+            if (!convocatoria.ProyectoId.HasValue)
+            {
+                TempData["Error"] = "Esta convocatoria no tiene un proyecto asociado y no puede recibir postulaciones.";
+                return RedirectToAction("Index", "Convocatorias");
+            }
 
             var elegibilidad = await _eligibilityService.EvaluarAsync(alumno, convocatoria);
             if (!elegibilidad.IsEligible)
@@ -95,10 +101,16 @@ namespace RescateAcademico.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             var convocatoria = await _context.Convocatorias.FindAsync(convocatoriaId);
             if (convocatoria == null)
             {
                 TempData["Error"] = "Convocatoria no encontrada";
+                return RedirectToAction("Index", "Convocatorias");
+            }
+            if (!convocatoria.ProyectoId.HasValue)
+            {
+                TempData["Error"] = "Esta convocatoria no tiene un proyecto asociado y no puede recibir postulaciones.";
                 return RedirectToAction("Index", "Convocatorias");
             }
 
@@ -109,10 +121,17 @@ namespace RescateAcademico.Controllers
                 return RedirectToAction("Index", "Convocatorias");
             }
 
+            if (await _context.Postulaciones.AnyAsync(p =>
+                p.AlumnoId == alumno.Matricula && p.ProyectoId == convocatoria.ProyectoId.Value))
+            {
+                TempData["Error"] = "Ya tienes una postulación para este proyecto.";
+                return RedirectToAction("Index", "Convocatorias");
+            }
+
             var postulacion = new Postulacion
             {
                 AlumnoId = alumno.Matricula,
-                ProyectoId = convocatoria.ProyectoId ?? 0,
+                ProyectoId = convocatoria.ProyectoId.Value,
                 FechaSolicitud = DateTime.Now,
                 Estado = "En Revisión"
             };
@@ -136,6 +155,7 @@ namespace RescateAcademico.Controllers
             convocatoria.PostulacionesActuales++;
             _context.Postulaciones.Add(postulacion);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             _notificationService.Add(
                 userId!,
@@ -211,6 +231,14 @@ namespace RescateAcademico.Controllers
             if (postulacion == null) return NotFound();
 
             postulacion.Estado = estado;
+            var convocatoria = await _context.Convocatorias
+                .FirstOrDefaultAsync(c => c.ProyectoId == postulacion.ProyectoId && c.EstaActiva);
+            if (convocatoria != null)
+            {
+                convocatoria.PostulacionesActuales = await _context.Postulaciones
+                    .CountAsync(p => p.ProyectoId == postulacion.ProyectoId && p.Id != postulacion.Id && p.Estado != "Rechazado")
+                    + (estado == "Rechazado" ? 0 : 1);
+            }
             await _context.SaveChangesAsync();
 
             if (postulacion.Alumno?.UserId != null)
@@ -233,6 +261,34 @@ namespace RescateAcademico.Controllers
 
             TempData["Success"] = $"Estado actualizado a '{estado}'";
             return RedirectToAction("Todas");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Alumno,Administrador,Autoridad")]
+        public async Task<IActionResult> DescargarDocumento(int id)
+        {
+            var postulacion = await _context.Postulaciones.FirstOrDefaultAsync(p => p.Id == id);
+            if (postulacion == null || string.IsNullOrWhiteSpace(postulacion.DocumentoRuta)) return NotFound();
+
+            if (User.IsInRole("Alumno"))
+            {
+                var alumno = await _studentAccessService.GetCurrentAlumnoAsync();
+                if (alumno?.Matricula != postulacion.AlumnoId) return Forbid();
+            }
+
+            var path = _fileStorageService.GetPostulacionDocumentPath(postulacion.DocumentoRuta);
+            if (path == null) return NotFound();
+
+            var contentType = Path.GetExtension(path).ToLowerInvariant() switch
+            {
+                ".pdf" => "application/pdf",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                _ => "application/octet-stream"
+            };
+            return File(System.IO.File.OpenRead(path), contentType, postulacion.DocumentoNombre ?? Path.GetFileName(path));
         }
     }
 }

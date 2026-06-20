@@ -96,8 +96,14 @@
                         }
                     </div>
                 </div>
-                <div class="ra-application-actions">
-                    <a asp-controller="Proyectos" asp-action="Details" asp-route-id="@item.ProyectoId" class="ra-btn ra-btn-sm ra-btn-outline">
+                    <div class="ra-application-actions">
+                        @if (!string.IsNullOrWhiteSpace(item.DocumentoNombre))
+                        {
+                            <a asp-controller="Postulaciones" asp-action="DescargarDocumento" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline">
+                                <i class="bi bi-download"></i> Documento
+                            </a>
+                        }
+                        <a asp-controller="Proyectos" asp-action="Details" asp-route-id="@item.ProyectoId" class="ra-btn ra-btn-sm ra-btn-outline">
                         <i class="bi bi-eye"></i> Ver proyecto
                     </a>
                 </div>

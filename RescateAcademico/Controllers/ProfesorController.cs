@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
+using RescateAcademico.Filters;
 using RescateAcademico.Models;
 using RescateAcademico.Services;
 
@@ -205,6 +207,8 @@ namespace RescateAcademico.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("sms")]
+        [AuditLog(Accion = "Enviar SMS tutor legal", Tabla = "Alumnos")]
         public async Task<IActionResult> EnviarMensajeTutorLegal(string boleta, string mensaje)
         {
             if (string.IsNullOrWhiteSpace(boleta)) return BadRequest();
@@ -222,6 +226,11 @@ namespace RescateAcademico.Controllers
             if (string.IsNullOrWhiteSpace(mensaje) || mensaje.Trim().Length < 15)
             {
                 TempData["Error"] = "Escribe un mensaje más claro antes de enviarlo.";
+                return RedirectToAction(nameof(HistorialAcademico), new { boleta });
+            }
+            if (mensaje.Trim().Length > 500)
+            {
+                TempData["Error"] = "El mensaje no puede superar 500 caracteres.";
                 return RedirectToAction(nameof(HistorialAcademico), new { boleta });
             }
 

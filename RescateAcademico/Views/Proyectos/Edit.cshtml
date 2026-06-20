@@ -19,7 +19,8 @@
     <div class="col-md-8 col-lg-6 mx-auto">
         <div class="ra-card">
             <div class="ra-card-body">
-                <form asp-action="Edit">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
                     <div class="mb-3">
                         <label class="ra-label">Título *</label>
@@ -44,7 +45,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="ra-label">Fecha de Cierre</label>
-                        <input asp-for="FechaCierre" class="ra-input" type="date" />
+                        <input asp-for="FechaCierre" class="ra-input" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
                     </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="ra-btn ra-btn-primary">

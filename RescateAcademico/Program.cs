@@ -128,42 +128,20 @@ builder.Services.AddScoped<ConvocatoriaEligibilityService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<FileStorageService>();
 builder.Services.AddScoped<AlertasService>();
+builder.Services.AddScoped<IEmailDeliveryService, SmtpEmailDeliveryService>();
 builder.Services.AddHttpClient<SmsSender>();
 builder.Services.AddHttpClient<DesercionPredictionService>();
 builder.Services.AddScoped<DesercionPredictionService>();
+string RateLimitKey(HttpContext context) => context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+    ?? context.Connection.RemoteIpAddress?.ToString()
+    ?? "anonymous";
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("login", opt =>
-    {
-        opt.PermitLimit = 10;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
-    });
-
-    options.AddFixedWindowLimiter("register", opt =>
-    {
-        opt.PermitLimit = 3;
-        opt.Window = TimeSpan.FromMinutes(5);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
-    });
-
-    options.AddFixedWindowLimiter("postulation", opt =>
-    {
-        opt.PermitLimit = 5;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
-    });
-
-    options.AddFixedWindowLimiter("openai", opt =>
-    {
-        opt.PermitLimit = 5;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
-    });
+    options.AddPolicy("login", context => CreateFixedWindowPartition(context, 10, TimeSpan.FromMinutes(1)));
+    options.AddPolicy("register", context => CreateFixedWindowPartition(context, 3, TimeSpan.FromMinutes(5)));
+    options.AddPolicy("postulation", context => CreateFixedWindowPartition(context, 5, TimeSpan.FromMinutes(1)));
+    options.AddPolicy("openai", context => CreateFixedWindowPartition(context, 5, TimeSpan.FromMinutes(1)));
+    options.AddPolicy("sms", context => CreateFixedWindowPartition(context, 3, TimeSpan.FromMinutes(10)));
 
     options.OnRejected = (context, token) =>
     {
@@ -172,6 +150,15 @@ builder.Services.AddRateLimiter(options =>
         return ValueTask.CompletedTask;
     };
 });
+
+RateLimitPartition<string> CreateFixedWindowPartition(HttpContext context, int permitLimit, TimeSpan window) =>
+    RateLimitPartition.GetFixedWindowLimiter(RateLimitKey(context), _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = permitLimit,
+        Window = window,
+        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+        QueueLimit = 0
+    });
 
 builder.Services.AddAntiforgery(options =>
 {

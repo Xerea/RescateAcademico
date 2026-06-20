@@ -141,10 +141,8 @@ namespace RescateAcademico.Seeders
             var existingStudentCount = await context.Alumnos.CountAsync();
             if (existingStudentCount >= 50)
             {
-                await EnsureActiveSemesterDemoStructureAsync(context);
-                await EnsureSergioDemoStudentAsync(userManager, context, alumnoPassword);
                 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("Database already contains {Count} students. Skipping DemoDataSeeder.", existingStudentCount);
+                logger.LogInformation("Database already contains {Count} students. Skipping DemoDataSeeder without modifying existing records.", existingStudentCount);
                 return;
             }
 

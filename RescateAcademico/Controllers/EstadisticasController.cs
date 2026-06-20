@@ -41,6 +41,7 @@ namespace RescateAcademico.Controllers
             }
 
             var alumnos = await queryAlumnos.ToListAsync();
+            var matriculasFiltradas = alumnos.Select(a => a.Matricula).ToList();
             stats.TotalAlumnos = alumnos.Count;
             stats.AlumnosActivos = alumnos.Count(a => a.Estatus == "Activo");
             stats.PromedioGeneral = alumnos.Any() ? alumnos.Average(a => a.PromedioGlobal) : 0;
@@ -48,7 +49,9 @@ namespace RescateAcademico.Controllers
             stats.AlumnosEnRiesgoAmarillo = alumnos.Count(a => a.RiesgoAcademico == "Amarillo");
             stats.AlumnosEnRiesgoRojo = alumnos.Count(a => a.RiesgoAcademico == "Rojo");
 
-            var postulaciones = await _context.Postulaciones.ToListAsync();
+            var postulaciones = await _context.Postulaciones
+                .Where(p => matriculasFiltradas.Contains(p.AlumnoId))
+                .ToListAsync();
             stats.TotalPostulaciones = postulaciones.Count;
             stats.PostulacionesAceptadas = postulaciones.Count(p => p.Estado == "Aceptado");
             stats.PostulacionesRechazadas = postulaciones.Count(p => p.Estado == "Rechazado");

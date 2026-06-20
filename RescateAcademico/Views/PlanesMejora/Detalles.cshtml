@@ -50,15 +50,18 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2">
-            @if (!User.IsInRole("Autoridad"))
+            @if (User.IsInRole("Administrador") || User.IsInRole("Tutor"))
             {
                 <a asp-action="Editar" asp-route-id="@Model.Id" class="ra-btn ra-btn-primary">
                     <i class="bi bi-pencil"></i> Editar
                 </a>
             }
-            <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="ra-btn ra-btn-outline">
-                <i class="bi bi-clock-history"></i> Seguimiento
-            </a>
+            @if (!User.IsInRole("Alumno"))
+            {
+                <a asp-action="Seguimiento" asp-route-id="@Model.Id" class="ra-btn ra-btn-outline">
+                    <i class="bi bi-clock-history"></i> Seguimiento
+                </a>
+            }
         </div>
     </div>
 
@@ -84,7 +87,7 @@
         <div class="ra-card">
             <div class="ra-card-header d-flex justify-content-between align-items-center">
                 <span>Intervenciones (@intervenciones.Count)</span>
-                @if (!User.IsInRole("Autoridad"))
+                @if (User.IsInRole("Administrador") || User.IsInRole("Tutor"))
                 {
                     <a asp-controller="Intervenciones" asp-action="Crear" asp-route-matricula="@Model.AlumnoMatricula" asp-route-planMejoraId="@Model.Id" class="ra-btn ra-btn-sm ra-btn-primary">
                         <i class="bi bi-plus-circle"></i> Nueva

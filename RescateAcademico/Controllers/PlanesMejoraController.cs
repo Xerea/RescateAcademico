@@ -9,7 +9,7 @@ using System.Text;
 
 namespace RescateAcademico.Controllers
 {
-    [Authorize(Roles = "Administrador,Tutor,Autoridad")]
+    [Authorize(Roles = "Administrador,Tutor,Autoridad,Alumno")]
     public class PlanesMejoraController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -347,6 +347,7 @@ namespace RescateAcademico.Controllers
             return RedirectToAction("Detalles", new { id = plan.Id });
         }
 
+        [Authorize(Roles = "Administrador,Tutor,Autoridad")]
         public async Task<IActionResult> Seguimiento(int id)
         {
             var plan = await _context.PlanesMejora

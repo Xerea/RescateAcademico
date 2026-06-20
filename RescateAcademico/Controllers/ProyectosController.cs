@@ -32,13 +32,20 @@ namespace RescateAcademico.Controllers
             return View(proyectos);
         }
 
+        [Authorize(Roles = "Administrador,Autoridad,Alumno")]
         public async Task<IActionResult> Details(int id)
         {
             var proyecto = await _context.Proyectos
-                .Include(p => p.Postulaciones)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (proyecto == null) return NotFound();
+            if (User.IsInRole("Alumno"))
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var puedeVer = !string.IsNullOrWhiteSpace(userId) && await _context.Postulaciones
+                    .AnyAsync(p => p.ProyectoId == id && p.Alumno != null && p.Alumno.UserId == userId);
+                if (!puedeVer) return Forbid();
+            }
             return View(proyecto);
         }
 
@@ -53,6 +60,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create([Bind("Titulo,Descripcion,Tipo,CupoMaximo,FechaCierre")] Proyecto proyecto)
         {
+            ValidarProyecto(proyecto);
             if (ModelState.IsValid)
             {
                 _context.Proyectos.Add(proyecto);
@@ -76,6 +84,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit([Bind("Id,Titulo,Descripcion,Tipo,CupoMaximo,FechaCierre,EstaActivo")] Proyecto proyecto)
         {
+            ValidarProyecto(proyecto);
             if (ModelState.IsValid)
             {
                 _context.Update(proyecto);
@@ -100,6 +109,14 @@ namespace RescateAcademico.Controllers
                 TempData["Success"] = "Proyecto desactivado";
             }
             return RedirectToAction("Index");
+        }
+
+        private void ValidarProyecto(Proyecto proyecto)
+        {
+            if (proyecto.CupoMaximo < 1)
+                ModelState.AddModelError(nameof(proyecto.CupoMaximo), "El cupo debe ser al menos uno.");
+            if (proyecto.FechaCierre.Date < DateTime.Today)
+                ModelState.AddModelError(nameof(proyecto.FechaCierre), "La fecha de cierre no puede ser anterior a hoy.");
         }
     }
 }

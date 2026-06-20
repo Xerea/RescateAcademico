@@ -107,6 +107,11 @@
                                     {
                                         <span class="ra-badge ra-badge-neutral ms-1">@item.Alumno.Grupo.Clave</span>
                                     }
+                                    @if (!string.IsNullOrWhiteSpace(item.Alumno?.Correo))
+                                    {
+                                        <br />
+                                        <a href="mailto:@item.Alumno.Correo" class="small"><i class="bi bi-envelope"></i> Contactar alumno</a>
+                                    }
                                 </td>
                                 <td data-label="Proyecto">@item.Proyecto?.Titulo</td>
                                 <td data-label="Fecha">@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
@@ -128,6 +133,12 @@
                                     @if (item.Estado == "En Revisión")
                                     {
                                         <div class="ra-decision-actions">
+                                            @if (!string.IsNullOrWhiteSpace(item.DocumentoNombre))
+                                            {
+                                                <a asp-action="DescargarDocumento" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline" title="Descargar documento" aria-label="Descargar documento">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+                                            }
                                             <form asp-action="CambiarEstado" method="post" class="m-0">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
@@ -148,6 +159,12 @@
                                     }
                                     else
                                     {
+                                        @if (!string.IsNullOrWhiteSpace(item.DocumentoNombre))
+                                        {
+                                            <a asp-action="DescargarDocumento" asp-route-id="@item.Id" class="ra-btn ra-btn-sm ra-btn-outline me-1" title="Descargar documento" aria-label="Descargar documento">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                        }
                                         <span class="text-secondary small">Resuelta</span>
                                     }
                                 </td>

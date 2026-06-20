@@ -62,7 +62,12 @@ namespace RescateAcademico.Controllers
             var visibleForFilters = _studentAccessService.ApplyVisibleStudents(_context.Alumnos.AsQueryable());
             ViewBag.Carreras = await visibleForFilters.Select(a => a.Carrera).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c).ToListAsync();
             ViewBag.Semestres = await visibleForFilters.Select(a => a.SemestreActual).Distinct().OrderBy(s => s).ToListAsync();
-            ViewBag.Grupos = await _context.Grupos.Select(g => g.Clave).Distinct().OrderBy(c => c).ToListAsync();
+            ViewBag.Grupos = await visibleForFilters
+                .Where(a => a.Grupo != null)
+                .Select(a => a.Grupo!.Clave)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
 
             var alumnos = await query.OrderBy(a => a.Apellidos).ToListAsync();
             return View(alumnos);

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Models;
+using RescateAcademico.Services;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Primitives;
 using System.Security.Claims;
@@ -21,14 +22,16 @@ namespace RescateAcademico.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AccountController> _logger;
+        private readonly IEmailDeliveryService _emailDeliveryService;
 
-        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IConfiguration configuration, ILogger<AccountController> logger)
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IConfiguration configuration, ILogger<AccountController> logger, IEmailDeliveryService emailDeliveryService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _context = context;
             _configuration = configuration;
             _logger = logger;
+            _emailDeliveryService = emailDeliveryService;
         }
 
         [HttpGet]
@@ -81,6 +84,11 @@ namespace RescateAcademico.Controllers
             if (user != null && !user.IsActive)
             {
                 ModelState.AddModelError(string.Empty, "Esta cuenta no está activa.");
+                return View();
+            }
+            if (user != null && !user.EmailConfirmed)
+            {
+                ModelState.AddModelError(string.Empty, "Confirma tu correo antes de iniciar sesión. Revisa tu bandeja de entrada o solicita apoyo a coordinación.");
                 return View();
             }
             if (user != null && user.PendienteVerificacion)
@@ -233,6 +241,11 @@ namespace RescateAcademico.Controllers
                 }
                 await _context.SaveChangesAsync();
 
+                if (!user.EmailConfirmed)
+                {
+                    await SendConfirmationEmailAsync(user);
+                }
+
                 if (user.PendienteVerificacion)
                 {
                     return RedirectToAction("Login", new
@@ -327,9 +340,9 @@ namespace RescateAcademico.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(string email)
         {
-            if (string.IsNullOrWhiteSpace(email) || (!email.EndsWith("@ipn.mx", StringComparison.OrdinalIgnoreCase) && !email.EndsWith("@alumno.ipn.mx", StringComparison.OrdinalIgnoreCase)))
+            if (string.IsNullOrWhiteSpace(email))
             {
-                ModelState.AddModelError(string.Empty, "Solo se aceptan correos institucionales registrados (@ipn.mx o @alumno.ipn.mx).");
+                ModelState.AddModelError(string.Empty, "Ingresa el correo registrado en tu cuenta.");
                 return View();
             }
 
@@ -342,7 +355,7 @@ namespace RescateAcademico.Controllers
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action("ResetPassword", "Account", new { email = user.Email, code }, protocol: Request.Scheme);
 
-            TempData["ResetLink"] = callbackUrl;
+            await _emailDeliveryService.SendAsync(user.Email!, "Restablece tu contraseña", $"<p>Solicitaste restablecer tu contraseña.</p><p><a href=\"{System.Net.WebUtility.HtmlEncode(callbackUrl)}\">Restablecer contraseña</a></p>");
 
             return RedirectToAction(nameof(ForgotPasswordConfirmation));
         }
@@ -396,6 +409,29 @@ namespace RescateAcademico.Controllers
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+            TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
+                ? "Correo confirmado. Ahora espera la validación institucional de tu expediente."
+                : "No fue posible confirmar el correo. Solicita un enlace nuevo a coordinación.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        private async Task SendConfirmationEmailAsync(ApplicationUser user)
+        {
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var url = Url.Action(nameof(ConfirmEmail), "Account", new { userId = user.Id, code }, Request.Scheme);
+            if (url != null)
+            {
+                await _emailDeliveryService.SendAsync(user.Email!, "Confirma tu correo de Rescate Académico", $"<p>Confirma tu correo para continuar con tu solicitud de acceso.</p><p><a href=\"{System.Net.WebUtility.HtmlEncode(url)}\">Confirmar correo</a></p>");
+            }
         }
 
         private async Task<bool> VerifyRecaptchaAsync(string? token)

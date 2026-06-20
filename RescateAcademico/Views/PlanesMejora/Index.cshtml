@@ -2,7 +2,8 @@
 @{
     ViewData["Title"] = "Planes de mejora";
     Layout = "_Layout";
-    var actionsHtml = !User.IsInRole("Autoridad")
+    var puedeGestionarPlanes = User.IsInRole("Administrador") || User.IsInRole("Tutor");
+    var actionsHtml = puedeGestionarPlanes
         ? User.IsInRole("Tutor")
             ? $"<a href=\"{Url.Action("MisTutorados", "Alumnos")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo plan</a>"
             : $"<a href=\"{Url.Action("Crear")}\" class=\"ra-btn ra-btn-primary\"><i class=\"bi bi-plus-circle\"></i> Nuevo plan</a>"
@@ -66,15 +67,18 @@
                                         <a asp-action="Detalles" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Ver detalles del plan" title="Ver detalles">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        @if (!User.IsInRole("Autoridad"))
+                                        @if (puedeGestionarPlanes)
                                         {
                                             <a asp-action="Editar" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Editar plan" title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         }
-                                        <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Seguimiento del plan" title="Seguimiento">
-                                            <i class="bi bi-clock-history"></i>
-                                        </a>
+                                        @if (!User.IsInRole("Alumno"))
+                                        {
+                                            <a asp-action="Seguimiento" asp-route-id="@plan.Id" class="ra-btn ra-btn-sm ra-btn-outline" aria-label="Seguimiento del plan" title="Seguimiento">
+                                                <i class="bi bi-clock-history"></i>
+                                            </a>
+                                        }
                                     </div>
                                 </td>
                             </tr>

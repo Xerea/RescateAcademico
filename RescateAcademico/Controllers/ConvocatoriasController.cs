@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RescateAcademico.Data;
 using RescateAcademico.Filters;
@@ -90,9 +91,9 @@ namespace RescateAcademico.Controllers
         }
 
         [Authorize(Roles = "Administrador")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Proyectos = _context.Proyectos.Where(p => p.EstaActivo).ToList();
+            await CargarProyectosAsync();
             return View();
         }
 
@@ -101,7 +102,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create([Bind("Titulo,Descripcion,Tipo,ProyectoId,CupoMaximo,FechaCierre,Requisitos,PromedioMinimo,SemestreMinimo,CarreraRequerida,Modalidad,Ubicacion,Horario,RequisitosTecnicos,Area")] Convocatoria convocatoria)
         {
-            ValidarConvocatoria(convocatoria);
+            await ValidarConvocatoriaAsync(convocatoria);
             if (ModelState.IsValid)
             {
                 convocatoria.FechaPublicacion = DateTime.Now;
@@ -110,7 +111,7 @@ namespace RescateAcademico.Controllers
                 TempData["Success"] = "Convocatoria creada exitosamente";
                 return RedirectToAction("Todas");
             }
-            ViewBag.Proyectos = _context.Proyectos.Where(p => p.EstaActivo).ToList();
+            await CargarProyectosAsync();
             return View(convocatoria);
         }
 
@@ -119,7 +120,7 @@ namespace RescateAcademico.Controllers
         {
             var convocatoria = await _context.Convocatorias.FindAsync(id);
             if (convocatoria == null) return NotFound();
-            ViewBag.Proyectos = _context.Proyectos.ToList();
+            await CargarProyectosAsync();
             return View(convocatoria);
         }
 
@@ -128,7 +129,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit([Bind("Id,Titulo,Descripcion,Tipo,ProyectoId,CupoMaximo,FechaCierre,Requisitos,PromedioMinimo,SemestreMinimo,CarreraRequerida,Modalidad,Ubicacion,Horario,RequisitosTecnicos,Area,EstaActiva,ValidadaPorAcademia")] Convocatoria convocatoria)
         {
-            ValidarConvocatoria(convocatoria);
+            await ValidarConvocatoriaAsync(convocatoria);
             if (ModelState.IsValid)
             {
                 _context.Update(convocatoria);
@@ -136,7 +137,7 @@ namespace RescateAcademico.Controllers
                 TempData["Success"] = "Convocatoria actualizada";
                 return RedirectToAction("Todas");
             }
-            ViewBag.Proyectos = _context.Proyectos.ToList();
+            await CargarProyectosAsync();
             return View(convocatoria);
         }
 
@@ -166,8 +167,14 @@ namespace RescateAcademico.Controllers
             return View("Todas", convocatorias);
         }
 
-        private void ValidarConvocatoria(Convocatoria convocatoria)
+        private async Task ValidarConvocatoriaAsync(Convocatoria convocatoria)
         {
+            if (!convocatoria.ProyectoId.HasValue)
+                ModelState.AddModelError(nameof(convocatoria.ProyectoId), "Selecciona el proyecto asociado a la convocatoria.");
+            else if (!await _context.Proyectos.AnyAsync(p => p.Id == convocatoria.ProyectoId.Value && p.EstaActivo))
+                ModelState.AddModelError(nameof(convocatoria.ProyectoId), "El proyecto seleccionado no está disponible.");
+            else if (await _context.Convocatorias.AnyAsync(c => c.Id != convocatoria.Id && c.ProyectoId == convocatoria.ProyectoId && c.EstaActiva))
+                ModelState.AddModelError(nameof(convocatoria.ProyectoId), "Este proyecto ya tiene una convocatoria activa.");
             if (convocatoria.CupoMaximo < 1)
                 ModelState.AddModelError(nameof(convocatoria.CupoMaximo), "El cupo debe ser al menos uno.");
             if (convocatoria.FechaCierre.Date < DateTime.Today)
@@ -176,6 +183,15 @@ namespace RescateAcademico.Controllers
                 ModelState.AddModelError(nameof(convocatoria.PromedioMinimo), "El promedio mínimo debe estar entre 0 y 10.");
             if (convocatoria.SemestreMinimo is < 1 or > 6)
                 ModelState.AddModelError(nameof(convocatoria.SemestreMinimo), "El semestre mínimo debe estar entre 1 y 6.");
+        }
+
+        private async Task CargarProyectosAsync()
+        {
+            ViewBag.Proyectos = await _context.Proyectos
+                .Where(p => p.EstaActivo)
+                .OrderBy(p => p.Titulo)
+                .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Titulo })
+                .ToListAsync();
         }
 
         [HttpPost]

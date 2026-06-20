@@ -39,6 +39,10 @@ namespace RescateAcademico.Services
             {
                 throw new InvalidOperationException("El contenido del archivo no coincide con su extension.");
             }
+            if (!await HasExpectedFileSignatureAsync(file, ext))
+            {
+                throw new InvalidOperationException("El contenido del archivo no corresponde al tipo declarado.");
+            }
 
             var safeFileName = $"{Guid.NewGuid()}{ext}";
             var storageRoot = GetStorageRoot();
@@ -50,6 +54,21 @@ namespace RescateAcademico.Services
             await file.CopyToAsync(stream);
 
             return new StoredFileResult(file.FileName, safeFileName, filePath, file.Length);
+        }
+
+        public string? GetPostulacionDocumentPath(string? storedPath)
+        {
+            if (string.IsNullOrWhiteSpace(storedPath)) return null;
+
+            var folder = Path.GetFullPath(Path.Combine(GetStorageRoot(), "postulaciones"));
+            var path = Path.GetFullPath(storedPath);
+            var prefix = folder.EndsWith(Path.DirectorySeparatorChar)
+                ? folder
+                : folder + Path.DirectorySeparatorChar;
+
+            return path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && File.Exists(path)
+                ? path
+                : null;
         }
 
         private string GetStorageRoot()
@@ -64,6 +83,24 @@ namespace RescateAcademico.Services
             }
 
             return Path.Combine(_environment.ContentRootPath, "App_Data", "uploads");
+        }
+
+        private static async Task<bool> HasExpectedFileSignatureAsync(IFormFile file, string extension)
+        {
+            await using var stream = file.OpenReadStream();
+            var header = new byte[8];
+            var count = await stream.ReadAsync(header);
+            if (count < 4) return false;
+
+            return extension switch
+            {
+                ".pdf" => header[0] == 0x25 && header[1] == 0x50 && header[2] == 0x44 && header[3] == 0x46,
+                ".jpg" or ".jpeg" => header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF,
+                ".png" => count >= 8 && header.SequenceEqual(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }),
+                ".doc" => header[0] == 0xD0 && header[1] == 0xCF && header[2] == 0x11 && header[3] == 0xE0,
+                ".docx" => header[0] == 0x50 && header[1] == 0x4B && header[2] == 0x03 && header[3] == 0x04,
+                _ => false
+            };
         }
     }
 
