@@ -141,8 +141,9 @@ namespace RescateAcademico.Seeders
             var existingStudentCount = await context.Alumnos.CountAsync();
             if (existingStudentCount >= 50)
             {
+                await EnsureDemoStudentOpportunitiesAsync(context);
                 var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-                logger.LogInformation("Database already contains {Count} students. Skipping DemoDataSeeder without modifying existing records.", existingStudentCount);
+                logger.LogInformation("Database already contains {Count} students. Demo seeding skipped; demo opportunities verified.", existingStudentCount);
                 return;
             }
 
@@ -163,6 +164,7 @@ namespace RescateAcademico.Seeders
             await SeedAsignacionesTutorAsync(context, profesores, alumnos);
             await SeedProyectosAsync(context);
             await SeedConvocatoriasAsync(context);
+            await EnsureDemoStudentOpportunitiesAsync(context);
             await SeedPostulacionesAsync(context, alumnos);
             await SeedIntervencionesAsync(context, profesores, alumnos);
             await SeedPlanesMejoraAsync(context, profesores, alumnos);
@@ -920,6 +922,94 @@ namespace RescateAcademico.Seeders
                 new Convocatoria { Titulo = "Centro de Cómputo", Descripcion = "Mantenimiento y soporte técnico.", Tipo = "ApoyoAcademico", ProyectoId = proyectos[2].Id, CupoMaximo = 12, FechaCierre = DateTime.Now.AddDays(60), PromedioMinimo = 6.5m, SemestreMinimo = 2, ValidadaPorAcademia = true, Area = "Tecnología", Modalidad = modalidades[0], Ubicacion = ubicaciones[2], Horario = horarios[4], RequisitosTecnicos = "Conocimientos de redes y sistemas operativos.", EstaActiva = true, FechaPublicacion = DateTime.Now.AddDays(-20), PostulacionesActuales = 0 },
                 new Convocatoria { Titulo = "Análisis de Datos Institucionales", Descripcion = "Procesamiento de estadísticas académicas.", Tipo = "Investigacion", ProyectoId = proyectos[7].Id, CupoMaximo = 4, FechaCierre = DateTime.Now.AddDays(55), PromedioMinimo = 8.0m, SemestreMinimo = 4, ValidadaPorAcademia = true, Area = "Estadística", Modalidad = modalidades[2], Ubicacion = ubicaciones[1], Horario = horarios[6], RequisitosTecnicos = "Excel avanzado, R o Python para análisis de datos.", EstaActiva = true, FechaPublicacion = DateTime.Now.AddDays(-3), PostulacionesActuales = 0 }
             );
+            await context.SaveChangesAsync();
+        }
+
+        // These opportunities make the public demo student useful without changing any
+        // existing students, applications, or institutional records on later startups.
+        private static async Task EnsureDemoStudentOpportunitiesAsync(ApplicationDbContext context)
+        {
+            var demo = await context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == "2023000001");
+            if (demo == null) return;
+
+            var opportunities = new[]
+            {
+                new
+                {
+                    Titulo = "Laboratorio de Innovacion Digital",
+                    Descripcion = "Apoyo en pruebas de aplicaciones y documentacion de herramientas digitales para la comunidad escolar.",
+                    Tipo = "ApoyoAcademico",
+                    Cupo = 8,
+                    Promedio = 7.0m,
+                    Semestre = 3,
+                    Area = "Tecnologia",
+                    Modalidad = "Hibrida",
+                    Ubicacion = "Laboratorio de Computo 3",
+                    Horario = "Horario flexible",
+                    Requisitos = "Manejo basico de herramientas digitales y disponibilidad semanal."
+                },
+                new
+                {
+                    Titulo = "Mentoria de Datos y Programacion",
+                    Descripcion = "Colaboracion en tableros de seguimiento y materiales de apoyo para estudiantes de informatica.",
+                    Tipo = "Investigacion",
+                    Cupo = 6,
+                    Promedio = 8.0m,
+                    Semestre = 4,
+                    Area = "Analitica",
+                    Modalidad = "Presencial",
+                    Ubicacion = "Aula de Computo",
+                    Horario = "Martes y Jueves 14:00 - 16:00",
+                    Requisitos = "Promedio minimo de 8.0 y nociones de hojas de calculo o programacion."
+                }
+            };
+
+            foreach (var item in opportunities)
+            {
+                var proyecto = await context.Proyectos
+                    .FirstOrDefaultAsync(p => p.Titulo == item.Titulo);
+
+                if (proyecto == null)
+                {
+                    proyecto = new Proyecto
+                    {
+                        Titulo = item.Titulo,
+                        Descripcion = item.Descripcion,
+                        Tipo = item.Tipo,
+                        CupoMaximo = item.Cupo,
+                        FechaCierre = DateTime.Now.AddDays(60),
+                        EstaActivo = true
+                    };
+                    context.Proyectos.Add(proyecto);
+                    await context.SaveChangesAsync();
+                }
+
+                var exists = await context.Convocatorias.AnyAsync(c => c.Titulo == item.Titulo);
+                if (exists) continue;
+
+                context.Convocatorias.Add(new Convocatoria
+                {
+                    Titulo = item.Titulo,
+                    Descripcion = item.Descripcion,
+                    Tipo = item.Tipo,
+                    ProyectoId = proyecto.Id,
+                    CupoMaximo = item.Cupo,
+                    PostulacionesActuales = 0,
+                    FechaPublicacion = DateTime.Now,
+                    FechaCierre = DateTime.Now.AddDays(60),
+                    PromedioMinimo = item.Promedio,
+                    SemestreMinimo = item.Semestre,
+                    CarreraRequerida = demo.Carrera,
+                    EstaActiva = true,
+                    ValidadaPorAcademia = true,
+                    Area = item.Area,
+                    Modalidad = item.Modalidad,
+                    Ubicacion = item.Ubicacion,
+                    Horario = item.Horario,
+                    RequisitosTecnicos = item.Requisitos
+                });
+            }
+
             await context.SaveChangesAsync();
         }
 
