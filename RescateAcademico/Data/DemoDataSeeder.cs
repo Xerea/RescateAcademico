@@ -932,6 +932,13 @@ namespace RescateAcademico.Seeders
             var demo = await context.Alumnos.FirstOrDefaultAsync(a => a.Matricula == "2023000001");
             if (demo == null) return;
 
+            // Keep only the designated demo account eligible for its guided flows.
+            // No real or newly registered student is modified here.
+            if (demo.PromedioGlobal < 8.5m)
+                demo.PromedioGlobal = 8.5m;
+            if ((demo.CargaAcademicaActual ?? 0) >= 8)
+                demo.CargaAcademicaActual = 7;
+
             var opportunities = new[]
             {
                 new
@@ -940,8 +947,8 @@ namespace RescateAcademico.Seeders
                     Descripcion = "Apoyo en pruebas de aplicaciones y documentacion de herramientas digitales para la comunidad escolar.",
                     Tipo = "ApoyoAcademico",
                     Cupo = 8,
-                    Promedio = 7.0m,
-                    Semestre = 3,
+                    Promedio = 6.0m,
+                    Semestre = 1,
                     Area = "Tecnologia",
                     Modalidad = "Hibrida",
                     Ubicacion = "Laboratorio de Computo 3",
@@ -954,8 +961,8 @@ namespace RescateAcademico.Seeders
                     Descripcion = "Colaboracion en tableros de seguimiento y materiales de apoyo para estudiantes de informatica.",
                     Tipo = "Investigacion",
                     Cupo = 6,
-                    Promedio = 8.0m,
-                    Semestre = 4,
+                    Promedio = 6.0m,
+                    Semestre = 1,
                     Area = "Analitica",
                     Modalidad = "Presencial",
                     Ubicacion = "Aula de Computo",
@@ -983,31 +990,43 @@ namespace RescateAcademico.Seeders
                     context.Proyectos.Add(proyecto);
                     await context.SaveChangesAsync();
                 }
-
-                var exists = await context.Convocatorias.AnyAsync(c => c.Titulo == item.Titulo);
-                if (exists) continue;
-
-                context.Convocatorias.Add(new Convocatoria
+                else
                 {
-                    Titulo = item.Titulo,
-                    Descripcion = item.Descripcion,
-                    Tipo = item.Tipo,
-                    ProyectoId = proyecto.Id,
-                    CupoMaximo = item.Cupo,
-                    PostulacionesActuales = 0,
-                    FechaPublicacion = DateTime.Now,
-                    FechaCierre = DateTime.Now.AddDays(60),
-                    PromedioMinimo = item.Promedio,
-                    SemestreMinimo = item.Semestre,
-                    CarreraRequerida = demo.Carrera,
-                    EstaActiva = true,
-                    ValidadaPorAcademia = true,
-                    Area = item.Area,
-                    Modalidad = item.Modalidad,
-                    Ubicacion = item.Ubicacion,
-                    Horario = item.Horario,
-                    RequisitosTecnicos = item.Requisitos
-                });
+                    proyecto.EstaActivo = true;
+                    proyecto.CupoMaximo = Math.Max(proyecto.CupoMaximo, item.Cupo);
+                    if (proyecto.FechaCierre < DateTime.Today)
+                        proyecto.FechaCierre = DateTime.Now.AddDays(60);
+                }
+
+                var convocatoria = await context.Convocatorias
+                    .FirstOrDefaultAsync(c => c.Titulo == item.Titulo);
+
+                if (convocatoria == null)
+                {
+                    convocatoria = new Convocatoria
+                    {
+                        Titulo = item.Titulo,
+                        FechaPublicacion = DateTime.Now,
+                        PostulacionesActuales = 0
+                    };
+                    context.Convocatorias.Add(convocatoria);
+                }
+
+                convocatoria.Descripcion = item.Descripcion;
+                convocatoria.Tipo = item.Tipo;
+                convocatoria.ProyectoId = proyecto.Id;
+                convocatoria.CupoMaximo = Math.Max(item.Cupo, convocatoria.PostulacionesActuales + 2);
+                convocatoria.FechaCierre = DateTime.Now.AddDays(60);
+                convocatoria.PromedioMinimo = item.Promedio;
+                convocatoria.SemestreMinimo = item.Semestre;
+                convocatoria.CarreraRequerida = null;
+                convocatoria.EstaActiva = true;
+                convocatoria.ValidadaPorAcademia = true;
+                convocatoria.Area = item.Area;
+                convocatoria.Modalidad = item.Modalidad;
+                convocatoria.Ubicacion = item.Ubicacion;
+                convocatoria.Horario = item.Horario;
+                convocatoria.RequisitosTecnicos = item.Requisitos;
             }
 
             await context.SaveChangesAsync();
