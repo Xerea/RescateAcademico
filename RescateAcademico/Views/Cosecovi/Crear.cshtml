@@ -45,7 +45,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="ra-label">Fecha del incidente *</label>
-                            <input asp-for="FechaIncidente" type="datetime-local" class="ra-input" min="@fechaMin" max="@fechaMax" required />
+                            <input asp-for="FechaIncidente" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="ra-input" min="@fechaMin" max="@fechaMax" step="60" required />
                             <div class="text-secondary small mt-1">Solo se permite registrar incidentes de los ultimos 7 dias.</div>
                         </div>
                         <div class="col-md-2">
