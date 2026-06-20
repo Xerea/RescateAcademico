@@ -159,6 +159,8 @@ namespace RescateAcademico.Controllers
             }
 
             ValidarFechaIncidente(reporte.FechaIncidente);
+            if (reporte.Periodo != PeriodoActual())
+                ModelState.AddModelError(nameof(reporte.Periodo), "El periodo debe corresponder al ciclo escolar actual.");
             ValidarCatalogos(reporte);
 
             if (!ModelState.IsValid)
@@ -190,6 +192,7 @@ namespace RescateAcademico.Controllers
             if (reporte == null) return NotFound();
 
             await CargarCombosAsync();
+            ViewBag.FechaIncidenteMin = reporte.FechaReporte.AddDays(-7).ToString("yyyy-MM-ddTHH:mm");
             return View(reporte);
         }
 
@@ -204,7 +207,8 @@ namespace RescateAcademico.Controllers
             var reporte = await _context.ReportesCosecovi.FindAsync(id);
             if (reporte == null) return NotFound();
 
-            ValidarFechaIncidente(form.FechaIncidente);
+            form.Periodo = reporte.Periodo;
+            ValidarFechaIncidente(form.FechaIncidente, reporte.FechaReporte);
             ValidarCatalogos(form);
             if (!ModelState.IsValid)
             {
@@ -213,6 +217,7 @@ namespace RescateAcademico.Controllers
                 form.Periodo = reporte.Periodo;
                 form.Alumno = await _context.Alumnos.FindAsync(reporte.AlumnoMatricula);
                 await CargarCombosAsync();
+                ViewBag.FechaIncidenteMin = reporte.FechaReporte.AddDays(-7).ToString("yyyy-MM-ddTHH:mm");
                 return View(form);
             }
 
@@ -322,11 +327,13 @@ namespace RescateAcademico.Controllers
             ViewBag.Estados = Estados;
             ViewBag.FechaIncidenteMin = DateTime.Now.AddDays(-7).ToString("yyyy-MM-ddTHH:mm");
             ViewBag.FechaIncidenteMax = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+            ViewBag.PeriodoActual = PeriodoActual();
         }
 
-        private void ValidarFechaIncidente(DateTime fechaIncidente)
+        private void ValidarFechaIncidente(DateTime fechaIncidente, DateTime? fechaReporteOriginal = null)
         {
-            var min = DateTime.Now.AddDays(-7);
+            // Reports remain editable after their original seven-day registration window.
+            var min = fechaReporteOriginal?.AddDays(-7) ?? DateTime.Now.AddDays(-7);
             var max = DateTime.Now.AddMinutes(1);
             if (fechaIncidente < min)
                 ModelState.AddModelError(nameof(ReporteCosecovi.FechaIncidente), "La fecha del incidente no puede ser anterior a 7 dias.");
@@ -344,6 +351,9 @@ namespace RescateAcademico.Controllers
                 ModelState.AddModelError(nameof(reporte.Canalizacion), "Selecciona un destino valido.");
             if (!Estados.Contains(reporte.Estado))
                 ModelState.AddModelError(nameof(reporte.Estado), "Selecciona un estado valido.");
+            if (!string.IsNullOrWhiteSpace(reporte.Lugar)
+                && !System.Text.RegularExpressions.Regex.IsMatch(reporte.Lugar, "^[\\p{L}][\\p{L}\\p{N} .,;()/-]{1,79}$"))
+                ModelState.AddModelError(nameof(reporte.Lugar), "Indica un lugar descriptivo valido (por ejemplo: Aula 204 o patio central).");
         }
 
         private async Task NotificarTutoresAsync(ReporteCosecovi reporte)

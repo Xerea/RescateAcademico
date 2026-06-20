@@ -82,6 +82,16 @@
                                             </button>
                                         </form>
                                     }
+                                    @if (!item.EmailConfirmed)
+                                    {
+                                        <form asp-action="ConfirmarCorreoUsuario" method="post" class="m-0" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="ra-btn ra-btn-sm ra-btn-outline" title="Confirmar correo">
+                                                <i class="bi bi-envelope-check ra-text-success"></i> Confirmar correo
+                                            </button>
+                                        </form>
+                                    }
                                 </td>
                             </tr>
                         }

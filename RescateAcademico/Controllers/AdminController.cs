@@ -178,9 +178,22 @@ namespace RescateAcademico.Controllers
             return RedirectToAction(nameof(SolicitudesAcceso));
         }
 
-        public async Task<IActionResult> Alumnos()
+        public async Task<IActionResult> Alumnos(string? busqueda, string? filtroRiesgo)
         {
-            var alumnos = await _context.Alumnos.Include(a => a.Usuario).ToListAsync();
+            var query = _context.Alumnos.Include(a => a.Usuario).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                var termino = busqueda.Trim();
+                query = query.Where(a => a.Matricula.Contains(termino)
+                    || a.Nombre.Contains(termino)
+                    || a.Apellidos.Contains(termino));
+            }
+            if (filtroRiesgo is "Verde" or "Amarillo" or "Rojo")
+                query = query.Where(a => a.RiesgoAcademico == filtroRiesgo);
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.FiltroRiesgo = filtroRiesgo;
+            var alumnos = await query.OrderBy(a => a.Apellidos).ThenBy(a => a.Nombre).ToListAsync();
             return View(alumnos);
         }
 
@@ -358,6 +371,22 @@ namespace RescateAcademico.Controllers
                 await _userManager.SetLockoutEndDateAsync(user, null);
                 TempData["Success"] = "Usuario desbloqueado";
             }
+            return RedirectToAction("Usuarios");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AuditLog(Accion = "Confirmar correo", Tabla = "Usuarios")]
+        public async Task<IActionResult> ConfirmarCorreoUsuario(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            user.EmailConfirmed = true;
+            var result = await _userManager.UpdateAsync(user);
+            TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
+                ? $"Correo confirmado para {user.Email}."
+                : "No fue posible confirmar el correo.";
             return RedirectToAction("Usuarios");
         }
 

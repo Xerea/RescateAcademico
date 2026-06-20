@@ -131,6 +131,17 @@ namespace RescateAcademico.Controllers
 
             if (intervencion == null) return NotFound();
 
+            if (fechaSeguimiento.Date < intervencion.Fecha.Date || fechaSeguimiento.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(nameof(fechaSeguimiento), "La fecha debe estar entre la intervención original y el día de hoy.");
+                return View(intervencion);
+            }
+            if (string.IsNullOrWhiteSpace(notas))
+            {
+                ModelState.AddModelError(nameof(notas), "Registra las notas del seguimiento.");
+                return View(intervencion);
+            }
+
             intervencion.FechaSeguimiento = fechaSeguimiento;
             intervencion.NotasSeguimiento = notas;
             intervencion.RequiereSeguimiento = false;

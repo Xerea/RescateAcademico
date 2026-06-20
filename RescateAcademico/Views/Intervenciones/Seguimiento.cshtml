@@ -29,7 +29,7 @@
 
                     <div class="mb-3">
                         <label class="ra-label">Fecha de Seguimiento *</label>
-                        <input type="date" name="fechaSeguimiento" class="ra-input" required value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        <input type="date" name="fechaSeguimiento" class="ra-input" required min="@Model.Fecha.ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     </div>
 
                     <div class="mb-3">

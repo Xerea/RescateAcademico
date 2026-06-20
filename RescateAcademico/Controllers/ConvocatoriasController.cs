@@ -101,6 +101,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create([Bind("Titulo,Descripcion,Tipo,ProyectoId,CupoMaximo,FechaCierre,Requisitos,PromedioMinimo,SemestreMinimo,CarreraRequerida,Modalidad,Ubicacion,Horario,RequisitosTecnicos,Area")] Convocatoria convocatoria)
         {
+            ValidarConvocatoria(convocatoria);
             if (ModelState.IsValid)
             {
                 convocatoria.FechaPublicacion = DateTime.Now;
@@ -127,6 +128,7 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit([Bind("Id,Titulo,Descripcion,Tipo,ProyectoId,CupoMaximo,FechaCierre,Requisitos,PromedioMinimo,SemestreMinimo,CarreraRequerida,Modalidad,Ubicacion,Horario,RequisitosTecnicos,Area,EstaActiva,ValidadaPorAcademia")] Convocatoria convocatoria)
         {
+            ValidarConvocatoria(convocatoria);
             if (ModelState.IsValid)
             {
                 _context.Update(convocatoria);
@@ -162,6 +164,18 @@ namespace RescateAcademico.Controllers
                 .OrderByDescending(c => c.FechaPublicacion)
                 .ToListAsync();
             return View("Todas", convocatorias);
+        }
+
+        private void ValidarConvocatoria(Convocatoria convocatoria)
+        {
+            if (convocatoria.CupoMaximo < 1)
+                ModelState.AddModelError(nameof(convocatoria.CupoMaximo), "El cupo debe ser al menos uno.");
+            if (convocatoria.FechaCierre.Date < DateTime.Today)
+                ModelState.AddModelError(nameof(convocatoria.FechaCierre), "La fecha de cierre no puede ser anterior a hoy.");
+            if (convocatoria.PromedioMinimo is < 0 or > 10)
+                ModelState.AddModelError(nameof(convocatoria.PromedioMinimo), "El promedio mínimo debe estar entre 0 y 10.");
+            if (convocatoria.SemestreMinimo is < 1 or > 6)
+                ModelState.AddModelError(nameof(convocatoria.SemestreMinimo), "El semestre mínimo debe estar entre 1 y 6.");
         }
 
         [HttpPost]

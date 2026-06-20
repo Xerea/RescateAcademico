@@ -171,6 +171,9 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Crear(PlanMejoraViewModel model)
         {
+            if (model.FechaCierre.HasValue && model.FechaCierre.Value.Date < DateTime.Today)
+                ModelState.AddModelError(nameof(model.FechaCierre), "La fecha límite no puede ser anterior a hoy.");
+
             if (!User.IsInRole("Administrador"))
             {
                 var tutor = await _studentAccessService.GetCurrentTutorAsync();
@@ -291,6 +294,9 @@ namespace RescateAcademico.Controllers
         [Authorize(Roles = "Administrador,Tutor")]
         public async Task<IActionResult> Editar(PlanMejoraViewModel model)
         {
+            if (model.FechaCierre.HasValue && model.FechaCierre.Value.Date < DateTime.Today)
+                ModelState.AddModelError(nameof(model.FechaCierre), "La fecha límite no puede ser anterior a hoy.");
+
             if (!ModelState.IsValid)
             {
                 if (User.IsInRole("Administrador"))
@@ -305,7 +311,10 @@ namespace RescateAcademico.Controllers
             if (!User.IsInRole("Administrador"))
             {
                 var currentTutor = await _studentAccessService.GetCurrentTutorAsync();
-                if (plan.TutorId != currentTutor?.Id) return Forbid();
+                var tutorTieneGrupo = currentTutor != null && await _context.Grupos
+                    .AnyAsync(g => g.ProfesorId == currentTutor.Id && g.Alumnos.Any(a => a.Matricula == plan.AlumnoMatricula));
+                if (plan.TutorId != currentTutor?.Id && !tutorTieneGrupo) return Forbid();
+                if (plan.TutorId == null && tutorTieneGrupo) plan.TutorId = currentTutor!.Id;
             }
 
             plan.TutorId = User.IsInRole("Administrador") ? model.TutorId : plan.TutorId;

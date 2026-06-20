@@ -27,9 +27,9 @@
                 <div class="col-md-4">
                     <select name="filtroRiesgo" class="ra-select">
                         <option value="">Todos los riesgos</option>
-                        <option value="Verde">Verde</option>
-                        <option value="Amarillo">Amarillo</option>
-                        <option value="Rojo">Rojo</option>
+                        <option value="Verde" selected="@(ViewBag.FiltroRiesgo == "Verde")">Verde</option>
+                        <option value="Amarillo" selected="@(ViewBag.FiltroRiesgo == "Amarillo")">Amarillo</option>
+                        <option value="Rojo" selected="@(ViewBag.FiltroRiesgo == "Rojo")">Rojo</option>
                     </select>
                 </div>
                 <div class="col-md-2">

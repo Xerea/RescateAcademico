@@ -155,7 +155,7 @@
             <div class="row g-2 mb-3">
                 <div class="col-sm-6">
                     <label asp-for="FechaCierre" class="ra-label">Fecha limite</label>
-                    <input asp-for="FechaCierre" type="date" class="ra-input" />
+                    <input asp-for="FechaCierre" type="date" class="ra-input" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col-sm-6 d-flex align-items-end">
                     <label class="ra-check-label d-flex align-items-center gap-2 mb-0" style="padding-bottom:2px;">

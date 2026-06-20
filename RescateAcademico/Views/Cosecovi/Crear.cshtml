@@ -32,7 +32,8 @@
                     <div class="row g-3">
                         <div class="col-md-7">
                             <label class="ra-label">Alumno *</label>
-                            <select asp-for="AlumnoMatricula" class="ra-select" required>
+                            <input type="search" id="alumnoBusqueda" class="ra-input mb-2" placeholder="Escribe boleta, nombre o apellidos..." autocomplete="off" />
+                            <select asp-for="AlumnoMatricula" class="ra-select" required size="7">
                                 <option value="">Selecciona un alumno</option>
                                 @foreach (var a in alumnos)
                                 {
@@ -49,7 +50,7 @@
                         </div>
                         <div class="col-md-2">
                             <label class="ra-label">Periodo *</label>
-                            <input asp-for="Periodo" class="ra-input" placeholder="2026-A" required />
+                            <input asp-for="Periodo" class="ra-input" value="@ViewBag.PeriodoActual" readonly required />
                         </div>
                     </div>
 
@@ -143,6 +144,15 @@
             if (select) {
                 select.addEventListener('change', syncAlumnoPreview);
                 syncAlumnoPreview();
+            }
+            var search = document.getElementById('alumnoBusqueda');
+            if (search && select) {
+                search.addEventListener('input', function () {
+                    var term = search.value.trim().toLocaleLowerCase('es-MX');
+                    Array.prototype.forEach.call(select.options, function (option) {
+                        option.hidden = !!term && option.text.toLocaleLowerCase('es-MX').indexOf(term) === -1;
+                    });
+                });
             }
         })();
     </script>
