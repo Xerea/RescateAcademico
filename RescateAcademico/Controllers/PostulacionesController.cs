@@ -69,12 +69,6 @@ namespace RescateAcademico.Controllers
                 TempData["Error"] = "Convocatoria no encontrada";
                 return RedirectToAction("Index", "Convocatorias");
             }
-            if (!convocatoria.ProyectoId.HasValue)
-            {
-                TempData["Error"] = "Esta convocatoria no tiene un proyecto asociado y no puede recibir postulaciones.";
-                return RedirectToAction("Index", "Convocatorias");
-            }
-
             var elegibilidad = await _eligibilityService.EvaluarAsync(alumno, convocatoria);
             if (!elegibilidad.IsEligible)
             {
@@ -108,11 +102,7 @@ namespace RescateAcademico.Controllers
                 TempData["Error"] = "Convocatoria no encontrada";
                 return RedirectToAction("Index", "Convocatorias");
             }
-            if (!convocatoria.ProyectoId.HasValue)
-            {
-                TempData["Error"] = "Esta convocatoria no tiene un proyecto asociado y no puede recibir postulaciones.";
-                return RedirectToAction("Index", "Convocatorias");
-            }
+            var proyecto = await ResolverProyectoAsync(convocatoria);
 
             var elegibilidad = await _eligibilityService.EvaluarAsync(alumno, convocatoria);
             if (!elegibilidad.IsEligible)
@@ -122,7 +112,7 @@ namespace RescateAcademico.Controllers
             }
 
             if (await _context.Postulaciones.AnyAsync(p =>
-                p.AlumnoId == alumno.Matricula && p.ProyectoId == convocatoria.ProyectoId.Value))
+                p.AlumnoId == alumno.Matricula && p.ProyectoId == proyecto.Id))
             {
                 TempData["Error"] = "Ya tienes una postulación para este proyecto.";
                 return RedirectToAction("Index", "Convocatorias");
@@ -131,7 +121,7 @@ namespace RescateAcademico.Controllers
             var postulacion = new Postulacion
             {
                 AlumnoId = alumno.Matricula,
-                ProyectoId = convocatoria.ProyectoId.Value,
+                ProyectoId = proyecto.Id,
                 FechaSolicitud = DateTime.Now,
                 Estado = "En Revisión"
             };
@@ -180,6 +170,39 @@ namespace RescateAcademico.Controllers
 
             TempData["Success"] = "Postulacion enviada exitosamente";
             return RedirectToAction("MisPostulaciones");
+        }
+
+        // Legacy convocatorias predate the required project relationship. Resolve them only
+        // when a student submits, so browsing a public opportunity never mutates data.
+        private async Task<Proyecto> ResolverProyectoAsync(Convocatoria convocatoria)
+        {
+            if (convocatoria.ProyectoId.HasValue)
+            {
+                var asociado = await _context.Proyectos.FindAsync(convocatoria.ProyectoId.Value);
+                if (asociado != null)
+                    return asociado;
+            }
+
+            var proyecto = await _context.Proyectos
+                .FirstOrDefaultAsync(p => p.Titulo == convocatoria.Titulo && p.EstaActivo);
+
+            if (proyecto == null)
+            {
+                proyecto = new Proyecto
+                {
+                    Titulo = convocatoria.Titulo,
+                    Descripcion = convocatoria.Descripcion ?? "Proyecto asociado a una convocatoria institucional.",
+                    Tipo = convocatoria.Tipo,
+                    CupoMaximo = convocatoria.CupoMaximo,
+                    FechaCierre = convocatoria.FechaCierre,
+                    EstaActivo = convocatoria.EstaActiva
+                };
+                _context.Proyectos.Add(proyecto);
+                await _context.SaveChangesAsync();
+            }
+
+            convocatoria.ProyectoId = proyecto.Id;
+            return proyecto;
         }
 
         [Authorize(Roles = "Administrador,Autoridad")]
