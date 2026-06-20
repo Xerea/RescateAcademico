@@ -271,7 +271,21 @@ namespace RescateAcademico.Controllers
                 query = query.Where(c => c.Alumno!.Grupo != null && c.Alumno.Grupo.Clave == grupo);
             }
 
-            var califReprobadas = await query
+            var candidatas = await query
+                .Include(c => c.Alumno)
+                    .ThenInclude(a => a!.Grupo)
+                .Include(c => c.Materia)
+                .ToListAsync();
+
+            // Historical grade rows can contain old failed attempts. The academic profile
+            // stores the current unresolved count, which is the value tutors act upon.
+            var califReprobadas = candidatas
+                .GroupBy(c => c.AlumnoMatricula)
+                .SelectMany(g => g
+                    .OrderByDescending(c => c.Materia?.Semestre ?? 0)
+                    .ThenBy(c => c.Valor ?? decimal.MaxValue)
+                    .ThenBy(c => c.Materia?.Clave)
+                    .Take(Math.Max(0, g.First().Alumno?.MateriasReprobadas ?? 0)))
                 .OrderBy(c => c.Alumno!.Apellidos)
                 .ThenBy(c => c.Alumno!.Nombre)
                 .ThenBy(c => c.Materia!.Clave)
@@ -285,7 +299,7 @@ namespace RescateAcademico.Controllers
                     Calificacion = c.Valor ?? 0,
                     VecesCursada = c.VecesCursada ?? 0
                 })
-                .ToListAsync();
+                .ToList();
 
             ViewBag.Grupos = grupos.Select(g => g.Clave).ToList();
             ViewBag.GrupoSeleccionado = grupo;

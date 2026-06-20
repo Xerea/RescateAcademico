@@ -207,6 +207,10 @@ namespace RescateAcademico.Controllers
             var reporte = await _context.ReportesCosecovi.FindAsync(id);
             if (reporte == null) return NotFound();
 
+            // These fields are intentionally not posted by the edit form and are retained
+            // from the persisted record, so their model-binding validation must not block edits.
+            ModelState.Remove(nameof(ReporteCosecovi.AlumnoMatricula));
+            ModelState.Remove(nameof(ReporteCosecovi.Periodo));
             form.Periodo = reporte.Periodo;
             ValidarFechaIncidente(form.FechaIncidente, reporte.FechaReporte);
             ValidarCatalogos(form);
