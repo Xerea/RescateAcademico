@@ -44,6 +44,8 @@
                     <dd class="col-7">@(Model.Canalizacion ?? "Sin turno")</dd>
                     <dt class="col-5 text-secondary">Estado</dt>
                     <dd class="col-7"><partial name="_CosecoviEstadoBadge" model="Model.Estado" /></dd>
+                    <dt class="col-5 text-secondary">Fecha del incidente</dt>
+                    <dd class="col-7">@Model.FechaIncidente.ToString("dd/MM/yyyy HH:mm")</dd>
                     <dt class="col-5 text-secondary">Elaboro</dt>
                     <dd class="col-7">@(Model.ElaboradoPor ?? "-")</dd>
                 </dl>

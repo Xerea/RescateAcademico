@@ -28,6 +28,7 @@
                 <form asp-action="Editar" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.Id" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3" role="alert"></div>
 
                     <div class="mb-3">
                         <label class="ra-label">Estado del caso</label>
@@ -46,6 +47,7 @@
                         <div class="col-md-4">
                             <label class="ra-label">Fecha del incidente</label>
                             <input asp-for="FechaIncidente" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="ra-input" min="@fechaMin" max="@fechaMax" step="60" required />
+                            <span asp-validation-for="FechaIncidente" class="text-danger small d-block mt-1"></span>
                             <div class="text-secondary small mt-1">Maximo 7 dias de antiguedad.</div>
                         </div>
                         <div class="col-md-4">

@@ -234,7 +234,8 @@ namespace RescateAcademico.Controllers
             reporte.Estado = string.IsNullOrEmpty(form.Estado) ? reporte.Estado : form.Estado;
 
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Reporte actualizado.";
+            await _context.Entry(reporte).ReloadAsync();
+            TempData["Success"] = $"Reporte actualizado. Fecha del incidente: {reporte.FechaIncidente:dd/MM/yyyy HH:mm}.";
             return RedirectToAction(nameof(Detalle), new { id });
         }
 
