@@ -36,7 +36,14 @@
                             @foreach (var e in estados)
                             {
                                 <label class="ra-tab @(Model.Estado == e ? "active" : "")" data-estado="@e">
-                                    <input type="radio" name="Estado" value="@e" checked="@(Model.Estado == e)" style="display:none;" />
+                                    @if (Model.Estado == e)
+                                    {
+                                        <input type="radio" name="Estado" value="@e" checked style="display:none;" />
+                                    }
+                                    else
+                                    {
+                                        <input type="radio" name="Estado" value="@e" style="display:none;" />
+                                    }
                                     @e
                                 </label>
                             }

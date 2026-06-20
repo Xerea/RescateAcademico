@@ -109,7 +109,7 @@
                                 <td data-label="Tipo">@r.TipoIncidente</td>
                                 <td data-label="Gravedad"><span class="ra-badge @gravedadClass">@r.Gravedad</span></td>
                                 <td data-label="Estado"><partial name="_CosecoviEstadoBadge" model="r.Estado" /></td>
-                                <td data-label="Fecha" class="text-secondary small">@r.FechaIncidente.ToString("dd/MM/yyyy")</td>
+                                <td data-label="Fecha" class="text-secondary small">@r.FechaIncidente.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td data-label="Turnado">@(r.Canalizacion ?? "Sin turno")</td>
                                 <td data-label="Acciones">
                                     <div class="d-flex gap-1 justify-content-end">
